@@ -48,3 +48,9 @@ python -m odefit.app
 pytest tests/
 ```
 
+## Shoutout
+Shoutout goes to Sebastian for breaking his arm cycling
+I've always been meaning to develop something like this
+as ODEs are typically hard to approach for many initially
+and needed an extra pair of hands and another brain to
+make this happen.
