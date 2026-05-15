@@ -1,0 +1,8 @@
+numpy
+scipy
+pandas
+matplotlib
+sympy
+PySide6
+numba
+pytest

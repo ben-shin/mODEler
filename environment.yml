@@ -1,0 +1,20 @@
+name: modeller
+
+channels:
+  - conda-forge
+
+dependencies:
+  - python=3.11
+  - numpy
+  - scipy
+  - pandas
+  - matplotlib
+  - sympy
+  - numba
+  - pip
+
+  - pip:
+      - PySide6
+      - pytest
+      - black
+      - ruff
