@@ -53,4 +53,6 @@ Shoutout goes to Sebastian for breaking his arm cycling
 I've always been meaning to develop something like this
 as ODEs are typically hard to approach for many initially
 and needed an extra pair of hands and another brain to
-make this happen.
+make this happen. In this case an extra hand and another
+brain. But thanks again for agreeing to it in principle
+and donating your time big dog
