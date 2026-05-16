@@ -4,7 +4,12 @@ from dataclasses import dataclass
 @dataclass
 class ParameterSpec:
     """
-    Specifications for one fitted or fixed parameter
+    Specification for one kinetic parameter.
+
+    Parameters can be:
+    - free: optimized by least_squares
+    - fixed: held at fixed_value
+    - tied: forced to equal another parameter
     """
 
     name: str
@@ -13,3 +18,4 @@ class ParameterSpec:
     upper_bound: float = float("inf")
     fixed: bool = False
     fixed_value: float | None = None
+    tied_to: str | None = None

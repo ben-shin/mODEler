@@ -183,3 +183,82 @@ def test_fit_all_parameters_fixed_raises_error():
             initial_conditions=initial_conditions,
             settings=settings,
         )
+
+        def test_fit_tied_parameters_synthetic_data():
+            model = build_model_spec(
+                """
+                A>B
+                C>D
+                """
+            )
+
+            true_k = 0.5
+
+            timepoints = np.linspace(0.0, 5.0, 30)
+
+            a_values = np.exp(-true_k * timepoints)
+            b_values = 1.0 - a_values
+
+            c_values = 2.0 * np.exp(-true_k * timepoints)
+            d_values = 2.0 - c_values
+
+            dataframe = pd.DataFrame(
+                {
+                    "time": timepoints,
+                    "A": a_values,
+                    "B": b_values,
+                    "C": c_values,
+                    "D": d_values,
+                }
+            )
+
+            dataset = Dataset(
+                raw_dataframe=dataframe,
+                time_column="time",
+                signal_columns=["A", "B", "C", "D"],
+            )
+
+            parameter_specs = [
+                ParameterSpec(
+                    name="k1f",
+                    initial_guess=0.1,
+                    lower_bound=0.0,
+                    upper_bound=10.0,
+                ),
+                ParameterSpec(
+                    name="k2f",
+                    initial_guess=0.1,
+                    lower_bound=0.0,
+                    upper_bound=10.0,
+                    tied_to="k1f",
+                ),
+            ]
+
+            initial_conditions = {
+                "A": 1.0,
+                "B": 0.0,
+                "C": 2.0,
+                "D": 0.0,
+            }
+
+            settings = FitSettings(
+                species_mapping={
+                    "A": "A",
+                    "B": "B",
+                    "C": "C",
+                    "D": "D",
+                }
+            )
+
+            result = fit_model(
+                model=model,
+                dataset=dataset,
+                parameter_specs=parameter_specs,
+                initial_conditions=initial_conditions,
+                settings=settings,
+            )
+
+            assert result.success
+            assert result.fitted_parameters["k1f"] == pytest.approx(true_k, rel=1e-2)
+            assert result.fitted_parameters["k2f"] == pytest.approx(true_k, rel=1e-2)
+            assert result.fitted_parameters["k1f"] == result.fitted_parameters["k2f"]

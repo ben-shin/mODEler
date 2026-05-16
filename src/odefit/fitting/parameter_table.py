@@ -1,6 +1,10 @@
 import pandas as pd
 
 from odefit.fitting.parameter_spec import ParameterSpec
+from odefit.fitting.parameter_vector import (
+    build_initial_vector,
+    vector_to_parameter_dict,
+)
 
 
 def build_parameter_table(
@@ -26,6 +30,7 @@ def build_parameter_table(
                 "upper_bound": parameter.upper_bound,
                 "fixed": parameter.fixed,
                 "fixed_value": parameter.fixed_value,
+                "tied_to": parameter.tied_to,
             }
         )
 
@@ -36,24 +41,16 @@ def build_initial_parameter_dict(
     parameter_specs: list[ParameterSpec],
 ) -> dict[str, float]:
     """
-    Build a dictionary of initial/fixed parameter values.
+    Build a dictionary of initial/fixed/tied parameter values.
 
     Fixed parameters use fixed_value.
     Free parameters use initial_guess.
+    Tied parameters are resolved from the parameter they are tied to.
     """
 
-    initial_parameters: dict[str, float] = {}
+    initial_vector = build_initial_vector(parameter_specs)
 
-    for parameter in parameter_specs:
-        if parameter.fixed:
-            if parameter.fixed_value is None:
-                raise ValueError(
-                    f"Fixed parameter missing fixed value: {parameter.name}"
-                )
-
-            initial_parameters[parameter.name] = parameter.fixed_value
-
-        else:
-            initial_parameters[parameter.name] = parameter.initial_guess
-
-    return initial_parameters
+    return vector_to_parameter_dict(
+        vector=initial_vector,
+        parameter_specs=parameter_specs,
+    )
