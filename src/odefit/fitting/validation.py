@@ -1,11 +1,41 @@
 from odefit.data.dataset import Dataset
 from odefit.fitting.fit_settings import FitSettings
+from odefit.fitting.initial_condition_spec import InitialConditionSpec
+from odefit.fitting.initial_condition_vector import (
+    get_free_initial_condition_specs,
+    make_fixed_initial_condition_specs,
+    validate_initial_condition_specs,
+)
 from odefit.fitting.parameter_spec import ParameterSpec
 from odefit.fitting.parameter_vector import (
     get_free_parameter_specs,
     validate_parameter_specs,
 )
 from odefit.model.model_spec import ModelSpec
+
+
+def resolve_initial_condition_specs(
+    initial_conditions: dict[str, float] | None = None,
+    initial_condition_specs: list[InitialConditionSpec] | None = None,
+) -> list[InitialConditionSpec]:
+    """
+    Resolve old-style initial_conditions or new-style initial_condition_specs.
+
+    Only one should be provided.
+    """
+
+    if initial_conditions is not None and initial_condition_specs is not None:
+        raise ValueError(
+            "Provide either initial_conditions or initial_condition_specs, not both"
+        )
+
+    if initial_condition_specs is not None:
+        return initial_condition_specs
+
+    if initial_conditions is not None:
+        return make_fixed_initial_condition_specs(initial_conditions)
+
+    raise ValueError("Initial conditions are required")
 
 
 def validate_model_parameter_specs(
@@ -31,6 +61,31 @@ def validate_model_parameter_specs(
         raise ValueError(f"ParameterSpec entries not present in model: {extra}")
 
 
+def validate_model_initial_condition_specs(
+    model: ModelSpec,
+    initial_condition_specs: list[InitialConditionSpec],
+) -> None:
+    """
+    Validate that initial-condition specs match model species exactly.
+    """
+
+    model_species = set(model.species)
+    spec_species = {
+        initial_condition.species for initial_condition in initial_condition_specs
+    }
+
+    missing_species = model_species - spec_species
+    extra_species = spec_species - model_species
+
+    if missing_species:
+        missing = ", ".join(sorted(missing_species))
+        raise ValueError(f"Missing InitialConditionSpec entries for: {missing}")
+
+    if extra_species:
+        extra = ", ".join(sorted(extra_species))
+        raise ValueError(f"InitialConditionSpec entries not present in model: {extra}")
+
+
 def validate_species_mapping(
     model: ModelSpec,
     dataset: Dataset,
@@ -51,19 +106,6 @@ def validate_species_mapping(
             raise ValueError(f"Mapped model species is not in model: {model_species}")
 
 
-def validate_initial_conditions(
-    model: ModelSpec,
-    initial_conditions: dict[str, float],
-) -> None:
-    """
-    Validate that all model species have initial conditions.
-    """
-
-    for species_name in model.species:
-        if species_name not in initial_conditions:
-            raise ValueError(f"Missing initial condition for species: {species_name}")
-
-
 def validate_normalized_data_available(
     dataset: Dataset,
     settings: FitSettings,
@@ -79,22 +121,22 @@ def validate_normalized_data_available(
 def validate_residual_count(
     dataset: Dataset,
     settings: FitSettings,
-    number_of_free_parameters: int,
+    number_of_free_variables: int,
 ) -> None:
     """
-    Validate that there are more residuals than free parameters.
+    Validate that there are more residuals than free variables.
     """
 
     number_of_timepoints = len(dataset.time_values)
     number_of_mapped_signals = len(settings.species_mapping)
     number_of_residuals = number_of_timepoints * number_of_mapped_signals
 
-    if number_of_free_parameters == 0:
-        raise ValueError("At least one free parameter is required for fitting")
+    if number_of_free_variables == 0:
+        raise ValueError("At least one free variable is required for fitting")
 
-    if number_of_residuals <= number_of_free_parameters:
+    if number_of_residuals <= number_of_free_variables:
         raise ValueError(
-            "Number of residuals must be greater than number of free parameters"
+            "Number of residuals must be greater than number of free variables"
         )
 
 
@@ -102,23 +144,44 @@ def validate_fit_inputs(
     model: ModelSpec,
     dataset: Dataset,
     parameter_specs: list[ParameterSpec],
-    initial_conditions: dict[str, float],
-    settings: FitSettings,
-) -> None:
+    initial_conditions: dict[str, float] | None = None,
+    settings: FitSettings | None = None,
+    initial_condition_specs: list[InitialConditionSpec] | None = None,
+) -> list[InitialConditionSpec]:
     """
     Validate all fitting inputs before optimization.
+
+    Returns resolved InitialConditionSpec objects.
     """
 
+    if settings is None:
+        raise ValueError("FitSettings are required")
+
+    resolved_initial_condition_specs = resolve_initial_condition_specs(
+        initial_conditions=initial_conditions,
+        initial_condition_specs=initial_condition_specs,
+    )
+
     validate_parameter_specs(parameter_specs)
+    validate_initial_condition_specs(resolved_initial_condition_specs)
+
     validate_model_parameter_specs(model, parameter_specs)
+    validate_model_initial_condition_specs(model, resolved_initial_condition_specs)
+
     validate_species_mapping(model, dataset, settings)
-    validate_initial_conditions(model, initial_conditions)
     validate_normalized_data_available(dataset, settings)
 
     number_of_free_parameters = len(get_free_parameter_specs(parameter_specs))
+    number_of_free_initial_conditions = len(
+        get_free_initial_condition_specs(resolved_initial_condition_specs)
+    )
 
     validate_residual_count(
         dataset=dataset,
         settings=settings,
-        number_of_free_parameters=number_of_free_parameters,
+        number_of_free_variables=(
+            number_of_free_parameters + number_of_free_initial_conditions
+        ),
     )
+
+    return resolved_initial_condition_specs

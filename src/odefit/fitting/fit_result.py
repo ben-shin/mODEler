@@ -20,3 +20,5 @@ class FitResult:
     simulation_result: SimulationResult
     nfev: int
     cost: float
+    fitted_initial_conditions: dict[str, float] | None = None
+    initial_conditions: dict[str, float] | None = None
