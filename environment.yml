@@ -1,4 +1,4 @@
-name: modeller
+name: modeler
 
 channels:
   - conda-forge
