@@ -49,10 +49,10 @@ pytest tests/
 ```
 
 ## Shoutout
-Shoutout goes to Sebastian for breaking his arm cycling
+Shoutout goes to Sebastian for breaking his arm cycling -
 I've always been meaning to develop something like this
-as ODEs are typically hard to approach for many initially
-and needed an extra pair of hands and another brain to
-make this happen. In this case an extra hand and another
-brain. But thanks again for agreeing to it in principle
-and donating your time big dog
+as ODEs are typically hard to approach for many initially,
+and I needed an extra pair of hands and another brain to
+make this happen. Well, I guess in this case a single extra
+hand and another brain. But thanks again for agreeing to it
+in principle and donating your time big dog
