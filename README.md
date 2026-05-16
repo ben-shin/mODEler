@@ -29,11 +29,11 @@ P5>P_proto
 ## Installation
 
 ```bash
-git clone git@github.com:ben-shin/mODEller.git
-cd mODEller
+git clone git@github.com:ben-shin/mODEler.git
+cd mODEler
 
 conda env create -f environment.yml
-conda activate modeller
+conda activate modeler
 ```
 
 ## Running
