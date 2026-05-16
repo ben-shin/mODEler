@@ -1,5 +1,5 @@
-# mODEller
-mODEller is a GUI-based software package for:
+# mODEler
+mODEler is a GUI-based software package for:
 
 - constructing kinetic reaction models
 - automatically generating ODE systems
