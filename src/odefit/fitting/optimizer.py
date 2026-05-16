@@ -4,7 +4,10 @@ from odefit.data.dataset import Dataset
 from odefit.fitting.fit_result import FitResult
 from odefit.fitting.fit_settings import FitSettings
 from odefit.fitting.initial_condition_spec import InitialConditionSpec
-from odefit.fitting.initial_condition_vector import build_initial_condition_dict
+from odefit.fitting.initial_condition_vector import (
+    build_initial_condition_dict,
+    get_free_initial_condition_specs,
+)
 from odefit.fitting.objective import objective_function
 from odefit.fitting.optimization_vector import (
     build_optimization_bounds,
@@ -104,11 +107,13 @@ def fit_model(
         settings=settings,
     )
 
-    number_of_free_parameters = len(get_free_parameter_specs(parameter_specs))
+    number_of_free_variables = len(get_free_parameter_specs(parameter_specs)) + len(
+        get_free_initial_condition_specs(resolved_initial_condition_specs)
+    )
 
     statistics = calculate_fit_statistics(
         residuals=residuals,
-        number_of_parameters=number_of_free_parameters,
+        number_of_parameters=number_of_free_variables,
     )
 
     return FitResult(
