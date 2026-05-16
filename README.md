@@ -23,7 +23,7 @@ mODEler is a GUI-based software package for:
 2P1-P2
 P1+P2-P3
 P2+P3-P5
-P5>P_proto
+2P5>P10
 ```
 
 ## Installation
