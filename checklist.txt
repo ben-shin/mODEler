@@ -807,14 +807,14 @@ Legend:
 11.1 CLI basics
 ---------------
 [x] cli.py exists
-[ ] Parse model file path
-[ ] Parse data file path
-[ ] Parse time column
-[ ] Parse signal columns
-[ ] Parse species mapping
-[ ] Print detected species
-[ ] Print detected parameters
-[ ] Print generated ODEs
+[x] Parse model file path
+[x] Parse data file path
+[x] Parse time column
+[x] Parse signal columns
+[x] Parse species mapping
+[x] Print detected species
+[x] Print detected parameters
+[x] Print generated ODEs
 
 11.2 CLI simulation
 -------------------
@@ -826,14 +826,14 @@ Legend:
 
 11.3 CLI fitting
 ----------------
-[ ] Run fit from CLI
+[x] Run fit from CLI
 [ ] Accept parameter guesses
 [ ] Accept bounds
 [ ] Accept fixed parameters
 [ ] Accept tied parameters
 [ ] Accept fitted initial conditions
 [ ] Export fit bundle
-[ ] Add CLI tests
+[x] Add CLI tests
 
 
 12. PARALLEL COMPUTING / HPC / GPU / CLUSTERS
