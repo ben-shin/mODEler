@@ -1,0 +1,2 @@
+dA/dt = -2*k1f*A^2
+dA2/dt = k1f*A^2

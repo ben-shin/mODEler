@@ -8,6 +8,10 @@ from odefit.fitting.initial_condition_spec import InitialConditionSpec
 from odefit.fitting.observable_spec import ObservableSpec
 from odefit.fitting.parameter_spec import ParameterSpec
 from odefit.model.model_spec import ModelSpec
+from odefit.plotting.observable_plots import (
+    save_observable_residuals_plot,
+    save_observed_vs_predicted_observables_plot,
+)
 from odefit.plotting.observed_vs_predicted import save_observed_vs_fitted_plot
 from odefit.plotting.residual_plots import save_residuals_plot
 
@@ -91,9 +95,15 @@ def export_fit_plots(
     species_mapping: dict[str, str],
     output_dir: str | Path,
     use_normalized_data: bool = False,
+    observable_specs: list[ObservableSpec] | None = None,
 ) -> dict[str, Path]:
     """
     Export observed-vs-fitted and residual plots.
+
+    If observable_specs and fitted_observables are available, observable-aware
+    plots are written.
+
+    Otherwise, direct species-mapping plots are written.
     """
 
     output_path = Path(output_dir)
@@ -101,21 +111,41 @@ def export_fit_plots(
 
     written_files: dict[str, Path] = {}
 
-    written_files["observed_vs_fitted_plot"] = save_observed_vs_fitted_plot(
-        dataset=dataset,
-        simulation_result=fit_result.simulation_result,
-        species_mapping=species_mapping,
-        file_path=output_path / "observed_vs_fitted.png",
-        use_normalized_data=use_normalized_data,
-    )
+    if observable_specs is not None and fit_result.fitted_observables is not None:
+        written_files["observed_vs_fitted_plot"] = (
+            save_observed_vs_predicted_observables_plot(
+                dataset=dataset,
+                simulation_result=fit_result.simulation_result,
+                observable_parameters=fit_result.fitted_observables,
+                file_path=output_path / "observed_vs_fitted.png",
+                use_normalized_data=use_normalized_data,
+            )
+        )
 
-    written_files["residuals_plot"] = save_residuals_plot(
-        dataset=dataset,
-        simulation_result=fit_result.simulation_result,
-        species_mapping=species_mapping,
-        file_path=output_path / "residuals.png",
-        use_normalized_data=use_normalized_data,
-    )
+        written_files["residuals_plot"] = save_observable_residuals_plot(
+            dataset=dataset,
+            simulation_result=fit_result.simulation_result,
+            observable_parameters=fit_result.fitted_observables,
+            file_path=output_path / "residuals.png",
+            use_normalized_data=use_normalized_data,
+        )
+
+    else:
+        written_files["observed_vs_fitted_plot"] = save_observed_vs_fitted_plot(
+            dataset=dataset,
+            simulation_result=fit_result.simulation_result,
+            species_mapping=species_mapping,
+            file_path=output_path / "observed_vs_fitted.png",
+            use_normalized_data=use_normalized_data,
+        )
+
+        written_files["residuals_plot"] = save_residuals_plot(
+            dataset=dataset,
+            simulation_result=fit_result.simulation_result,
+            species_mapping=species_mapping,
+            file_path=output_path / "residuals.png",
+            use_normalized_data=use_normalized_data,
+        )
 
     return written_files
 
@@ -189,6 +219,7 @@ def export_fit_bundle(
                 species_mapping=species_mapping,
                 output_dir=output_path,
                 use_normalized_data=use_normalized_data,
+                observable_specs=observable_specs,
             )
         )
 

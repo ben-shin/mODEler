@@ -347,3 +347,56 @@ def test_export_fit_bundle_writes_observable_table(tmp_path):
     assert list(table["data_column"]) == ["A_signal"]
     assert list(table["scale_fitted_value"]) == [2.0]
     assert list(table["offset_fitted_value"]) == [0.1]
+
+
+def test_export_fit_bundle_writes_observable_aware_plots(tmp_path):
+    model = make_model()
+    dataset = make_dataset()
+    fit_result = make_fit_result()
+
+    dataset.raw_dataframe["amide"] = 2.0 * dataset.raw_dataframe["A"] + 0.1
+    dataset.signal_columns.append("amide")
+
+    fit_result.fitted_observables = {
+        "amide": {
+            "species": "A",
+            "scale": 2.0,
+            "offset": 0.1,
+        }
+    }
+
+    observable_specs = [
+        ObservableSpec(
+            data_column="amide",
+            species="A",
+            scale_initial_guess=1.0,
+            scale_lower_bound=0.0,
+            scale_upper_bound=10.0,
+            scale_fixed=False,
+            offset_initial_guess=0.0,
+            offset_lower_bound=-1.0,
+            offset_upper_bound=1.0,
+            offset_fixed=False,
+        )
+    ]
+
+    written_files = export_fit_bundle(
+        fit_result=fit_result,
+        model=model,
+        dataset=dataset,
+        output_dir=tmp_path,
+        parameter_specs=make_parameter_specs(),
+        initial_condition_specs=make_initial_condition_specs(),
+        species_mapping={
+            "A": "A",
+            "B": "B",
+        },
+        observable_specs=observable_specs,
+        include_plots=True,
+    )
+
+    assert "observed_vs_fitted_plot" in written_files
+    assert "residuals_plot" in written_files
+
+    assert (tmp_path / "observed_vs_fitted.png").exists()
+    assert (tmp_path / "residuals.png").exists()

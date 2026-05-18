@@ -1,0 +1,2 @@
+data_column,species,fitted_species,scale_initial_guess,scale_fitted_value,scale_lower_bound,scale_upper_bound,scale_fixed,scale_fixed_value,offset_initial_guess,offset_fitted_value,offset_lower_bound,offset_upper_bound,offset_fixed,offset_fixed_value
+amide_percent,A,A,20.0,116.3285011570605,0.0,200.0,False,1.0,80.0,1.5349579902218715e-12,0.0,120.0,False,0.0

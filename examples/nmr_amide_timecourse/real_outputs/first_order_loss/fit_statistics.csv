@@ -1,0 +1,11 @@
+statistic,value
+success,True
+message,`ftol` termination condition is satisfied.
+nfev,29
+cost,1853.3039028363255
+rss,3706.607805672651
+rmse,4.843505246603697
+aic,504.53382386257664
+bic,513.7216089616576
+n_residuals,158.0
+n_parameters,3.0

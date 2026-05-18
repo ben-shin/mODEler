@@ -1,0 +1,2 @@
+dA/dt = -k1f*A + k1r*B
+dB/dt = k1f*A - k1r*B
