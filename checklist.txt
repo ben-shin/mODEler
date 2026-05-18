@@ -933,11 +933,17 @@ Legend:
 [ ] Ensure fitting can run from Python script
 [x] Add CLI fitting command
 [ ] Add CLI simulation command
-[ ] Add CLI batch fitting command
+[x] Add CLI batch fitting command
 [x] Add config-file-driven jobs
 [ ] Avoid hardcoded local paths
 [ ] Save all job settings to output folder
 [ ] Save reproducibility metadata
+[x] Add multistart command
+[x] Add config-file-drive multistart fitting
+[x] Support serial multistart from CLI
+[x] Support parallel multistart form CLI
+[x] Export multistart comparison table
+[x] Export best fit bundle from multistart
 
 12.9 Job configuration files
 ----------------------------
