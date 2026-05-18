@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -231,3 +232,128 @@ def test_fit_command_writes_output_bundle(tmp_path):
     assert (output_dir / "simulated_curves.csv").exists()
     assert (output_dir / "residuals.csv").exists()
     assert (output_dir / "optimizer_diagnostics.csv").exists()
+
+
+def test_parse_mapping_entries_accepts_dict():
+    mapping = parse_mapping_entries(
+        {
+            "amide": "A",
+            "signal_b": "B",
+        }
+    )
+
+    assert mapping == {
+        "amide": "A",
+        "signal_b": "B",
+    }
+
+
+def test_parse_parameter_entries_accepts_dict():
+    parsed = parse_parameter_entries(
+        {
+            "k1f": {
+                "initial_guess": 0.01,
+                "lower_bound": 0.0,
+                "upper_bound": 10.0,
+            }
+        }
+    )
+
+    assert parsed == {
+        "k1f": (0.01, 0.0, 10.0),
+    }
+
+
+def test_parse_signal_weight_entries_accepts_dict():
+    weights = parse_signal_weight_entries(
+        {
+            "A": 2.0,
+            "B": 0.5,
+        }
+    )
+
+    assert weights == {
+        "A": 2.0,
+        "B": 0.5,
+    }
+
+
+def test_fit_command_with_config_writes_output_bundle(tmp_path):
+    model_path = tmp_path / "model.txt"
+    data_path = tmp_path / "data.csv"
+    output_dir = tmp_path / "fit_output"
+    config_path = tmp_path / "fit_config.json"
+
+    model_path.write_text("A>B")
+
+    dataframe = pd.DataFrame(
+        {
+            "time": [0.0, 1.0, 2.0, 3.0],
+            "A": [1.0, 0.6, 0.35, 0.2],
+            "B": [0.0, 0.4, 0.65, 0.8],
+        }
+    )
+
+    dataframe.to_csv(data_path, index=False)
+
+    config = {
+        "model": str(model_path),
+        "data": str(data_path),
+        "time_column": "time",
+        "signal_columns": ["A", "B"],
+        "mapping": {
+            "A": "A",
+            "B": "B",
+        },
+        "parameters": {
+            "k1f": {
+                "initial_guess": 0.2,
+                "lower_bound": 0.0,
+                "upper_bound": 10.0,
+            }
+        },
+        "initial_conditions": {
+            "A": {
+                "value": 1.0,
+                "mode": "fixed",
+                "lower_bound": 0.0,
+                "upper_bound": 10.0,
+            },
+            "B": {
+                "value": 0.0,
+                "mode": "fixed",
+                "lower_bound": 0.0,
+                "upper_bound": 10.0,
+            },
+        },
+        "signal_weights": {
+            "A": 1.0,
+            "B": 1.0,
+        },
+        "method": "trf",
+        "loss": "linear",
+        "rtol": 1e-6,
+        "atol": 1e-9,
+        "max_nfev": 1000,
+        "output_dir": str(output_dir),
+        "no_plots": True,
+    }
+
+    config_path.write_text(json.dumps(config))
+
+    main(
+        [
+            "fit",
+            "--config",
+            str(config_path),
+        ]
+    )
+
+    assert output_dir.exists()
+    assert (output_dir / "fit_statistics.csv").exists()
+    assert (output_dir / "optimizer_diagnostics.csv").exists()
+    assert (output_dir / "fit_diagnostics.csv").exists()
+    assert (output_dir / "fitted_parameters.csv").exists()
+    assert (output_dir / "fitted_initial_conditions.csv").exists()
+    assert (output_dir / "simulated_curves.csv").exists()
+    assert (output_dir / "residuals.csv").exists()

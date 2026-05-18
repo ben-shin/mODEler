@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -28,20 +29,101 @@ def read_model_file(model_path: str | Path) -> ModelSpec:
     return build_model_spec(path.read_text())
 
 
+def load_fit_config(config_path: str | Path | None) -> dict:
+    """
+    Load a JSON fit configuration file.
+
+    Returns an empty dict if no config path is supplied.
+    """
+
+    if config_path is None:
+        return {}
+
+    path = Path(config_path)
+
+    if not path.exists():
+        raise FileNotFoundError(f"Config file does not exist: {path}")
+
+    with path.open("r") as handle:
+        return json.load(handle)
+
+
+def get_config_value(
+    args: argparse.Namespace,
+    config: dict,
+    argument_name: str,
+    default=None,
+    required: bool = False,
+):
+    """
+    Get an argument value, preferring command-line value over config value.
+    """
+
+    cli_value = getattr(args, argument_name)
+
+    if cli_value is not None:
+        value = cli_value
+    else:
+        value = config.get(argument_name, default)
+
+    if required and value is None:
+        raise ValueError(f"Missing required argument/config value: {argument_name}")
+
+    return value
+
+
+def get_config_list_or_dict_value(
+    args: argparse.Namespace,
+    config: dict,
+    argument_name: str,
+    alternative_config_name: str | None = None,
+):
+    """
+    Get a list/dict config value, preferring CLI over config.
+
+    Supports alternative config keys like:
+        parameter -> parameters
+        initial -> initial_conditions
+        signal_weight -> signal_weights
+    """
+
+    cli_value = getattr(args, argument_name)
+
+    if cli_value is not None:
+        return cli_value
+
+    if argument_name in config:
+        return config[argument_name]
+
+    if alternative_config_name is not None and alternative_config_name in config:
+        return config[alternative_config_name]
+
+    return None
+
+
 def parse_mapping_entries(
-    mapping_entries: list[str] | None,
+    mapping_entries: list[str] | dict[str, str] | None,
 ) -> dict[str, str]:
     """
-    Parse mapping entries of the form:
+    Parse mapping entries.
 
-        data_column:species
+    CLI format:
+        ["data_column:species"]
 
-    Example:
-        amide:A
+    JSON config format:
+        {
+            "data_column": "species"
+        }
     """
 
     if not mapping_entries:
         return {}
+
+    if isinstance(mapping_entries, dict):
+        return {
+            str(data_column): str(species)
+            for data_column, species in mapping_entries.items()
+        }
 
     mapping: dict[str, str] = {}
 
@@ -61,6 +143,173 @@ def parse_mapping_entries(
         mapping[data_column] = species
 
     return mapping
+
+
+def parse_parameter_entries(
+    parameter_entries: list[str] | dict | None,
+) -> dict[str, tuple[float, float, float]]:
+    """
+    Parse parameter entries.
+
+    CLI format:
+        ["k1f:0.01:0:10"]
+
+    JSON config format:
+        {
+            "k1f": {
+                "initial_guess": 0.01,
+                "lower_bound": 0.0,
+                "upper_bound": 10.0
+            }
+        }
+    """
+
+    if not parameter_entries:
+        return {}
+
+    parsed: dict[str, tuple[float, float, float]] = {}
+
+    if isinstance(parameter_entries, dict):
+        for name, values in parameter_entries.items():
+            parsed[str(name)] = (
+                float(values["initial_guess"]),
+                float(values.get("lower_bound", 0.0)),
+                float(values.get("upper_bound", 100.0)),
+            )
+
+        return parsed
+
+    for entry in parameter_entries:
+        parts = entry.split(":")
+
+        if len(parts) != 4:
+            raise ValueError(
+                "Parameter entries must have format "
+                "name:initial_guess:lower_bound:upper_bound. "
+                f"Got: {entry}"
+            )
+
+        name, guess, lower, upper = parts
+
+        parsed[name] = (
+            float(guess),
+            float(lower),
+            float(upper),
+        )
+
+    return parsed
+
+
+def parse_initial_condition_entries(
+    initial_entries: list[str] | dict | None,
+) -> dict[str, tuple[float, bool, float, float]]:
+    """
+    Parse initial-condition entries.
+
+    CLI format:
+        ["A:1.0:fixed:0:10"]
+
+    JSON config format:
+        {
+            "A": {
+                "value": 1.0,
+                "mode": "fixed",
+                "lower_bound": 0.0,
+                "upper_bound": 10.0
+            }
+        }
+    """
+
+    if not initial_entries:
+        return {}
+
+    parsed: dict[str, tuple[float, bool, float, float]] = {}
+
+    if isinstance(initial_entries, dict):
+        for species, values in initial_entries.items():
+            mode = values.get("mode", "fixed")
+
+            if mode not in {"fixed", "fit"}:
+                raise ValueError(
+                    f"Initial condition mode must be 'fixed' or 'fit'. Got: {mode}"
+                )
+
+            parsed[str(species)] = (
+                float(values["value"]),
+                mode == "fixed",
+                float(values.get("lower_bound", 0.0)),
+                float(values.get("upper_bound", 100.0)),
+            )
+
+        return parsed
+
+    for entry in initial_entries:
+        parts = entry.split(":")
+
+        if len(parts) != 5:
+            raise ValueError(
+                "Initial condition entries must have format "
+                "species:value:fixed_or_fit:lower_bound:upper_bound. "
+                f"Got: {entry}"
+            )
+
+        species, value, mode, lower, upper = parts
+
+        if mode not in {"fixed", "fit"}:
+            raise ValueError(
+                f"Initial condition mode must be 'fixed' or 'fit'. Got: {mode}"
+            )
+
+        parsed[species] = (
+            float(value),
+            mode == "fixed",
+            float(lower),
+            float(upper),
+        )
+
+    return parsed
+
+
+def parse_signal_weight_entries(
+    weight_entries: list[str] | dict[str, float] | None,
+) -> dict[str, float] | None:
+    """
+    Parse signal weight entries.
+
+    CLI format:
+        ["amide:2.0"]
+
+    JSON config format:
+        {
+            "amide": 2.0
+        }
+    """
+
+    if not weight_entries:
+        return None
+
+    if isinstance(weight_entries, dict):
+        return {
+            str(data_column): float(weight)
+            for data_column, weight in weight_entries.items()
+        }
+
+    weights: dict[str, float] = {}
+
+    for entry in weight_entries:
+        parts = entry.split(":")
+
+        if len(parts) != 2:
+            raise ValueError(
+                "Signal weight entries must have format data_column:weight. "
+                f"Got: {entry}"
+            )
+
+        data_column, weight = parts
+
+        weights[data_column] = float(weight)
+
+    return weights
 
 
 def build_default_species_mapping(
@@ -96,44 +345,6 @@ def build_default_species_mapping(
         )
 
     return mapping
-
-
-def parse_parameter_entries(
-    parameter_entries: list[str] | None,
-) -> dict[str, tuple[float, float, float]]:
-    """
-    Parse parameter entries of the form:
-
-        name:initial_guess:lower_bound:upper_bound
-
-    Example:
-        k1f:0.01:0:10
-    """
-
-    if not parameter_entries:
-        return {}
-
-    parsed: dict[str, tuple[float, float, float]] = {}
-
-    for entry in parameter_entries:
-        parts = entry.split(":")
-
-        if len(parts) != 4:
-            raise ValueError(
-                "Parameter entries must have format "
-                "name:initial_guess:lower_bound:upper_bound. "
-                f"Got: {entry}"
-            )
-
-        name, guess, lower, upper = parts
-
-        parsed[name] = (
-            float(guess),
-            float(lower),
-            float(upper),
-        )
-
-    return parsed
 
 
 def build_parameter_specs(
@@ -177,53 +388,6 @@ def build_parameter_specs(
         )
 
     return parameter_specs
-
-
-def parse_initial_condition_entries(
-    initial_entries: list[str] | None,
-) -> dict[str, tuple[float, bool, float, float]]:
-    """
-    Parse initial-condition entries of the form:
-
-        species:value:fixed_or_fit:lower_bound:upper_bound
-
-    Examples:
-        A:1.0:fixed:0:10
-        A:1.0:fit:0:10
-    """
-
-    if not initial_entries:
-        return {}
-
-    parsed: dict[str, tuple[float, bool, float, float]] = {}
-
-    for entry in initial_entries:
-        parts = entry.split(":")
-
-        if len(parts) != 5:
-            raise ValueError(
-                "Initial condition entries must have format "
-                "species:value:fixed_or_fit:lower_bound:upper_bound. "
-                f"Got: {entry}"
-            )
-
-        species, value, mode, lower, upper = parts
-
-        if mode not in {"fixed", "fit"}:
-            raise ValueError(
-                f"Initial condition mode must be 'fixed' or 'fit'. Got: {mode}"
-            )
-
-        fixed = mode == "fixed"
-
-        parsed[species] = (
-            float(value),
-            fixed,
-            float(lower),
-            float(upper),
-        )
-
-    return parsed
 
 
 def build_initial_condition_specs(
@@ -274,39 +438,6 @@ def build_initial_condition_specs(
     return initial_condition_specs
 
 
-def parse_signal_weight_entries(
-    weight_entries: list[str] | None,
-) -> dict[str, float] | None:
-    """
-    Parse signal weight entries of the form:
-
-        data_column:weight
-
-    Example:
-        amide:2.0
-    """
-
-    if not weight_entries:
-        return None
-
-    weights: dict[str, float] = {}
-
-    for entry in weight_entries:
-        parts = entry.split(":")
-
-        if len(parts) != 2:
-            raise ValueError(
-                "Signal weight entries must have format data_column:weight. "
-                f"Got: {entry}"
-            )
-
-        data_column, weight = parts
-
-        weights[data_column] = float(weight)
-
-    return weights
-
-
 def command_generate_odes(args: argparse.Namespace) -> None:
     """
     Generate ODE text from a model file.
@@ -338,48 +469,173 @@ def command_generate_odes(args: argparse.Namespace) -> None:
 def command_fit(args: argparse.Namespace) -> None:
     """
     Fit a model to a CSV dataset using direct species mapping.
+
+    Values can come from CLI arguments or from a JSON config file.
+    CLI arguments override config-file values.
     """
 
-    model = read_model_file(args.model)
+    config = load_fit_config(args.config)
 
-    dataframe = pd.read_csv(args.data)
+    model_path = get_config_value(
+        args=args,
+        config=config,
+        argument_name="model",
+        required=True,
+    )
+
+    data_path = get_config_value(
+        args=args,
+        config=config,
+        argument_name="data",
+        required=True,
+    )
+
+    time_column = get_config_value(
+        args=args,
+        config=config,
+        argument_name="time_column",
+        default="time",
+    )
+
+    signal_columns = get_config_value(
+        args=args,
+        config=config,
+        argument_name="signal_columns",
+        required=True,
+    )
+
+    output_dir = get_config_value(
+        args=args,
+        config=config,
+        argument_name="output_dir",
+        required=True,
+    )
+
+    model = read_model_file(model_path)
+
+    dataframe = pd.read_csv(data_path)
 
     dataset = Dataset(
         raw_dataframe=dataframe,
-        time_column=args.time_column,
-        signal_columns=args.signal_columns,
+        time_column=time_column,
+        signal_columns=signal_columns,
     )
 
-    species_mapping = parse_mapping_entries(args.mapping)
+    mapping_entries = get_config_list_or_dict_value(
+        args=args,
+        config=config,
+        argument_name="mapping",
+    )
+
+    species_mapping = parse_mapping_entries(mapping_entries)
 
     if not species_mapping:
         species_mapping = build_default_species_mapping(
-            signal_columns=args.signal_columns,
+            signal_columns=signal_columns,
             model=model,
         )
 
+    parameter_entries = get_config_list_or_dict_value(
+        args=args,
+        config=config,
+        argument_name="parameter",
+        alternative_config_name="parameters",
+    )
+
+    initial_entries = get_config_list_or_dict_value(
+        args=args,
+        config=config,
+        argument_name="initial",
+        alternative_config_name="initial_conditions",
+    )
+
+    signal_weight_entries = get_config_list_or_dict_value(
+        args=args,
+        config=config,
+        argument_name="signal_weight",
+        alternative_config_name="signal_weights",
+    )
+
+    default_parameter_guess = get_config_value(
+        args=args,
+        config=config,
+        argument_name="default_parameter_guess",
+        default=0.1,
+    )
+
+    default_parameter_lower = get_config_value(
+        args=args,
+        config=config,
+        argument_name="default_parameter_lower",
+        default=0.0,
+    )
+
+    default_parameter_upper = get_config_value(
+        args=args,
+        config=config,
+        argument_name="default_parameter_upper",
+        default=100.0,
+    )
+
+    method = get_config_value(
+        args=args,
+        config=config,
+        argument_name="method",
+        default="trf",
+    )
+
+    loss = get_config_value(
+        args=args,
+        config=config,
+        argument_name="loss",
+        default="linear",
+    )
+
+    max_nfev = get_config_value(
+        args=args,
+        config=config,
+        argument_name="max_nfev",
+        default=None,
+    )
+
+    rtol = get_config_value(
+        args=args,
+        config=config,
+        argument_name="rtol",
+        default=1e-6,
+    )
+
+    atol = get_config_value(
+        args=args,
+        config=config,
+        argument_name="atol",
+        default=1e-9,
+    )
+
+    no_plots = bool(config.get("no_plots", False)) or bool(args.no_plots)
+
     parameter_specs = build_parameter_specs(
         model=model,
-        parameter_entries=args.parameter,
-        default_guess=args.default_parameter_guess,
-        default_lower=args.default_parameter_lower,
-        default_upper=args.default_parameter_upper,
+        parameter_entries=parameter_entries,
+        default_guess=default_parameter_guess,
+        default_lower=default_parameter_lower,
+        default_upper=default_parameter_upper,
     )
 
     initial_condition_specs = build_initial_condition_specs(
         model=model,
-        initial_entries=args.initial,
+        initial_entries=initial_entries,
     )
 
     settings = FitSettings(
         species_mapping=species_mapping,
         use_normalized_data=False,
-        method=args.method,
-        loss=args.loss,
-        max_nfev=args.max_nfev,
-        rtol=args.rtol,
-        atol=args.atol,
-        signal_weights=parse_signal_weight_entries(args.signal_weight),
+        method=method,
+        loss=loss,
+        max_nfev=max_nfev,
+        rtol=rtol,
+        atol=atol,
+        signal_weights=parse_signal_weight_entries(signal_weight_entries),
     )
 
     result = fit_model(
@@ -394,11 +650,11 @@ def command_fit(args: argparse.Namespace) -> None:
         fit_result=result,
         model=model,
         dataset=dataset,
-        output_dir=args.output_dir,
+        output_dir=output_dir,
         parameter_specs=parameter_specs,
         initial_condition_specs=initial_condition_specs,
         species_mapping=species_mapping,
-        include_plots=not args.no_plots,
+        include_plots=not no_plots,
     )
 
     print("Fit success:", result.success)
@@ -406,7 +662,7 @@ def command_fit(args: argparse.Namespace) -> None:
     print("Fitted parameters:", result.fitted_parameters)
     print("Fitted initial conditions:", result.fitted_initial_conditions)
     print("Statistics:", result.statistics)
-    print(f"\nWrote output bundle to: {Path(args.output_dir)}")
+    print(f"\nWrote output bundle to: {Path(output_dir)}")
 
     print("\nWritten files:")
     for name, path in written_files.items():
@@ -453,27 +709,33 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     fit_parser.add_argument(
+        "--config",
+        default=None,
+        help="Path to JSON fit configuration file.",
+    )
+
+    fit_parser.add_argument(
         "--model",
-        required=True,
+        default=None,
         help="Path to model text file.",
     )
 
     fit_parser.add_argument(
         "--data",
-        required=True,
+        default=None,
         help="Path to CSV data file.",
     )
 
     fit_parser.add_argument(
         "--time-column",
-        default="time",
+        default=None,
         help="Name of the time column.",
     )
 
     fit_parser.add_argument(
         "--signal-columns",
         nargs="+",
-        required=True,
+        default=None,
         help="Signal/data columns to fit.",
     )
 
@@ -514,33 +776,33 @@ def build_parser() -> argparse.ArgumentParser:
     fit_parser.add_argument(
         "--default-parameter-guess",
         type=float,
-        default=0.1,
+        default=None,
         help="Default initial guess for model parameters.",
     )
 
     fit_parser.add_argument(
         "--default-parameter-lower",
         type=float,
-        default=0.0,
+        default=None,
         help="Default lower bound for model parameters.",
     )
 
     fit_parser.add_argument(
         "--default-parameter-upper",
         type=float,
-        default=100.0,
+        default=None,
         help="Default upper bound for model parameters.",
     )
 
     fit_parser.add_argument(
         "--method",
-        default="trf",
+        default=None,
         help="scipy.optimize.least_squares method.",
     )
 
     fit_parser.add_argument(
         "--loss",
-        default="linear",
+        default=None,
         help="scipy.optimize.least_squares loss.",
     )
 
@@ -554,20 +816,20 @@ def build_parser() -> argparse.ArgumentParser:
     fit_parser.add_argument(
         "--rtol",
         type=float,
-        default=1e-6,
+        default=None,
         help="ODE solver relative tolerance.",
     )
 
     fit_parser.add_argument(
         "--atol",
         type=float,
-        default=1e-9,
+        default=None,
         help="ODE solver absolute tolerance.",
     )
 
     fit_parser.add_argument(
         "--output-dir",
-        required=True,
+        default=None,
         help="Output directory for fit bundle.",
     )
 
