@@ -636,14 +636,14 @@ Legend:
 
 8.4 Bundle export
 -----------------
-[ ] Create bundle_export.py
-[ ] Create output folder
-[ ] Save all CSV files
-[ ] Save all plots
-[ ] Save model text
-[ ] Save generated ODEs
+[x] Create bundle_export.py
+[x] Create output folder
+[x] Save all CSV files
+[x] Save all plots
+[x] Save model text
+[x] Save generated ODEs
 [ ] Save metadata
-[ ] Add tests for bundle export
+[x] Add tests for bundle export
 
 8.5 Report export
 -----------------
@@ -1064,15 +1064,15 @@ Legend:
 
 14.1 Observable mapping
 -----------------------
-[ ] Create observable.py
-[ ] Direct mapping: data column = species
-[ ] Scale mapping: signal = scale * species
-[ ] Offset mapping: signal = species + offset
-[ ] Scale + offset: signal = scale * species + offset
+[x] Create observable_spec.py, observable_vector.py, observable_residuals.py
+[x] Direct mapping: data column = species
+[x] Scale mapping: signal = scale * species
+[x] Offset mapping: signal = species + offset
+[x] Scale + offset: signal = scale * species + offset
 [ ] Linear combination: signal = a*A + b*B + offset
-[ ] Fit observable scale
-[ ] Fit observable offset
-[ ] Add tests
+[x] Fit observable scale
+[x] Fit observable offset
+[x] Add tests
 [ ] Add GUI observable mapping table
 
 14.2 Weighted fitting
@@ -1100,10 +1100,10 @@ Legend:
 ---------------------
 [x] AIC implemented
 [x] BIC implemented
-[ ] Create model comparison helper
-[ ] Compare multiple FitResult objects
-[ ] Export model comparison table
-[ ] Add tests
+[x] Create model comparison helper
+[x] Compare multiple FitResult objects
+[x] Export model comparison table
+[x] Add tests
 
 
 15. REAL-DATA EXAMPLES
