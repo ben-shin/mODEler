@@ -1213,10 +1213,10 @@ Immediate
 
 Next coding tasks
 -----------------
-[ ] Create initial-condition result table
-[ ] Create CSV export for FitResult
-[ ] Create residual plots
-[ ] Create observed-vs-fitted plots
+[x] Create initial-condition result table
+[x] Create CSV export for FitResult
+[x] Create residual plots
+[x] Create observed-vs-fitted plots
 [ ] Add model comparison helper
 [ ] Add NMR amide example folder
 
