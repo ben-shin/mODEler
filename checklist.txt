@@ -1,0 +1,1246 @@
+
+mODEler PROJECT CHECKLIST
+=========================
+
+Repository:
+https://github.com/ben-shin/mODEler
+
+Purpose:
+GUI-based software for building kinetic reaction models, generating ODEs,
+simulating models, fitting models to experimental data, plotting results,
+and exporting complete fit reports.
+
+Legend:
+[x] done
+[ ] not done / planned
+
+
+0. REPOSITORY / COLLABORATION / ENVIRONMENT
+===========================================
+
+0.1 GitHub setup
+----------------
+[x] Create GitHub repository
+[x] Set up SSH authentication
+[x] Connect local repo to remote origin
+[x] Set up main branch
+[x] Learn git add / commit / push workflow
+[x] Learn git pull --rebase workflow
+[x] Add collaborator to repository
+[ ] Agree on branch workflow
+[ ] Use feature branches for major changes
+[ ] Use pull requests for review
+[ ] Create GitHub Issues for major tasks
+[ ] Create milestones: GUI alpha, v0.1.0, separate scripts for modular use
+[ ] Add GitHub Projects board if useful
+
+0.2 Project metadata files
+--------------------------
+[x] README.md
+[x] pyproject.toml
+[x] requirements.txt
+[x] environment.yml
+[x] .gitignore
+[x] LICENSE
+[x] CHANGELOG.md
+[ ] CONTRIBUTORS.md
+[ ] CITATION.cff
+[ ] CONTRIBUTING.md
+[ ] CODE_OF_CONDUCT.md, optional
+[ ] Update README with current implemented features
+[ ] Separate implemented features from planned features in README
+[ ] Add quickstart example to README
+
+0.3 Conda / Python environment
+------------------------------
+[x] Create dedicated conda environment
+[x] Add numpy
+[x] Add scipy
+[x] Add pandas
+[x] Add matplotlib
+[x] Add pytest
+[x] Add PySide6
+[x] Install package in editable mode with pip install -e .
+[ ] Confirm clean clone + conda env create works on Ben's machine
+[ ] Confirm clean clone + conda env create works on Seb's machine
+[ ] Add environment setup instructions to README
+[ ] Add troubleshooting section for import/path errors
+
+0.4 Testing and code quality
+----------------------------
+[x] Use pytest
+[x] Add tests folder
+[x] Add tests for core backend
+[ ] Add GitHub Actions CI
+[ ] Run tests automatically on push
+[ ] Run tests automatically on pull request
+[ ] Add test badge to README
+[ ] Add coverage measurement
+[ ] Add ruff linting
+[ ] Add black formatting
+[ ] Add pre-commit hooks
+[ ] Remove unused imports
+[ ] Add type hints consistently
+[ ] Add docstrings consistently
+
+
+1. CORE MODEL REPRESENTATION
+============================
+
+1.1 Reaction object
+-------------------
+[x] Create src/odefit/model/reaction.py
+[x] Define Reaction dataclass
+[x] Store reactants
+[x] Store products
+[x] Store reversibility
+[x] Store forward rate name
+[x] Store reverse rate name
+[ ] Add optional reaction label
+[ ] Add optional source line number for better parser errors
+
+1.2 Reaction parser
+-------------------
+[x] Create src/odefit/model/parser.py
+[x] Parse species term: A
+[x] Parse stoichiometric coefficient: 2A
+[x] Parse multiple species on one side: A+B
+[x] Parse reversible shorthand: A-B
+[x] Parse irreversible shorthand: A>B
+[x] Support spaces: A + B - C
+[x] Support comments with #
+[x] Ignore empty lines
+[x] Auto-generate forward parameters: k1f, k2f, ...
+[x] Auto-generate reverse parameters: k1r, k2r, ...
+[x] Raise ValueError for malformed reactions
+[x] Test reversible reactions
+[x] Test irreversible reactions
+[x] Test stoichiometry
+[x] Test spaces
+[x] Test comments
+[x] Test invalid syntax
+[ ] Support explicit reversible arrow: A<->B
+[ ] Support explicit irreversible arrow: A->B
+[ ] Support products with multiple species: A>B+C
+[ ] Add line-number-aware error messages
+[ ] Add formal reaction syntax guide
+
+1.3 Species detection
+---------------------
+[x] Create src/odefit/model/species.py
+[x] Detect species from reactants
+[x] Detect species from products
+[x] Remove duplicates
+[x] Return sorted species list
+[x] Test reversible model
+[x] Test irreversible model
+[x] Test mixed model
+[x] Test oligomer model
+[ ] Add natural sorting so P10 comes after P9
+[ ] Add test for natural sorting
+
+1.4 Parameter detection
+-----------------------
+[x] Create src/odefit/model/parameters.py
+[x] Detect forward parameters
+[x] Detect reverse parameters for reversible reactions
+[x] Exclude reverse parameters for irreversible reactions
+[x] Preserve parameter order
+[x] Test reversible model
+[x] Test irreversible model
+[x] Test mixed model
+[x] Test missing reverse rate error
+
+1.5 ModelSpec
+-------------
+[x] Create src/odefit/model/model_spec.py
+[x] Define ModelSpec dataclass
+[x] Store raw model text
+[x] Store parsed reactions
+[x] Store species
+[x] Store parameters
+[x] Implement build_model_spec(text)
+[x] Test reversible model
+[x] Test irreversible model
+[x] Test mixed model
+[x] Test raw text preservation
+[ ] Add model metadata
+[ ] Add optional model name
+[ ] Add model-level validation warnings
+
+
+2. RATE LAWS AND ODE GENERATION
+===============================
+
+2.1 Mass-action rate laws
+-------------------------
+[x] Create src/odefit/model/rate_laws.py
+[x] Generate k*A
+[x] Generate k*A^2
+[x] Generate k*A*B
+[x] Generate forward rate
+[x] Generate reverse rate
+[x] Return None for irreversible reverse rate
+[x] Test single-species rate
+[x] Test dimerization rate
+[x] Test bimolecular rate
+[x] Test reversible rates
+[x] Test irreversible rates
+[ ] Add custom rate law support
+[ ] Add safe expression parser for custom rates
+[ ] Add Michaelis-Menten style rate law, optional
+[ ] Add Hill-style rate law, optional
+
+2.2 Human-readable ODE generation
+---------------------------------
+[x] Create src/odefit/model/ode_generator.py
+[x] Generate ODE term lists
+[x] Apply forward reactant consumption
+[x] Apply forward product formation
+[x] Apply reverse product consumption
+[x] Apply reverse reactant formation
+[x] Handle reversible reactions
+[x] Handle irreversible reactions
+[x] Format ODE expressions
+[x] Generate readable ODE lines
+[x] Test A-B
+[x] Test A>B
+[x] Test 2A-A2
+[x] Test A+B-C
+[x] Test mixed models
+[ ] Add generated ODE preview formatting for GUI
+[ ] Add LaTeX-style ODE formatting, optional
+[ ] Add equation simplification / combine like terms later
+
+2.3 Text import/export helpers
+------------------------------
+[x] Create src/odefit/export/text_export.py
+[x] Read model text file
+[x] Build ModelSpec from file
+[x] Write generated ODEs to text file
+[x] Test text import
+[x] Test ModelSpec from file
+[x] Test ODE text export
+[ ] Add generated model summary text export
+[ ] Add reaction table text export
+
+
+3. NUMERICAL SIMULATION ENGINE
+==============================
+
+3.1 Simulation objects
+----------------------
+[x] Create src/odefit/simulation/
+[x] Create simulation_settings.py
+[x] Define SimulationSettings
+[x] Store solver method
+[x] Store rtol
+[x] Store atol
+[x] Create simulation_result.py
+[x] Define SimulationResult
+[x] Store timepoints
+[x] Store species list
+[x] Store values matrix
+[x] Implement get_species_values()
+
+3.2 Numerical RHS
+-----------------
+[x] Create rhs.py
+[x] Calculate numerical mass-action rate
+[x] Apply forward reaction stoichiometry
+[x] Apply reverse reaction stoichiometry
+[x] Build SciPy-compatible RHS function
+[x] Raise error for missing parameter values
+[ ] Add optional protection against negative concentrations
+[ ] Add warning if simulated values go negative
+[ ] Add Jacobian support later
+
+3.3 Solver
+----------
+[x] Create solver.py
+[x] Use scipy.integrate.solve_ivp
+[x] Validate parameters
+[x] Validate initial conditions
+[x] Validate at least two timepoints
+[x] Validate strictly increasing timepoints
+[x] Return SimulationResult
+[x] Test irreversible decay
+[x] Test reversible mass conservation
+[x] Test missing parameter
+[x] Test missing initial condition
+[x] Test non-increasing timepoints
+[ ] Add solver method selection tests
+[ ] Add stiff solver tests, e.g. BDF/Radau
+[ ] Add simulation-only CLI later
+
+
+4. DATA IMPORT AND PREPROCESSING
+================================
+
+4.1 Dataset object
+------------------
+[x] Create src/odefit/data/
+[x] Create dataset.py
+[x] Define Dataset dataclass
+[x] Store raw dataframe
+[x] Store normalized dataframe optionally
+[x] Store time column
+[x] Store signal columns
+[x] Store normalization method
+[x] Implement time_values
+[x] Implement get_signal_values()
+[x] Raise error if normalized data requested but unavailable
+[ ] Add metadata field
+[ ] Add source file path field
+[ ] Add replicate/condition metadata later
+
+4.2 CSV reading
+---------------
+[x] Create csv_reader.py
+[x] Read CSV using pandas
+[x] Return validated Dataset
+[x] Test valid CSV import
+[ ] Auto-detect time column option
+[ ] Auto-detect signal columns option
+[ ] Support delimiter options
+[ ] Support header/no-header options
+
+4.3 Data validation
+-------------------
+[x] Create validation.py
+[x] Reject empty dataframe
+[x] Reject missing time column
+[x] Reject missing signal columns
+[x] Reject no signal columns
+[x] Reject missing time values
+[x] Reject missing signal values
+[x] Reject non-numeric time column
+[x] Reject non-numeric signal columns
+[x] Reject non-increasing time values
+[ ] Add duplicate timepoint detection
+[ ] Add option to sort timepoints automatically
+[ ] Add option to drop/ignore NaNs
+[ ] Add replicate validation
+[ ] Add units validation later
+
+4.4 Data orientation support
+----------------------------
+[ ] Create orientation.py
+[ ] Support timepoints down rows
+[ ] Support timepoints across columns
+[ ] Support first row as timepoints
+[ ] Support first column as timepoints
+[ ] Test row-oriented CSV
+[ ] Test column-oriented CSV
+
+
+5. NORMALIZATION
+================
+
+5.1 Normalization methods
+-------------------------
+[x] Create normalization.py
+[x] No normalization
+[x] Normalize to maximum
+[x] Min-max normalization
+[x] Divide by first value
+[x] Subtract baseline
+[x] Z-score normalization
+[x] Preserve time column
+[x] Normalize signal columns only
+[x] Return updated Dataset
+[x] Store normalization method
+
+5.2 Normalization tests
+-----------------------
+[x] Test normalize to max
+[x] Test min-max
+[x] Test divide by first value
+[x] Test baseline subtraction
+[x] Test z-score
+[x] Test unknown method
+[x] Test zero max
+[x] Test constant column
+[x] Test divide by zero
+[x] Test normalized access error
+
+5.3 Future normalization improvements
+-------------------------------------
+[ ] Store detailed normalization metadata
+[ ] Support baseline by time range
+[ ] Support baseline by row range
+[ ] Support per-column normalization
+[ ] Add GUI preview support
+[ ] Add undo/reset normalization
+
+
+6. PLOTTING BACKEND
+===================
+
+6.1 Plot settings
+-----------------
+[x] Create src/odefit/plotting/
+[x] Create plot_settings.py
+[x] Define PlotSettings
+[x] Support x scale
+[x] Support y scale
+[x] Support title
+[x] Support axis labels
+[x] Support legend toggle
+[x] Support grid toggle
+
+6.2 Timecourse plots
+--------------------
+[x] Create timecourse_plots.py
+[x] Plot raw data
+[x] Plot normalized data
+[x] Plot simulation result
+[x] Overlay dataset with simulation
+[x] Support species mapping
+[x] Support linear axes
+[x] Support log axes
+[x] Save figure
+[x] Add plotting tests
+[ ] Add plot style options
+[ ] Add color options later
+[ ] Add marker/line options later
+
+6.3 Remaining plots
+-------------------
+[ ] Create residual_plots.py
+[ ] Plot residuals over time
+[ ] Create observed_vs_predicted.py
+[ ] Plot observed vs fitted
+[ ] Create parameter_plots.py
+[ ] Plot fitted parameter bars/table visual
+[ ] Create diagnostics_plots.py
+[ ] Add residual histogram
+[ ] Add parameter correlation heatmap later
+[ ] Add confidence bands later
+
+
+7. FITTING ENGINE
+=================
+
+7.1 Basic fitting objects
+-------------------------
+[x] Create src/odefit/fitting/
+[x] Create parameter_spec.py
+[x] Define ParameterSpec
+[x] Store name
+[x] Store initial guess
+[x] Store lower/upper bounds
+[x] Store fixed state
+[x] Store fixed value
+[x] Store tied parameter target
+[x] Create fit_settings.py
+[x] Define FitSettings
+[x] Store species mapping
+[x] Store use_normalized_data flag
+[x] Store optimizer settings
+[x] Create fit_result.py
+[x] Define FitResult
+[x] Store fitted parameters
+[x] Store initial parameters
+[x] Store fitted initial conditions
+[x] Store initial conditions
+[x] Store residuals
+[x] Store statistics
+[x] Store simulation result
+[x] Store success/message/nfev/cost
+
+7.2 Parameter vector handling
+-----------------------------
+[x] Create parameter_vector.py
+[x] Identify free parameters
+[x] Exclude fixed parameters
+[x] Exclude tied parameters
+[x] Build initial vector
+[x] Build bounds
+[x] Convert vector to parameter dictionary
+[x] Include fixed parameters
+[x] Resolve tied parameters
+[x] Resolve tied-to-fixed parameters
+[x] Reject duplicate parameter names
+[x] Reject invalid bounds
+[x] Reject initial guess outside bounds
+[x] Reject fixed value outside bounds
+[x] Reject fixed and tied simultaneously
+[x] Reject self-tied parameter
+[x] Reject unknown tied target
+[x] Reject circular ties
+[x] Add parameter vector tests
+
+7.3 Initial condition fitting
+-----------------------------
+[x] Create initial_condition_spec.py
+[x] Define InitialConditionSpec
+[x] Store species name
+[x] Store initial guess
+[x] Store bounds
+[x] Store fixed state
+[x] Store fixed value
+[x] Create initial_condition_vector.py
+[x] Convert old initial_conditions dict to fixed specs
+[x] Identify free initial conditions
+[x] Build initial condition vector
+[x] Build initial condition bounds
+[x] Convert vector to initial condition dict
+[x] Validate duplicate species
+[x] Validate guesses/bounds/fixed values
+[x] Add initial condition vector tests
+
+7.4 Combined optimization vector
+--------------------------------
+[x] Create optimization_vector.py
+[x] Combine parameter vector and initial-condition vector
+[x] Combine bounds
+[x] Split combined vector
+[x] Convert combined vector to model inputs
+[x] Test vector combination
+[x] Test bound combination
+[x] Test split
+[x] Test wrong vector length
+[x] Test tied parameter plus fitted initial condition
+
+7.5 Residuals and objective
+---------------------------
+[x] Create residuals.py
+[x] Calculate residual = simulated - observed
+[x] Support raw data
+[x] Support normalized data
+[x] Support species mapping
+[x] Detect length mismatch
+[x] Create objective.py
+[x] Convert optimization vector to model inputs
+[x] Simulate model
+[x] Return residual vector
+[x] Test objective with true parameter
+[x] Test objective with fitted initial condition
+[x] Test bad vector length
+
+7.6 Optimizer
+-------------
+[x] Create optimizer.py
+[x] Use scipy.optimize.least_squares
+[x] Fit kinetic parameters
+[x] Fit initial conditions
+[x] Support fixed parameters
+[x] Support tied parameters
+[x] Support normalized fitting
+[x] Return FitResult
+[x] Count free kinetic parameters and free initial conditions in statistics
+[x] Test synthetic decay
+[x] Test noisy synthetic data
+[x] Test fixed reverse parameter
+[x] Test tied parameters
+[x] Test fitted initial condition
+[x] Test normalized fitting
+[x] Test old API with initial_conditions dict
+[x] Test invalid loss
+
+7.7 Fitting validation
+----------------------
+[x] Create validation.py
+[x] Resolve old-style initial condition dict
+[x] Resolve new InitialConditionSpec style
+[x] Reject both formats together
+[x] Reject missing initial conditions
+[x] Validate parameter specs match model parameters
+[x] Validate initial condition specs match model species
+[x] Validate species mapping
+[x] Validate normalized data availability
+[x] Validate residual count > free variables
+[x] Reject zero-free-variable fitting
+[x] Add validation tests
+
+7.8 Fitting statistics and tables
+---------------------------------
+[x] Create statistics.py
+[x] Calculate RSS
+[x] Calculate RMSE
+[x] Calculate AIC
+[x] Calculate BIC
+[x] Store number of residuals
+[x] Store number of fitted variables
+[x] Create parameter_table.py
+[x] Create statistics_table.py
+[x] Create residual_table.py
+[x] Add table tests
+[ ] Create initial_condition_table.py
+[ ] Create full fit summary table
+[ ] Add parameter-at-bound warning table
+[ ] Add convergence diagnostics table
+
+7.9 Remaining fitting features
+------------------------------
+[ ] Weighted residuals
+[ ] Per-signal weights
+[ ] Per-point uncertainty weighting
+[ ] Observable mapping: signal = scale * species + offset
+[ ] Fit scale factors
+[ ] Fit baseline offsets
+[ ] Fit linear combinations of species
+[ ] Parameter uncertainty estimates
+[ ] Covariance matrix
+[ ] Approximate standard errors
+[ ] Confidence intervals
+[ ] Parameter correlation matrix
+[ ] Profile likelihood
+[ ] Global fitting across multiple datasets
+[ ] Dataset-specific initial conditions
+[ ] Dataset-specific observable parameters
+[ ] Shared parameters across datasets
+[ ] Better handling when ODE solve fails during optimization
+[ ] Warnings for parameters stuck at bounds
+
+
+8. EXPORT SYSTEM
+================
+
+8.1 Existing export pieces
+--------------------------
+[x] Create src/odefit/export/
+[x] Text export helper exists
+[x] Model text reading exists
+[x] Generated ODE text writing exists
+[ ] CSV export module complete
+[ ] JSON export module complete
+[ ] Plot export module complete
+[ ] Report export module complete
+[ ] Bundle export module complete
+[ ] Project IO module complete
+
+8.2 CSV export
+--------------
+[ ] Create csv_export.py
+[ ] Export raw_data.csv
+[ ] Export normalized_data.csv
+[ ] Export fitted_parameters.csv
+[ ] Export fitted_initial_conditions.csv
+[ ] Export fit_statistics.csv
+[ ] Export residuals.csv
+[ ] Export simulated_curves.csv
+[ ] Export model_definition.txt
+[ ] Export generated_odes.txt
+[ ] Add tests for CSV export
+
+8.3 JSON export
+---------------
+[ ] Create json_export.py
+[ ] Export fit settings
+[ ] Export model metadata
+[ ] Export solver settings
+[ ] Export reproducibility metadata
+[ ] Add tests for JSON export
+
+8.4 Bundle export
+-----------------
+[ ] Create bundle_export.py
+[ ] Create output folder
+[ ] Save all CSV files
+[ ] Save all plots
+[ ] Save model text
+[ ] Save generated ODEs
+[ ] Save metadata
+[ ] Add tests for bundle export
+
+8.5 Report export
+-----------------
+[ ] Create report_export.py
+[ ] Generate HTML report
+[ ] Include model text
+[ ] Include generated ODEs
+[ ] Include plots
+[ ] Include fitted parameters
+[ ] Include statistics
+[ ] Include residual diagnostics
+[ ] PDF report later
+
+
+9. GUI
+======
+
+9.1 Current GUI scaffold
+------------------------
+[x] Create src/odefit/gui/
+[x] Create __init__.py
+[x] main_window.py exists
+[x] model_editor_panel.py exists
+[x] parameter_table.py exists
+[x] project_menu.py exists
+[ ] data_import_panel.py
+[ ] data_preview_table.py
+[ ] normalization_panel.py
+[ ] plot_panel.py
+[ ] generated_ode_view.py
+[ ] initial_conditions_table.py
+[ ] observable_mapping_table.py
+[ ] fit_setup_panel.py
+[ ] fit_progress_dialog.py
+[ ] results_panel.py
+[ ] residuals_panel.py
+[ ] export_panel.py
+[ ] settings_dialog.py
+[ ] error_dialogs.py
+[ ] worker_threads.py
+
+9.2 GUI application shell
+-------------------------
+[x] app.py exists
+[x] cli.py exists
+[x] config.py exists
+[x] version.py exists
+[ ] Confirm python -m odefit.app runs
+[ ] Confirm GUI opens without crashing
+[ ] Add File menu
+[ ] Add project menu actions
+[ ] Add error dialog framework
+[ ] Add worker thread framework
+
+9.3 GUI data workflow
+---------------------
+[ ] Import CSV file
+[ ] Preview CSV
+[ ] Select time column
+[ ] Select signal columns
+[ ] Validate data from GUI
+[ ] Choose normalization method
+[ ] Preview normalized data
+[ ] Raw/normalized toggle
+
+9.4 GUI model workflow
+----------------------
+[ ] Type reaction model
+[ ] Parse model button
+[ ] Show parser errors
+[ ] Show detected species
+[ ] Show detected parameters
+[ ] Show generated ODEs
+[ ] Show reaction syntax help
+
+9.5 GUI fitting workflow
+------------------------
+[ ] Edit parameter guesses
+[ ] Edit parameter bounds
+[ ] Fix parameters
+[ ] Tie parameters
+[ ] Edit initial condition guesses
+[ ] Edit initial condition bounds
+[ ] Fix/fit initial conditions
+[ ] Select species mapping
+[ ] Run fit button
+[ ] Cancel fit button
+[ ] Show progress
+[ ] Show fitted parameter table
+[ ] Show fitted initial condition table
+[ ] Show fit statistics
+[ ] Show residuals
+
+9.6 GUI plotting workflow
+-------------------------
+[ ] Plot raw data
+[ ] Plot normalized data
+[ ] Plot simulation
+[ ] Plot observed vs fitted
+[ ] Plot residuals
+[ ] Axis scale controls
+[ ] Save plot button
+
+9.7 GUI export workflow
+-----------------------
+[ ] Export raw data
+[ ] Export normalized data
+[ ] Export fitted parameters
+[ ] Export fitted initial conditions
+[ ] Export fit statistics
+[ ] Export residuals
+[ ] Export simulated curves
+[ ] Export plots
+[ ] Export full bundle
+
+
+10. PROJECT / SESSION SAVE-LOAD
+===============================
+
+10.1 Project state
+------------------
+[ ] Create src/odefit/project/
+[ ] Create project.py
+[ ] Create project_state.py
+[ ] Store model text
+[ ] Store dataset paths
+[ ] Store normalization settings
+[ ] Store parameter specs
+[ ] Store initial condition specs
+[ ] Store fit settings
+[ ] Store plot settings
+[ ] Store latest fit result metadata
+
+10.2 Project IO
+---------------
+[ ] Create project_io.py
+[ ] Save project to JSON or YAML
+[ ] Load project from JSON or YAML
+[ ] Version project schema
+[ ] Add migrations.py
+[ ] Test save/load round trip
+
+10.3 History/autosave
+---------------------
+[ ] Create history.py
+[ ] Add undo/redo later
+[ ] Create autosave.py
+[ ] Autosave project state
+[ ] Recover autosaved project
+
+
+11. CLI
+=======
+
+11.1 CLI basics
+---------------
+[x] cli.py exists
+[ ] Parse model file path
+[ ] Parse data file path
+[ ] Parse time column
+[ ] Parse signal columns
+[ ] Parse species mapping
+[ ] Print detected species
+[ ] Print detected parameters
+[ ] Print generated ODEs
+
+11.2 CLI simulation
+-------------------
+[ ] Run simulation from CLI
+[ ] Accept parameter values
+[ ] Accept initial conditions
+[ ] Save simulation CSV
+[ ] Save simulation plot
+
+11.3 CLI fitting
+----------------
+[ ] Run fit from CLI
+[ ] Accept parameter guesses
+[ ] Accept bounds
+[ ] Accept fixed parameters
+[ ] Accept tied parameters
+[ ] Accept fitted initial conditions
+[ ] Export fit bundle
+[ ] Add CLI tests
+
+
+12. PARALLEL COMPUTING / HPC / GPU / CLUSTERS
+=============================================
+
+12.1 Design principle
+---------------------
+[ ] Keep parser/model/fitting code independent of hardware
+[ ] Do not put cluster-specific logic inside fitting modules
+[ ] Add execution backend layer
+[ ] Add job abstraction for simulations/fits
+[ ] Add local execution first
+[ ] Add parallel CPU execution second
+[ ] Add cluster execution later
+[ ] Add GPU acceleration only after profiling proves it helps
+
+12.2 Execution/job abstraction
+------------------------------
+[ ] Create src/odefit/execution/
+[ ] Create execution/job.py
+[ ] Create execution/job_result.py
+[ ] Create execution/executor.py
+[ ] Define SimulationJob
+[ ] Define FitJob
+[ ] Define JobResult
+[ ] Define BaseExecutor interface
+[ ] Add tests for job creation
+[ ] Add tests for local execution
+
+12.3 Local execution
+--------------------
+[ ] Create local_executor.py
+[ ] Run one simulation job locally
+[ ] Run one fitting job locally
+[ ] Return job status
+[ ] Return job result
+[ ] Capture errors cleanly
+[ ] Add tests
+
+12.4 Parallel CPU execution
+---------------------------
+[ ] Create parallel_executor.py
+[ ] Use concurrent.futures ProcessPoolExecutor
+[ ] Run many simulation jobs in parallel
+[ ] Run many fitting jobs in parallel
+[ ] Preserve job order
+[ ] Capture failed jobs
+[ ] Add progress reporting
+[ ] Add tests with small jobs
+[ ] Add benchmark script
+
+12.5 Multi-start fitting
+------------------------
+[ ] Create fitting/multistart.py
+[ ] Generate random initial guesses inside bounds
+[ ] Generate log-uniform guesses for rate constants
+[ ] Run N fits
+[ ] Select best fit by RSS/cost/AIC/BIC
+[ ] Return all fit results
+[ ] Support parallel execution
+[ ] Add tests
+[ ] Add GUI support later
+
+12.6 Bootstrap fitting
+----------------------
+[ ] Create fitting/bootstrap.py
+[ ] Resample residuals or timepoints
+[ ] Run repeated fits
+[ ] Collect parameter distributions
+[ ] Compute confidence intervals
+[ ] Support parallel execution
+[ ] Add export table
+[ ] Add plots later
+[ ] Add tests
+
+12.7 Profile likelihood
+-----------------------
+[ ] Create fitting/profile_likelihood.py
+[ ] Fix one parameter at sequence of values
+[ ] Refit all other parameters
+[ ] Store cost/RSS profile
+[ ] Run profile points in parallel
+[ ] Add plots later
+[ ] Add tests
+
+12.8 Cluster compatibility
+--------------------------
+[ ] Ensure backend works without GUI
+[ ] Ensure fitting can run from Python script
+[ ] Add CLI fitting command
+[ ] Add CLI simulation command
+[ ] Add CLI batch fitting command
+[ ] Add config-file-driven jobs
+[ ] Avoid hardcoded local paths
+[ ] Save all job settings to output folder
+[ ] Save reproducibility metadata
+
+12.9 Job configuration files
+----------------------------
+[ ] Choose config format: YAML, JSON, or TOML
+[ ] Create job config schema
+[ ] Store model path
+[ ] Store data path
+[ ] Store time column
+[ ] Store signal columns
+[ ] Store species mapping
+[ ] Store parameter guesses
+[ ] Store parameter bounds
+[ ] Store fixed parameters
+[ ] Store tied parameters
+[ ] Store initial conditions
+[ ] Store output directory
+[ ] Store solver settings
+[ ] Store optimizer settings
+[ ] Add config validation
+[ ] Add example config files
+
+12.10 SLURM cluster support
+---------------------------
+[ ] Create src/odefit/cluster/
+[ ] Create cluster/slurm.py
+[ ] Create cluster/job_script.py
+[ ] Create cluster/templates/
+[ ] Generate SLURM job script
+[ ] Generate SBATCH job name
+[ ] Generate SBATCH time
+[ ] Generate SBATCH memory
+[ ] Generate SBATCH CPU count
+[ ] Generate optional GPU request
+[ ] Generate output/error log paths
+[ ] Activate conda environment in script
+[ ] Run mODEler CLI command in script
+[ ] Add dry-run preview
+[ ] Submit job with sbatch
+[ ] Check job status with squeue
+[ ] Cancel job with scancel
+[ ] Add tests for script generation
+
+12.11 Cluster result collection
+-------------------------------
+[ ] Standardize output folders
+[ ] Save fit_result.json
+[ ] Save fitted_parameters.csv
+[ ] Save fitted_initial_conditions.csv
+[ ] Save fit_statistics.csv
+[ ] Save residuals.csv
+[ ] Save simulated_curves.csv
+[ ] Save logs
+[ ] Save job metadata file
+[ ] Save command used to run job
+[ ] Save environment info
+[ ] Add result collection helper
+[ ] Add failed-job summary helper
+
+12.12 GPU acceleration
+----------------------
+[ ] Profile CPU performance first
+[ ] Identify bottlenecks
+[ ] Decide whether GPU is justified
+[ ] Consider JAX backend
+[ ] Consider CuPy backend
+[ ] Consider PyTorch backend only if useful
+[ ] Add GPU availability detection
+[ ] Add CPU fallback
+[ ] Add tests that skip if GPU unavailable
+[ ] Add benchmark scripts
+[ ] Batch many simulations together
+[ ] Batch many parameter sets together
+[ ] Compare CPU vs GPU results
+[ ] Compare CPU vs GPU speed
+
+12.13 Numba backend
+-------------------
+[ ] Create src/odefit/codegen/
+[ ] Create codegen/numba_codegen.py
+[ ] Generate Numba-compatible RHS
+[ ] Create backends/numba_backend.py
+[ ] Benchmark against current SciPy path
+[ ] Add tests comparing SciPy and Numba outputs
+
+12.14 Julia backend
+-------------------
+[ ] Create codegen/julia_codegen.py
+[ ] Create backends/julia_backend.py
+[ ] Interface with DifferentialEquations.jl
+[ ] Add installation docs
+[ ] Add equivalence tests
+
+12.15 Recommended performance roadmap
+-------------------------------------
+[ ] Finish stable local fitting/export workflow
+[ ] Add CLI
+[ ] Add config-file-driven fitting
+[ ] Add local batch execution
+[ ] Add multiprocessing parallel execution
+[ ] Add multi-start fitting
+[ ] Add bootstrap/profile likelihood
+[ ] Add SLURM script generation
+[ ] Add SLURM submission/status helpers
+[ ] Add Numba backend
+[ ] Benchmark before considering GPU
+[ ] Add GPU/JAX only if benchmarks justify it
+
+
+13. BACKENDS AND ACCELERATION
+=============================
+
+13.1 Backend interface
+----------------------
+[ ] Create src/odefit/backends/
+[ ] Create base.py
+[ ] Define simulation backend interface
+[ ] Define fitting backend interface if needed
+[ ] Create backend registry
+
+13.2 SciPy backend
+------------------
+[x] Current solver uses SciPy
+[x] Current fitter uses SciPy
+[ ] Wrap current solver/fitter as explicit SciPyBackend
+[ ] Add backend selection setting
+
+13.3 Cython backend
+-------------------
+[ ] Consider only after benchmarking
+[ ] Create cython_codegen.py
+[ ] Add build tooling
+[ ] Benchmark
+[ ] Decide whether worth keeping
+
+
+14. SCIENTIFIC FEATURES
+=======================
+
+14.1 Observable mapping
+-----------------------
+[ ] Create observable.py
+[ ] Direct mapping: data column = species
+[ ] Scale mapping: signal = scale * species
+[ ] Offset mapping: signal = species + offset
+[ ] Scale + offset: signal = scale * species + offset
+[ ] Linear combination: signal = a*A + b*B + offset
+[ ] Fit observable scale
+[ ] Fit observable offset
+[ ] Add tests
+[ ] Add GUI observable mapping table
+
+14.2 Weighted fitting
+---------------------
+[ ] Create weights.py
+[ ] Unweighted residuals
+[ ] Per-signal weights
+[ ] Per-point weights
+[ ] Error-column weighting
+[ ] Standard-deviation weighting for replicates
+[ ] Add tests
+
+14.3 Identifiability and uncertainty
+------------------------------------
+[x] Reject residual count <= free variables
+[ ] Warn if free variables are too many for residuals
+[ ] Detect parameters stuck at bounds
+[ ] Estimate covariance matrix
+[ ] Estimate approximate standard errors
+[ ] Estimate confidence intervals
+[ ] Add parameter correlation matrix
+[ ] Add profile likelihood later
+
+14.4 Model comparison
+---------------------
+[x] AIC implemented
+[x] BIC implemented
+[ ] Create model comparison helper
+[ ] Compare multiple FitResult objects
+[ ] Export model comparison table
+[ ] Add tests
+
+
+15. REAL-DATA EXAMPLES
+======================
+
+15.1 NMR amide integral workflow
+--------------------------------
+[x] Discuss timecourse integrated amide region use case
+[x] Provide A>B fitting idea
+[x] Provide 2A-A2 fitting script idea
+[ ] Add examples/nmr_amide_timecourse/
+[ ] Add example CSV
+[ ] Add example model file
+[ ] Add example fitting script
+[ ] Add example output folder
+[ ] Add residual plot
+[ ] Add model comparison A>B vs A-B vs 2A-A2
+[ ] Add notes on identifiability limitations
+
+15.2 Generic examples
+---------------------
+[ ] examples/simple_decay/
+[ ] examples/reversible_conversion/
+[ ] examples/dimerization/
+[ ] examples/oligomerization/
+[ ] Add README for each example
+
+
+16. DOCUMENTATION
+=================
+
+16.1 User documentation
+-----------------------
+[ ] docs/user_guide.md
+[ ] docs/reaction_syntax.md
+[ ] docs/csv_format.md
+[ ] docs/normalization.md
+[ ] docs/simulation.md
+[ ] docs/fitting.md
+[ ] docs/exporting.md
+[ ] docs/gui_guide.md
+[ ] docs/troubleshooting.md
+
+16.2 Developer documentation
+----------------------------
+[x] High-level architecture described informally
+[x] Fitting API explained informally
+[ ] docs/developer_notes.md
+[ ] docs/architecture.md
+[ ] docs/testing.md
+[ ] docs/fitting_api.md
+[ ] docs/gui_integration.md
+[ ] docs/release_checklist.md
+
+16.3 README updates
+-------------------
+[ ] Update current features based on implemented code
+[ ] Mark planned features separately from implemented features
+[ ] Add quickstart example
+[ ] Add command to run tests
+[ ] Add collaborator workflow
+[ ] Add screenshots later
+
+
+17. RELEASE READINESS
+=====================
+
+17.1 Code quality
+-----------------
+[ ] Full pytest passes
+[ ] Ruff linting passes
+[ ] Black formatting applied
+[ ] Remove unused imports
+[ ] Add type hints consistently
+[ ] Add docstrings consistently
+[ ] Review error messages
+
+17.2 Continuous integration
+---------------------------
+[ ] Add GitHub Actions workflow
+[ ] Run pytest on push
+[ ] Run pytest on PR
+[ ] Test clean install
+[ ] Test Linux
+[ ] Test macOS later if needed
+
+17.3 Packaging / releases
+--------------------------
+[ ] Confirm pip install -e . works from clean clone
+[ ] Confirm conda env create works from clean clone
+[ ] Add version number
+[ ] Tag v0.1.0
+[ ] Create GitHub release
+[ ] Add release notes
+
+
+RECOMMENDED NEXT TASKS
+======================
+
+Immediate
+---------
+[ ] Run full pytest locally
+[ ] Commit and push latest fitting additions
+[ ] Add this checklist to CHECKLIST.txt
+[ ] Create GitHub Issues from remaining major unchecked sections
+[ ] Coordinate with Seb on GUI/fitting interface
+
+Next coding tasks
+-----------------
+[ ] Create initial-condition result table
+[ ] Create CSV export for FitResult
+[ ] Create residual plots
+[ ] Create observed-vs-fitted plots
+[ ] Add model comparison helper
+[ ] Add NMR amide example folder
+
+Next scientific tasks
+---------------------
+[ ] Add observable mapping: signal = scale * species + offset
+[ ] Add weighted residuals
+[ ] Add parameter-at-bound warnings
+[ ] Add uncertainty estimates later
+
+Next infrastructure tasks
+-------------------------
+[ ] Add CLI fitting
+[ ] Add config-file-driven jobs
+[ ] Add multiprocessing batch fitting
+[ ] Add SLURM script generation
+[ ] Add CI
+
+TYPES OF DATASET TO EXPECT
+======================
+[ ] NMR 1D INTEGRATION
+[ ] NMR 2D PEAKS
+[ ] FCS
+[ ] ThT
+[ ] MASS SPEC METABOLOMICS
+[ ] NMR METABOLOMICS
+[ ] ASK COLLEAGUES FOR ODE-ABLE DATASETS
