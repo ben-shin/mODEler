@@ -200,3 +200,18 @@ For stiff systems, try BDF or Radau
 The CLI supports direct data column to species mapping, but observable mapping is only supported in the Python API. 
 
 Custom rate laws aren't supported yet.
+
+### Multistart global observable fitting
+
+Run:
+
+```bash
+python -m odefit.cli multistart-global-observables \
+  --config examples/configs/global_hsqc_multistart_config.json
+
+For local parallel execution:
+```bash
+python -m odefit.cli multistart-global-observables \
+  --config examples/configs/global_hsqc_multistart_config.json \
+  --n-workers 4 \
+  --n-starts 20

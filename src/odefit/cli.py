@@ -11,6 +11,7 @@ from odefit.data.dataset import Dataset
 from odefit.export.bundle_export import export_fit_bundle
 from odefit.fitting.fit_settings import FitSettings
 from odefit.fitting.global_observables import (
+    build_shared_species_observable_specs,
     fit_global_observable_model,
     read_wide_observable_dataset,
 )
@@ -1539,6 +1540,381 @@ def command_fit_global_observables(args: argparse.Namespace) -> None:
         print(f"  {name}: {path}")
 
 
+def command_multistart_global_observables(args: argparse.Namespace) -> None:
+    """
+    Run multistart fitting for many observable columns sharing one kinetic model.
+
+    Intended first use case:
+        wide-format assigned HSQC peak intensities
+
+    Example data:
+
+        time,A23_HN,G45_HN,L78_HN
+        0,1000,850,1200
+        1,920,810,1105
+
+    Default observable model:
+
+        signal_i(t) = scale_i * observed_species(t) + offset_i
+
+    Shared globally:
+        kinetic parameters
+        initial conditions
+        simulated species timecourses
+
+    Signal-specific:
+        scale_i
+        offset_i
+    """
+
+    config = load_fit_config(args.config)
+
+    model_path = get_config_value(
+        args=args,
+        config=config,
+        argument_name="model",
+        required=True,
+    )
+
+    data_path = get_config_value(
+        args=args,
+        config=config,
+        argument_name="data",
+        required=True,
+    )
+
+    time_column = get_config_value(
+        args=args,
+        config=config,
+        argument_name="time_column",
+        default="time",
+    )
+
+    signal_columns = get_config_value(
+        args=args,
+        config=config,
+        argument_name="signal_columns",
+        default=None,
+    )
+
+    exclude_columns = get_config_value(
+        args=args,
+        config=config,
+        argument_name="exclude_columns",
+        default=None,
+    )
+
+    observed_species = get_config_value(
+        args=args,
+        config=config,
+        argument_name="observed_species",
+        default="A",
+    )
+
+    output_dir = get_config_value(
+        args=args,
+        config=config,
+        argument_name="output_dir",
+        required=True,
+    )
+
+    n_starts = int(
+        get_config_value(
+            args=args,
+            config=config,
+            argument_name="n_starts",
+            default=10,
+        )
+    )
+
+    n_workers = get_config_value(
+        args=args,
+        config=config,
+        argument_name="n_workers",
+        default=1,
+    )
+
+    if n_workers is not None:
+        n_workers = int(n_workers)
+
+    random_seed = get_config_value(
+        args=args,
+        config=config,
+        argument_name="random_seed",
+        default=None,
+    )
+
+    if random_seed is not None:
+        random_seed = int(random_seed)
+
+    sort_by = get_config_value(
+        args=args,
+        config=config,
+        argument_name="sort_by",
+        default="aic",
+    )
+
+    log_uniform = bool(config.get("log_uniform", True))
+
+    if args.linear_sampling:
+        log_uniform = False
+
+    model = read_model_file(model_path)
+
+    dataset = read_wide_observable_dataset(
+        file_path=data_path,
+        time_column=time_column,
+        signal_columns=signal_columns,
+        exclude_columns=exclude_columns,
+        numeric_only=True,
+    )
+
+    parameter_entries = get_config_list_or_dict_value(
+        args=args,
+        config=config,
+        argument_name="parameter",
+        alternative_config_name="parameters",
+    )
+
+    initial_entries = get_config_list_or_dict_value(
+        args=args,
+        config=config,
+        argument_name="initial",
+        alternative_config_name="initial_conditions",
+    )
+
+    signal_weight_entries = get_config_list_or_dict_value(
+        args=args,
+        config=config,
+        argument_name="signal_weight",
+        alternative_config_name="signal_weights",
+    )
+
+    default_parameter_guess = get_config_value(
+        args=args,
+        config=config,
+        argument_name="default_parameter_guess",
+        default=0.1,
+    )
+
+    default_parameter_lower = get_config_value(
+        args=args,
+        config=config,
+        argument_name="default_parameter_lower",
+        default=0.0,
+    )
+
+    default_parameter_upper = get_config_value(
+        args=args,
+        config=config,
+        argument_name="default_parameter_upper",
+        default=100.0,
+    )
+
+    method = get_config_value(
+        args=args,
+        config=config,
+        argument_name="method",
+        default="trf",
+    )
+
+    loss = get_config_value(
+        args=args,
+        config=config,
+        argument_name="loss",
+        default="linear",
+    )
+
+    max_nfev = get_config_value(
+        args=args,
+        config=config,
+        argument_name="max_nfev",
+        default=None,
+    )
+
+    rtol = get_config_value(
+        args=args,
+        config=config,
+        argument_name="rtol",
+        default=1e-6,
+    )
+
+    atol = get_config_value(
+        args=args,
+        config=config,
+        argument_name="atol",
+        default=1e-9,
+    )
+
+    fit_scale = bool(config.get("fit_scale", True))
+    fit_offset = bool(config.get("fit_offset", True))
+
+    scale_initial_guess = float(config.get("scale_initial_guess", 1.0))
+    scale_lower_bound = float(config.get("scale_lower_bound", 0.0))
+    scale_upper_bound = float(config.get("scale_upper_bound", float("inf")))
+
+    offset_initial_guess = float(config.get("offset_initial_guess", 0.0))
+    offset_lower_bound = float(config.get("offset_lower_bound", -float("inf")))
+    offset_upper_bound = float(config.get("offset_upper_bound", float("inf")))
+
+    no_plots = bool(config.get("no_plots", False)) or bool(args.no_plots)
+
+    parameter_specs = build_parameter_specs(
+        model=model,
+        parameter_entries=parameter_entries,
+        default_guess=default_parameter_guess,
+        default_lower=default_parameter_lower,
+        default_upper=default_parameter_upper,
+    )
+
+    initial_condition_specs = build_initial_condition_specs(
+        model=model,
+        initial_entries=initial_entries,
+    )
+
+    observable_specs = build_shared_species_observable_specs(
+        signal_columns=dataset.signal_columns,
+        species=observed_species,
+        fit_scale=fit_scale,
+        fit_offset=fit_offset,
+        scale_initial_guess=scale_initial_guess,
+        scale_lower_bound=scale_lower_bound,
+        scale_upper_bound=scale_upper_bound,
+        offset_initial_guess=offset_initial_guess,
+        offset_lower_bound=offset_lower_bound,
+        offset_upper_bound=offset_upper_bound,
+    )
+
+    settings = FitSettings(
+        species_mapping={},
+        use_normalized_data=False,
+        method=method,
+        loss=loss,
+        max_nfev=max_nfev,
+        rtol=rtol,
+        atol=atol,
+        signal_weights=parse_signal_weight_entries(signal_weight_entries),
+    )
+
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    if n_workers is None or n_workers <= 1:
+        print(f"Running serial global observable multistart with {n_starts} starts")
+
+        multistart_result = fit_multistart(
+            model=model,
+            dataset=dataset,
+            parameter_specs=parameter_specs,
+            initial_condition_specs=initial_condition_specs,
+            observable_specs=observable_specs,
+            settings=settings,
+            n_starts=n_starts,
+            random_seed=random_seed,
+            sort_by=sort_by,
+            log_uniform=log_uniform,
+        )
+
+        comparison_path = export_multistart_comparison(
+            multistart_result=multistart_result,
+            file_path=output_path / "global_observable_multistart_comparison.csv",
+        )
+
+        written_summary_files = {
+            "global_observable_multistart_comparison": comparison_path,
+        }
+
+        best_result = multistart_result.best_result
+        best_index = multistart_result.best_index
+
+    else:
+        print(
+            f"Running parallel global observable multistart with "
+            f"{n_starts} starts using {n_workers} workers"
+        )
+
+        parallel_result = fit_multistart_parallel(
+            model=model,
+            dataset=dataset,
+            parameter_specs=parameter_specs,
+            initial_condition_specs=initial_condition_specs,
+            observable_specs=observable_specs,
+            settings=settings,
+            n_starts=n_starts,
+            n_workers=n_workers,
+            random_seed=random_seed,
+            sort_by=sort_by,
+            log_uniform=log_uniform,
+        )
+
+        written_summary_files = export_parallel_multistart_summary(
+            parallel_result=parallel_result,
+            output_dir=output_path,
+        )
+
+        multistart_result = parallel_result.successful_result
+        best_result = multistart_result.best_result
+        best_index = multistart_result.best_index
+
+        print("Submitted starts:", parallel_result.n_submitted)
+        print("Successful starts:", parallel_result.n_successful)
+        print("Failed starts:", parallel_result.n_failed)
+
+    starting_parameters_table = pd.DataFrame(multistart_result.starting_parameter_sets)
+
+    starting_parameters_table.insert(
+        0,
+        "start_index",
+        list(range(len(starting_parameters_table))),
+    )
+
+    starting_parameters_path = (
+        output_path / "global_observable_multistart_starting_parameters.csv"
+    )
+
+    starting_parameters_table.to_csv(
+        starting_parameters_path,
+        index=False,
+    )
+
+    written_summary_files["global_observable_multistart_starting_parameters"] = (
+        starting_parameters_path
+    )
+
+    best_fit_output_dir = output_path / "best_fit"
+
+    best_fit_files = export_fit_bundle(
+        fit_result=best_result,
+        model=model,
+        dataset=dataset,
+        output_dir=best_fit_output_dir,
+        parameter_specs=parameter_specs,
+        initial_condition_specs=initial_condition_specs,
+        observable_specs=observable_specs,
+        species_mapping={},
+        include_plots=not no_plots,
+    )
+
+    print("\nBest start index:", best_index)
+    print("Best fit success:", best_result.success)
+    print("Best fit message:", best_result.message)
+    print("Observed species:", observed_species)
+    print("Number of observable columns:", len(dataset.signal_columns))
+    print("Best fitted kinetic parameters:", best_result.fitted_parameters)
+    print("Best statistics:", best_result.statistics)
+
+    print(f"\nWrote global observable multistart outputs to: {output_path}")
+    print(f"Wrote best fit bundle to: {best_fit_output_dir}")
+
+    print("\nWritten summary files:")
+    for name, path in written_summary_files.items():
+        print(f"  {name}: {path}")
+
+    print("\nWritten best-fit files:")
+    for name, path in best_fit_files.items():
+        print(f"  {name}: {path}")
+
+
 def build_parser() -> argparse.ArgumentParser:
     """
     Build CLI argument parser.
@@ -2130,6 +2506,185 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     global_observable_parser.set_defaults(func=command_fit_global_observables)
+
+    global_observable_multistart_parser = subparsers.add_parser(
+        "multistart-global-observables",
+        help="Run multistart fitting for many observable columns sharing one kinetic model.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--config",
+        default=None,
+        help="Path to JSON global observable multistart config.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--model",
+        default=None,
+        help="Path to model text file.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--data",
+        default=None,
+        help="Path to wide-format observable CSV file.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--time-column",
+        default=None,
+        help="Name of the time column.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--signal-columns",
+        nargs="+",
+        default=None,
+        help="Observable/signal columns. If omitted, numeric columns are inferred.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--exclude-columns",
+        nargs="+",
+        default=None,
+        help="Columns to exclude when inferring signal columns.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--observed-species",
+        default=None,
+        help="Model species that all observables map to. Default: A.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--parameter",
+        action="append",
+        default=None,
+        help=(
+            "Parameter override: name:initial_guess:lower_bound:upper_bound. "
+            "Can be repeated."
+        ),
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--initial",
+        action="append",
+        default=None,
+        help=(
+            "Initial condition: species:value:fixed_or_fit:lower_bound:upper_bound. "
+            "Can be repeated."
+        ),
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--signal-weight",
+        action="append",
+        default=None,
+        help="Signal residual weight: data_column:weight. Can be repeated.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--default-parameter-guess",
+        type=float,
+        default=None,
+        help="Default initial guess for model parameters.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--default-parameter-lower",
+        type=float,
+        default=None,
+        help="Default lower bound for model parameters.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--default-parameter-upper",
+        type=float,
+        default=None,
+        help="Default upper bound for model parameters.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--method",
+        default=None,
+        help="scipy.optimize.least_squares method.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--loss",
+        default=None,
+        help="scipy.optimize.least_squares loss.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--max-nfev",
+        type=int,
+        default=None,
+        help="Maximum number of function evaluations.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--rtol",
+        type=float,
+        default=None,
+        help="ODE solver relative tolerance.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--atol",
+        type=float,
+        default=None,
+        help="ODE solver absolute tolerance.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--output-dir",
+        default=None,
+        help="Output directory for global observable multistart outputs.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--n-starts",
+        type=int,
+        default=None,
+        help="Number of multistart fits.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--n-workers",
+        type=int,
+        default=None,
+        help="Number of parallel worker processes. Use 1 for serial.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--random-seed",
+        type=int,
+        default=None,
+        help="Random seed for generated starting guesses.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--sort-by",
+        default=None,
+        help="Metric used to rank starts. Usually aic, bic, rmse, rss, or cost.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--linear-sampling",
+        action="store_true",
+        help="Use linear rather than log-uniform sampling for starting guesses.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--no-plots",
+        action="store_true",
+        help="Skip plot generation for best fit bundle.",
+    )
+
+    global_observable_multistart_parser.set_defaults(
+        func=command_multistart_global_observables
+    )
 
     return parser
 

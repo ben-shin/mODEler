@@ -77,3 +77,14 @@ Example config
 }
 
 
+## Multistart global observable fitting
+
+A single optimizer start might not be enough for real datasets. Global observable fits may contain observed intensity scales and offset parameters.
+
+Run serial multistart:
+```bash
+
+python -m odefit.cli multistart-global-observables \
+  --config examples/configs/global_hsqc_multistart_config.json \
+  --n-workers 4 \
+  --n-starts 20

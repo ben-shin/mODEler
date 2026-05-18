@@ -1,0 +1,47 @@
+{
+  "model": "examples/configs/model_first_order.txt",
+  "data": "examples/configs/example_hsqc_peaks.csv",
+  "time_column": "time",
+  "observed_species": "A",
+  "parameters": {
+    "k1f": {
+      "initial_guess": 0.1,
+      "lower_bound": 0.000001,
+      "upper_bound": 10.0
+    }
+  },
+  "initial_conditions": {
+    "A": {
+      "value": 1.0,
+      "mode": "fixed",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    },
+    "B": {
+      "value": 0.0,
+      "mode": "fixed",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    }
+  },
+  "fit_scale": true,
+  "fit_offset": true,
+  "scale_initial_guess": 1.0,
+  "scale_lower_bound": 0.0,
+  "scale_upper_bound": 1000000.0,
+  "offset_initial_guess": 0.0,
+  "offset_lower_bound": -1000000.0,
+  "offset_upper_bound": 1000000.0,
+  "method": "trf",
+  "loss": "linear",
+  "rtol": 1e-8,
+  "atol": 1e-10,
+  "max_nfev": 5000,
+  "output_dir": "examples/configs/outputs/global_hsqc_multistart",
+  "no_plots": true,
+  "n_starts": 8,
+  "n_workers": 1,
+  "random_seed": 1,
+  "sort_by": "aic",
+  "log_uniform": true
+}
