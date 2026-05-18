@@ -144,6 +144,37 @@ def validate_residual_count(
         )
 
 
+def validate_signal_weights(
+    dataset: Dataset,
+    settings: FitSettings,
+    mapped_data_columns: list[str],
+) -> None:
+    """
+    Validate optional per-signal residual weights.
+    """
+
+    if settings.signal_weights is None:
+        return
+
+    mapped_data_column_set = set(mapped_data_columns)
+
+    for data_column, weight in settings.signal_weights.items():
+        if data_column not in dataset.signal_columns:
+            raise ValueError(
+                f"Signal weight provided for unknown data column: {data_column}"
+            )
+
+        if data_column not in mapped_data_column_set:
+            raise ValueError(
+                f"Signal weight provided for unmapped data column: {data_column}"
+            )
+
+        if weight <= 0:
+            raise ValueError(
+                f"Signal weight must be positive for data column: {data_column}"
+            )
+
+
 def validate_fit_inputs(
     model: ModelSpec,
     dataset: Dataset,
@@ -180,6 +211,10 @@ def validate_fit_inputs(
             observable_specs=observable_specs,
         )
 
+        mapped_data_columns = [
+            observable.data_column for observable in observable_specs
+        ]
+
         number_of_mapped_signals = len(observable_specs)
         number_of_free_observable_parameters = len(
             get_free_observable_parameter_names(observable_specs)
@@ -187,9 +222,17 @@ def validate_fit_inputs(
 
     else:
         validate_species_mapping(model, dataset, settings)
+
+        mapped_data_columns = list(settings.species_mapping.keys())
+
         number_of_mapped_signals = len(settings.species_mapping)
         number_of_free_observable_parameters = 0
 
+    validate_signal_weights(
+        dataset=dataset,
+        settings=settings,
+        mapped_data_columns=mapped_data_columns,
+    )
     validate_normalized_data_available(dataset, settings)
 
     number_of_free_parameters = len(get_free_parameter_specs(parameter_specs))

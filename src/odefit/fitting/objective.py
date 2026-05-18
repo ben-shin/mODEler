@@ -71,6 +71,7 @@ def objective_function(
             simulation_result=simulation_result,
             observable_parameters=observable_parameters,
             use_normalized_data=settings.use_normalized_data,
+            signal_weights=settings.signal_weights,
         )
 
     return calculate_residuals(
@@ -78,4 +79,5 @@ def objective_function(
         simulation_result=simulation_result,
         species_mapping=settings.species_mapping,
         use_normalized_data=settings.use_normalized_data,
+        signal_weights=settings.signal_weights,
     )
