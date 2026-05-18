@@ -48,6 +48,14 @@ python -m odefit.app
 pytest tests/
 ```
 
+## Future development
+
+- Parallel computing
+- GPU acceleration
+- Compatibility with clusters
+- Job submission into clusters
+- Julia and cython backend
+
 ## Shoutout
 Shoutout goes to Sebastian for breaking his arm cycling -
 I've always been meaning to develop something like this
