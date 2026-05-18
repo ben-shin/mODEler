@@ -571,8 +571,8 @@ Legend:
 [ ] Create full fit summary table
 [x] Add parameter-at-bound warning table
 [ ] Add convergence diagnostics table
-  [X] Bound diagnostics table
-  [ ] Optimizer convergence diagnostics table
+  [x] Bound diagnostics table
+  [x] Optimizer convergence diagnostics table
 [x] Create observable_table.py
 
 7.9 Remaining fitting features
@@ -627,6 +627,7 @@ Legend:
 [x] Export fitted_observables.csv
 [ ] Export model_definition.txt
 [ ] Export generated_odes.txt
+[x] Export optimizer diagnostics
 [x] Add tests for CSV export
 
 8.3 JSON export
