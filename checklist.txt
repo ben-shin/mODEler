@@ -123,7 +123,7 @@ Legend:
 [ ] Support explicit irreversible arrow: A->B
 [ ] Support products with multiple species: A>B+C
 [ ] Add line-number-aware error messages
-[ ] Add formal reaction syntax guide
+[x] Add formal reaction syntax guide
 
 1.3 Species detection
 ---------------------
@@ -136,8 +136,8 @@ Legend:
 [x] Test irreversible model
 [x] Test mixed model
 [x] Test oligomer model
-[ ] Add natural sorting so P10 comes after P9
-[ ] Add test for natural sorting
+[x] Add natural sorting so P10 comes after P9
+[x] Add test for natural sorting
 
 1.4 Parameter detection
 -----------------------
@@ -164,9 +164,9 @@ Legend:
 [x] Test irreversible model
 [x] Test mixed model
 [x] Test raw text preservation
-[ ] Add model metadata
-[ ] Add optional model name
-[ ] Add model-level validation warnings
+[x] Add model metadata
+[x] Add optional model name
+[x] Add model-level validation warnings
 
 
 2. RATE LAWS AND ODE GENERATION
@@ -221,8 +221,8 @@ Legend:
 [x] Test text import
 [x] Test ModelSpec from file
 [x] Test ODE text export
-[ ] Add generated model summary text export
-[ ] Add reaction table text export
+[x] Add generated model summary text export
+[x] Add reaction table text export
 
 
 3. NUMERICAL SIMULATION ENGINE
