@@ -448,6 +448,10 @@ Legend:
 [x] Store statistics
 [x] Store simulation result
 [x] Store success/message/nfev/cost
+[x] Store optimizer status
+[x] Store optimizer optimality
+[x] Store optimizer active mask
+[x] Store optimizer njev
 
 7.2 Parameter vector handling
 -----------------------------
@@ -570,9 +574,10 @@ Legend:
 [x] Create initial_condition_table.py
 [ ] Create full fit summary table
 [x] Add parameter-at-bound warning table
-[ ] Add convergence diagnostics table
+[x] Add convergence diagnostics table
   [x] Bound diagnostics table
   [x] Optimizer convergence diagnostics table
+  [x] Export optimizer diagnostics table
 [x] Create observable_table.py
 
 7.9 Remaining fitting features
@@ -580,9 +585,9 @@ Legend:
 [x] Weighted residuals
 [x] Per-signal weights
 [ ] Per-point uncertainty weighting
-[ ] Observable mapping: signal = scale * species + offset
-[ ] Fit scale factors
-[ ] Fit baseline offsets
+[x] Observable mapping: signal = scale * species + offset
+[x] Fit scale factors
+[x] Fit baseline offsets
 [ ] Fit linear combinations of species
 [ ] Parameter uncertainty estimates
 [ ] Covariance matrix
@@ -595,7 +600,7 @@ Legend:
 [ ] Dataset-specific observable parameters
 [ ] Shared parameters across datasets
 [ ] Better handling when ODE solve fails during optimization
-[ ] Warnings for parameters stuck at bounds
+[x] Warnings for parameters stuck at bounds
 
 
 8. EXPORT SYSTEM
@@ -607,11 +612,11 @@ Legend:
 [x] Text export helper exists
 [x] Model text reading exists
 [x] Generated ODE text writing exists
-[ ] CSV export module complete
+[x] CSV export module complete
 [ ] JSON export module complete
 [ ] Plot export module complete
 [ ] Report export module complete
-[ ] Bundle export module complete
+[x] Bundle export module complete
 [ ] Project IO module complete
 
 8.2 CSV export
@@ -625,9 +630,10 @@ Legend:
 [x] Export residuals.csv
 [x] Export simulated_curves.csv
 [x] Export fitted_observables.csv
+[x] Export fit_diagnostics.csv
+[x] Export optimizer_diagnostics.csv
 [ ] Export model_definition.txt
 [ ] Export generated_odes.txt
-[x] Export optimizer diagnostics
 [x] Add tests for CSV export
 
 8.3 JSON export
@@ -648,6 +654,8 @@ Legend:
 [x] Save model text
 [x] Save generated ODEs
 [x] Save fitted_observables.csv
+[x] Save fit_diagnostics.csv
+[x] Save optimizer_diagnostics.csv
 [ ] Save metadata
 [x] Add tests for bundle export
 
@@ -827,12 +835,12 @@ Legend:
 11.3 CLI fitting
 ----------------
 [x] Run fit from CLI
-[ ] Accept parameter guesses
-[ ] Accept bounds
+[x] Accept parameter guesses
+[x] Accept bounds
 [ ] Accept fixed parameters
 [ ] Accept tied parameters
-[ ] Accept fitted initial conditions
-[ ] Export fit bundle
+[x] Accept fitted initial conditions
+[x] Export fit bundle
 [x] Add CLI tests
 
 
@@ -923,7 +931,7 @@ Legend:
 --------------------------
 [ ] Ensure backend works without GUI
 [ ] Ensure fitting can run from Python script
-[ ] Add CLI fitting command
+[x] Add CLI fitting command
 [ ] Add CLI simulation command
 [ ] Add CLI batch fitting command
 [ ] Add config-file-driven jobs
@@ -1084,18 +1092,18 @@ Legend:
 14.2 Weighted fitting
 ---------------------
 [ ] Create weights.py
-[ ] Unweighted residuals
-[ ] Per-signal weights
+[x] Unweighted residuals
+[x] Per-signal weights
 [ ] Per-point weights
 [ ] Error-column weighting
 [ ] Standard-deviation weighting for replicates
-[ ] Add tests
+[x] Add tests
 
 14.3 Identifiability and uncertainty
 ------------------------------------
 [x] Reject residual count <= free variables
 [ ] Warn if free variables are too many for residuals
-[ ] Detect parameters stuck at bounds
+[x] Detect parameters stuck at bounds
 [ ] Estimate covariance matrix
 [ ] Estimate approximate standard errors
 [ ] Estimate confidence intervals
@@ -1204,42 +1212,6 @@ Legend:
 [ ] Tag v0.1.0
 [ ] Create GitHub release
 [ ] Add release notes
-
-
-RECOMMENDED NEXT TASKS
-======================
-
-Immediate
----------
-[ ] Run full pytest locally
-[ ] Commit and push latest fitting additions
-[ ] Add this checklist to CHECKLIST.txt
-[ ] Create GitHub Issues from remaining major unchecked sections
-[ ] Coordinate with Seb on GUI/fitting interface
-
-Next coding tasks
------------------
-[x] Create initial-condition result table
-[x] Create CSV export for FitResult
-[x] Create residual plots
-[x] Create observed-vs-fitted plots
-[ ] Add model comparison helper
-[ ] Add NMR amide example folder
-
-Next scientific tasks
----------------------
-[ ] Add observable mapping: signal = scale * species + offset
-[ ] Add weighted residuals
-[ ] Add parameter-at-bound warnings
-[ ] Add uncertainty estimates later
-
-Next infrastructure tasks
--------------------------
-[ ] Add CLI fitting
-[ ] Add config-file-driven jobs
-[ ] Add multiprocessing batch fitting
-[ ] Add SLURM script generation
-[ ] Add CI
 
 TYPES OF DATASET TO EXPECT
 ======================
