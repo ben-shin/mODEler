@@ -267,3 +267,31 @@ def test_export_fit_result_tables_writes_observable_table(tmp_path):
     assert list(table["species"]) == ["A"]
     assert list(table["scale_fitted_value"]) == [2.0]
     assert list(table["offset_fitted_value"]) == [0.1]
+
+
+def test_export_fit_result_tables_writes_fit_diagnostics(tmp_path):
+    fit_result = make_fit_result()
+
+    parameter_specs = [
+        ParameterSpec(
+            name="k1f",
+            initial_guess=0.1,
+            lower_bound=0.0,
+            upper_bound=10.0,
+        )
+    ]
+
+    written_files = export_fit_result_tables(
+        fit_result=fit_result,
+        output_dir=tmp_path,
+        parameter_specs=parameter_specs,
+    )
+
+    assert "fit_diagnostics" in written_files
+    assert (tmp_path / "fit_diagnostics.csv").exists()
+
+    table = pd.read_csv(tmp_path / "fit_diagnostics.csv")
+
+    assert "kind" in table.columns
+    assert "name" in table.columns
+    assert "warning" in table.columns

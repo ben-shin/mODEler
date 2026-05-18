@@ -3,6 +3,7 @@ from pathlib import Path
 import pandas as pd
 
 from odefit.data.dataset import Dataset
+from odefit.fitting.diagnostics import build_fit_diagnostics_table
 from odefit.fitting.fit_result import FitResult
 from odefit.fitting.initial_condition_spec import InitialConditionSpec
 from odefit.fitting.initial_condition_table import build_initial_condition_table
@@ -71,6 +72,8 @@ def export_fit_result_tables(
     Optionally exports:
         fitted_parameters.csv
         fitted_initial_conditions.csv
+        fitted_observables.csv
+        fit_diagnostics.csv
         residuals.csv
 
     Returns a dictionary mapping output names to file paths.
@@ -92,20 +95,6 @@ def export_fit_result_tables(
         dataframe=simulated_curves_table,
         file_path=output_path / "simulated_curves.csv",
     )
-
-    if observable_specs is not None:
-        if fit_result.fitted_observables is None:
-            raise ValueError("FitResult is missing fitted observables")
-
-        observable_table = build_observable_table(
-            observable_specs=observable_specs,
-            fitted_observables=fit_result.fitted_observables,
-        )
-
-        written_files["fitted_observables"] = write_dataframe_csv(
-            dataframe=observable_table,
-            file_path=output_path / "fitted_observables.csv",
-        )
 
     if parameter_specs is not None:
         parameter_table = build_parameter_table(
@@ -130,6 +119,33 @@ def export_fit_result_tables(
         written_files["fitted_initial_conditions"] = write_dataframe_csv(
             dataframe=initial_condition_table,
             file_path=output_path / "fitted_initial_conditions.csv",
+        )
+
+    if observable_specs is not None:
+        if fit_result.fitted_observables is None:
+            raise ValueError("FitResult is missing fitted observables")
+
+        observable_table = build_observable_table(
+            observable_specs=observable_specs,
+            fitted_observables=fit_result.fitted_observables,
+        )
+
+        written_files["fitted_observables"] = write_dataframe_csv(
+            dataframe=observable_table,
+            file_path=output_path / "fitted_observables.csv",
+        )
+
+    if parameter_specs is not None:
+        diagnostics_table = build_fit_diagnostics_table(
+            fit_result=fit_result,
+            parameter_specs=parameter_specs,
+            initial_condition_specs=initial_condition_specs,
+            observable_specs=observable_specs,
+        )
+
+        written_files["fit_diagnostics"] = write_dataframe_csv(
+            dataframe=diagnostics_table,
+            file_path=output_path / "fit_diagnostics.csv",
         )
 
     if dataset is not None or species_mapping is not None:
