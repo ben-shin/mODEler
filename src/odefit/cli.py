@@ -23,7 +23,11 @@ from odefit.fitting.parallel_multistart import (
 from odefit.fitting.parameter_spec import ParameterSpec
 from odefit.model.model_spec import ModelSpec, build_model_spec
 from odefit.model.ode_generator import generate_ode_lines
-from odefit.plotting.timecourse_plots import plot_simulation_timecourse, save_figure
+from odefit.plotting.timecourse_plots import (
+    plot_simulation_timecourse,
+    save_figure,
+)
+from odefit.simulation.simulation_result import SimulationResult
 from odefit.simulation.simulation_settings import SimulationSettings
 from odefit.simulation.solver import simulate_model
 
@@ -43,7 +47,7 @@ def read_model_file(model_path: str | Path) -> ModelSpec:
 
 def load_fit_config(config_path: str | Path | None) -> dict:
     """
-    Load a JSON fit configuration file.
+    Load a JSON configuration file.
 
     Returns an empty dict if no config path is supplied.
     """
@@ -157,6 +161,41 @@ def parse_mapping_entries(
     return mapping
 
 
+def build_default_species_mapping(
+    signal_columns: list[str],
+    model: ModelSpec,
+) -> dict[str, str]:
+    """
+    Build a default data-column to species mapping.
+
+    Rules:
+    - If there is one signal column and species A exists, map signal -> A.
+    - Otherwise, map columns to species with identical names.
+    """
+
+    if len(signal_columns) == 1 and "A" in model.species:
+        return {
+            signal_columns[0]: "A",
+        }
+
+    mapping = {}
+
+    for signal_column in signal_columns:
+        if signal_column in model.species:
+            mapping[signal_column] = signal_column
+
+    missing_columns = set(signal_columns) - set(mapping)
+
+    if missing_columns:
+        missing = ", ".join(sorted(missing_columns))
+        raise ValueError(
+            "Could not infer mapping for signal columns: "
+            f"{missing}. Use --mapping data_column:species."
+        )
+
+    return mapping
+
+
 def parse_parameter_entries(
     parameter_entries: list[str] | dict | None,
 ) -> dict[str, tuple[float, float, float]]:
@@ -210,6 +249,49 @@ def parse_parameter_entries(
         )
 
     return parsed
+
+
+def build_parameter_specs(
+    model: ModelSpec,
+    parameter_entries: list[str] | dict | None = None,
+    default_guess: float = 0.1,
+    default_lower: float = 0.0,
+    default_upper: float = 100.0,
+) -> list[ParameterSpec]:
+    """
+    Build ParameterSpec objects for model parameters.
+
+    CLI/config parameter entries override defaults.
+    """
+
+    overrides = parse_parameter_entries(parameter_entries)
+
+    unknown_parameters = set(overrides) - set(model.parameters)
+
+    if unknown_parameters:
+        unknown = ", ".join(sorted(unknown_parameters))
+        raise ValueError(f"Parameter override not present in model: {unknown}")
+
+    parameter_specs = []
+
+    for parameter_name in model.parameters:
+        if parameter_name in overrides:
+            guess, lower, upper = overrides[parameter_name]
+        else:
+            guess = default_guess
+            lower = default_lower
+            upper = default_upper
+
+        parameter_specs.append(
+            ParameterSpec(
+                name=parameter_name,
+                initial_guess=guess,
+                lower_bound=lower,
+                upper_bound=upper,
+            )
+        )
+
+    return parameter_specs
 
 
 def parse_initial_condition_entries(
@@ -282,129 +364,9 @@ def parse_initial_condition_entries(
     return parsed
 
 
-def parse_signal_weight_entries(
-    weight_entries: list[str] | dict[str, float] | None,
-) -> dict[str, float] | None:
-    """
-    Parse signal weight entries.
-
-    CLI format:
-        ["amide:2.0"]
-
-    JSON config format:
-        {
-            "amide": 2.0
-        }
-    """
-
-    if not weight_entries:
-        return None
-
-    if isinstance(weight_entries, dict):
-        return {
-            str(data_column): float(weight)
-            for data_column, weight in weight_entries.items()
-        }
-
-    weights: dict[str, float] = {}
-
-    for entry in weight_entries:
-        parts = entry.split(":")
-
-        if len(parts) != 2:
-            raise ValueError(
-                "Signal weight entries must have format data_column:weight. "
-                f"Got: {entry}"
-            )
-
-        data_column, weight = parts
-
-        weights[data_column] = float(weight)
-
-    return weights
-
-
-def build_default_species_mapping(
-    signal_columns: list[str],
-    model: ModelSpec,
-) -> dict[str, str]:
-    """
-    Build a default data-column to species mapping.
-
-    Rules:
-    - If there is one signal column and species A exists, map signal -> A.
-    - Otherwise, map columns to species with identical names.
-    """
-
-    if len(signal_columns) == 1 and "A" in model.species:
-        return {
-            signal_columns[0]: "A",
-        }
-
-    mapping = {}
-
-    for signal_column in signal_columns:
-        if signal_column in model.species:
-            mapping[signal_column] = signal_column
-
-    missing_columns = set(signal_columns) - set(mapping)
-
-    if missing_columns:
-        missing = ", ".join(sorted(missing_columns))
-        raise ValueError(
-            "Could not infer mapping for signal columns: "
-            f"{missing}. Use --mapping data_column:species."
-        )
-
-    return mapping
-
-
-def build_parameter_specs(
-    model: ModelSpec,
-    parameter_entries: list[str] | None = None,
-    default_guess: float = 0.1,
-    default_lower: float = 0.0,
-    default_upper: float = 100.0,
-) -> list[ParameterSpec]:
-    """
-    Build ParameterSpec objects for model parameters.
-
-    CLI parameter entries override defaults.
-    """
-
-    overrides = parse_parameter_entries(parameter_entries)
-
-    unknown_parameters = set(overrides) - set(model.parameters)
-
-    if unknown_parameters:
-        unknown = ", ".join(sorted(unknown_parameters))
-        raise ValueError(f"Parameter override not present in model: {unknown}")
-
-    parameter_specs = []
-
-    for parameter_name in model.parameters:
-        if parameter_name in overrides:
-            guess, lower, upper = overrides[parameter_name]
-        else:
-            guess = default_guess
-            lower = default_lower
-            upper = default_upper
-
-        parameter_specs.append(
-            ParameterSpec(
-                name=parameter_name,
-                initial_guess=guess,
-                lower_bound=lower,
-                upper_bound=upper,
-            )
-        )
-
-    return parameter_specs
-
-
 def build_initial_condition_specs(
     model: ModelSpec,
-    initial_entries: list[str] | None = None,
+    initial_entries: list[str] | dict | None = None,
 ) -> list[InitialConditionSpec]:
     """
     Build InitialConditionSpec objects.
@@ -448,6 +410,48 @@ def build_initial_condition_specs(
         )
 
     return initial_condition_specs
+
+
+def parse_signal_weight_entries(
+    weight_entries: list[str] | dict[str, float] | None,
+) -> dict[str, float] | None:
+    """
+    Parse signal weight entries.
+
+    CLI format:
+        ["amide:2.0"]
+
+    JSON config format:
+        {
+            "amide": 2.0
+        }
+    """
+
+    if not weight_entries:
+        return None
+
+    if isinstance(weight_entries, dict):
+        return {
+            str(data_column): float(weight)
+            for data_column, weight in weight_entries.items()
+        }
+
+    weights: dict[str, float] = {}
+
+    for entry in weight_entries:
+        parts = entry.split(":")
+
+        if len(parts) != 2:
+            raise ValueError(
+                "Signal weight entries must have format data_column:weight. "
+                f"Got: {entry}"
+            )
+
+        data_column, weight = parts
+
+        weights[data_column] = float(weight)
+
+    return weights
 
 
 def parse_float_value_entries(
@@ -545,10 +549,10 @@ def build_simulation_timepoints(
 
 
 def build_simulation_dataframe(
-    simulation_result,
+    simulation_result: SimulationResult,
 ) -> pd.DataFrame:
     """
-    Build a tidy simulation output dataframe.
+    Build a simulation output dataframe.
 
     Columns:
         time, species_1, species_2, ...
@@ -565,7 +569,7 @@ def build_simulation_dataframe(
 
 
 def write_simulation_csv(
-    simulation_result,
+    simulation_result: SimulationResult,
     output_csv: str | Path,
 ) -> Path:
     """
@@ -607,6 +611,169 @@ def command_generate_odes(args: argparse.Namespace) -> None:
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text("\n".join(ode_lines) + "\n")
         print(f"\nWrote ODEs to: {output_path}")
+
+
+def command_simulate(args: argparse.Namespace) -> None:
+    """
+    Simulate a model from CLI/config and write simulated curves to CSV.
+    """
+
+    config = load_fit_config(args.config)
+
+    model_path = get_config_value(
+        args=args,
+        config=config,
+        argument_name="model",
+        required=True,
+    )
+
+    model = read_model_file(model_path)
+
+    parameter_entries = get_config_list_or_dict_value(
+        args=args,
+        config=config,
+        argument_name="parameter_value",
+        alternative_config_name="parameter_values",
+    )
+
+    initial_entries = get_config_list_or_dict_value(
+        args=args,
+        config=config,
+        argument_name="initial_value",
+        alternative_config_name="initial_values",
+    )
+
+    if parameter_entries is None:
+        parameter_entries = config.get("parameters")
+
+    if initial_entries is None:
+        initial_entries = config.get("initial_conditions")
+
+    parameters = parse_float_value_entries(parameter_entries)
+    initial_conditions = parse_float_value_entries(initial_entries)
+
+    timepoints = get_config_value(
+        args=args,
+        config=config,
+        argument_name="timepoints",
+        default=None,
+    )
+
+    time_start = get_config_value(
+        args=args,
+        config=config,
+        argument_name="time_start",
+        default=None,
+    )
+
+    time_end = get_config_value(
+        args=args,
+        config=config,
+        argument_name="time_end",
+        default=None,
+    )
+
+    num_points = get_config_value(
+        args=args,
+        config=config,
+        argument_name="num_points",
+        default=None,
+    )
+
+    simulation_timepoints = build_simulation_timepoints(
+        timepoints=timepoints,
+        time_start=time_start,
+        time_end=time_end,
+        num_points=num_points,
+    )
+
+    method = get_config_value(
+        args=args,
+        config=config,
+        argument_name="method",
+        default="LSODA",
+    )
+
+    rtol = get_config_value(
+        args=args,
+        config=config,
+        argument_name="rtol",
+        default=1e-6,
+    )
+
+    atol = get_config_value(
+        args=args,
+        config=config,
+        argument_name="atol",
+        default=1e-9,
+    )
+
+    clip_negative_concentrations = bool(
+        config.get("clip_negative_concentrations", False)
+    ) or bool(args.clip_negative_concentrations)
+
+    warn_on_negative_values = bool(config.get("warn_on_negative_values", True))
+
+    if args.no_negative_warnings:
+        warn_on_negative_values = False
+
+    settings = SimulationSettings(
+        method=method,
+        rtol=rtol,
+        atol=atol,
+        clip_negative_concentrations=clip_negative_concentrations,
+        warn_on_negative_values=warn_on_negative_values,
+    )
+
+    result = simulate_model(
+        model=model,
+        parameters=parameters,
+        initial_conditions=initial_conditions,
+        timepoints=simulation_timepoints,
+        settings=settings,
+    )
+
+    output_csv = get_config_value(
+        args=args,
+        config=config,
+        argument_name="output_csv",
+        required=True,
+    )
+
+    written_csv = write_simulation_csv(
+        simulation_result=result,
+        output_csv=output_csv,
+    )
+
+    output_plot = get_config_value(
+        args=args,
+        config=config,
+        argument_name="output_plot",
+        default=None,
+    )
+
+    written_plot = None
+
+    if output_plot is not None:
+        fig, _ = plot_simulation_timecourse(result)
+
+        written_plot = save_figure(
+            fig=fig,
+            file_path=output_plot,
+        )
+
+    print("Simulation success:", result.success)
+    print("Message:", result.message)
+
+    if result.warnings:
+        print("\nWarnings:")
+        for warning in result.warnings:
+            print(f"  {warning}")
+
+    print(f"\nWrote simulation CSV to: {written_csv}")
+
+    if written_plot is not None:
+        print(f"Wrote simulation plot to: {written_plot}")
 
 
 def command_fit(args: argparse.Namespace) -> None:
@@ -812,179 +979,11 @@ def command_fit(args: argparse.Namespace) -> None:
         print(f"  {name}: {path}")
 
 
-def command_simulate(args: argparse.Namespace) -> None:
-    """
-    Simulate a model from CLI/config and write simulated curves to CSV.
-    """
-
-    config = load_fit_config(args.config)
-
-    model_path = get_config_value(
-        args=args,
-        config=config,
-        argument_name="model",
-        required=True,
-    )
-
-    model = read_model_file(model_path)
-
-    parameter_entries = get_config_list_or_dict_value(
-        args=args,
-        config=config,
-        argument_name="parameter_value",
-        alternative_config_name="parameter_values",
-    )
-
-    initial_entries = get_config_list_or_dict_value(
-        args=args,
-        config=config,
-        argument_name="initial_value",
-        alternative_config_name="initial_values",
-    )
-
-    # Also allow simulation configs to use "parameters" and "initial_conditions"
-    # when they are simple name:value dictionaries.
-    if parameter_entries is None:
-        parameter_entries = config.get("parameters")
-
-    if initial_entries is None:
-        initial_entries = config.get("initial_conditions")
-
-    parameters = parse_float_value_entries(parameter_entries)
-    initial_conditions = parse_float_value_entries(initial_entries)
-
-    timepoints = get_config_value(
-        args=args,
-        config=config,
-        argument_name="timepoints",
-        default=None,
-    )
-
-    time_start = get_config_value(
-        args=args,
-        config=config,
-        argument_name="time_start",
-        default=None,
-    )
-
-    time_end = get_config_value(
-        args=args,
-        config=config,
-        argument_name="time_end",
-        default=None,
-    )
-
-    num_points = get_config_value(
-        args=args,
-        config=config,
-        argument_name="num_points",
-        default=None,
-    )
-
-    simulation_timepoints = build_simulation_timepoints(
-        timepoints=timepoints,
-        time_start=time_start,
-        time_end=time_end,
-        num_points=num_points,
-    )
-
-    method = get_config_value(
-        args=args,
-        config=config,
-        argument_name="method",
-        default="LSODA",
-    )
-
-    rtol = get_config_value(
-        args=args,
-        config=config,
-        argument_name="rtol",
-        default=1e-6,
-    )
-
-    atol = get_config_value(
-        args=args,
-        config=config,
-        argument_name="atol",
-        default=1e-9,
-    )
-
-    clip_negative_concentrations = bool(
-        config.get("clip_negative_concentrations", False)
-    ) or bool(args.clip_negative_concentrations)
-
-    warn_on_negative_values = bool(config.get("warn_on_negative_values", True))
-
-    if args.no_negative_warnings:
-        warn_on_negative_values = False
-
-    settings = SimulationSettings(
-        method=method,
-        rtol=rtol,
-        atol=atol,
-        clip_negative_concentrations=clip_negative_concentrations,
-        warn_on_negative_values=warn_on_negative_values,
-    )
-
-    result = simulate_model(
-        model=model,
-        parameters=parameters,
-        initial_conditions=initial_conditions,
-        timepoints=simulation_timepoints,
-        settings=settings,
-    )
-
-    output_csv = get_config_value(
-        args=args,
-        config=config,
-        argument_name="output_csv",
-        required=True,
-    )
-
-    written_csv = write_simulation_csv(
-        simulation_result=result,
-        output_csv=output_csv,
-    )
-
-    output_plot = get_config_value(
-        args=args,
-        config=config,
-        argument_name="output_plot",
-        default=None,
-    )
-
-    written_plot = None
-
-    if output_plot is not None:
-        fig, _ = plot_simulation_timecourse(result)
-
-        written_plot = save_figure(
-            fig=fig,
-            file_path=output_plot,
-        )
-
-    print("Simulation success:", result.success)
-    print("Message:", result.message)
-
-    if result.warnings:
-        print("\nWarnings:")
-        for warning in result.warnings:
-            print(f"  {warning}")
-
-    print(f"\nWrote simulation CSV to: {written_csv}")
-
-    if written_plot is not None:
-        print(f"Wrote simulation plot to: {written_plot}")
-
-
 def command_multistart(args: argparse.Namespace) -> None:
     """
     Run multistart fitting from CLI/config.
 
     This currently supports direct species mapping.
-
-    Example:
-        python -m odefit.cli multistart --config fit_config.json --n-starts 20
     """
 
     config = load_fit_config(args.config)
@@ -1255,6 +1254,7 @@ def command_multistart(args: argparse.Namespace) -> None:
         print("Failed starts:", parallel_result.n_failed)
 
     starting_parameters_table = pd.DataFrame(multistart_result.starting_parameter_sets)
+
     starting_parameters_table.insert(
         0,
         "start_index",
@@ -1330,6 +1330,111 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     generate_parser.set_defaults(func=command_generate_odes)
+
+    simulate_parser = subparsers.add_parser(
+        "simulate",
+        help="Simulate a reaction model and export simulated curves.",
+    )
+
+    simulate_parser.add_argument(
+        "--config",
+        default=None,
+        help="Path to JSON simulation configuration file.",
+    )
+
+    simulate_parser.add_argument(
+        "--model",
+        default=None,
+        help="Path to model text file.",
+    )
+
+    simulate_parser.add_argument(
+        "--parameter-value",
+        action="append",
+        default=None,
+        help="Parameter value: name:value. Example: k1f:0.5. Can be repeated.",
+    )
+
+    simulate_parser.add_argument(
+        "--initial-value",
+        action="append",
+        default=None,
+        help="Initial condition value: species:value. Example: A:1.0. Can be repeated.",
+    )
+
+    simulate_parser.add_argument(
+        "--timepoints",
+        nargs="+",
+        default=None,
+        help="Explicit simulation timepoints.",
+    )
+
+    simulate_parser.add_argument(
+        "--time-start",
+        type=float,
+        default=None,
+        help="Simulation start time.",
+    )
+
+    simulate_parser.add_argument(
+        "--time-end",
+        type=float,
+        default=None,
+        help="Simulation end time.",
+    )
+
+    simulate_parser.add_argument(
+        "--num-points",
+        type=int,
+        default=None,
+        help="Number of simulation timepoints.",
+    )
+
+    simulate_parser.add_argument(
+        "--method",
+        default=None,
+        help="solve_ivp method, e.g. LSODA, RK45, BDF, Radau.",
+    )
+
+    simulate_parser.add_argument(
+        "--rtol",
+        type=float,
+        default=None,
+        help="ODE solver relative tolerance.",
+    )
+
+    simulate_parser.add_argument(
+        "--atol",
+        type=float,
+        default=None,
+        help="ODE solver absolute tolerance.",
+    )
+
+    simulate_parser.add_argument(
+        "--clip-negative-concentrations",
+        action="store_true",
+        help="Clip negative concentrations to zero inside RHS evaluation.",
+    )
+
+    simulate_parser.add_argument(
+        "--no-negative-warnings",
+        action="store_true",
+        help="Do not report warnings for negative simulated values.",
+    )
+
+    simulate_parser.add_argument(
+        "--output-csv",
+        default=None,
+        help="Path to write simulated curves CSV.",
+    )
+
+    simulate_parser.add_argument(
+        "--output-plot",
+        default=None,
+        help="Optional path to write simulation plot image.",
+    )
+
+    simulate_parser.set_defaults(func=command_simulate)
 
     fit_parser = subparsers.add_parser(
         "fit",
@@ -1639,111 +1744,6 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     multistart_parser.set_defaults(func=command_multistart)
-
-    simulate_parser = subparsers.add_parser(
-        "simulate",
-        help="Simulate a reaction model and export simulated curves.",
-    )
-
-    simulate_parser.add_argument(
-        "--config",
-        default=None,
-        help="Path to JSON simulation configuration file.",
-    )
-
-    simulate_parser.add_argument(
-        "--model",
-        default=None,
-        help="Path to model text file.",
-    )
-
-    simulate_parser.add_argument(
-        "--parameter-value",
-        action="append",
-        default=None,
-        help="Parameter value: name:value. Example: k1f:0.5. Can be repeated.",
-    )
-
-    simulate_parser.add_argument(
-        "--initial-value",
-        action="append",
-        default=None,
-        help="Initial condition value: species:value. Example: A:1.0. Can be repeated.",
-    )
-
-    simulate_parser.add_argument(
-        "--timepoints",
-        nargs="+",
-        default=None,
-        help="Explicit simulation timepoints.",
-    )
-
-    simulate_parser.add_argument(
-        "--time-start",
-        type=float,
-        default=None,
-        help="Simulation start time.",
-    )
-
-    simulate_parser.add_argument(
-        "--time-end",
-        type=float,
-        default=None,
-        help="Simulation end time.",
-    )
-
-    simulate_parser.add_argument(
-        "--num-points",
-        type=int,
-        default=None,
-        help="Number of simulation timepoints.",
-    )
-
-    simulate_parser.add_argument(
-        "--method",
-        default=None,
-        help="solve_ivp method, e.g. LSODA, RK45, BDF, Radau.",
-    )
-
-    simulate_parser.add_argument(
-        "--rtol",
-        type=float,
-        default=None,
-        help="ODE solver relative tolerance.",
-    )
-
-    simulate_parser.add_argument(
-        "--atol",
-        type=float,
-        default=None,
-        help="ODE solver absolute tolerance.",
-    )
-
-    simulate_parser.add_argument(
-        "--clip-negative-concentrations",
-        action="store_true",
-        help="Clip negative concentrations to zero inside RHS evaluation.",
-    )
-
-    simulate_parser.add_argument(
-        "--no-negative-warnings",
-        action="store_true",
-        help="Do not report warnings for negative simulated values.",
-    )
-
-    simulate_parser.add_argument(
-        "--output-csv",
-        default=None,
-        help="Path to write simulated curves CSV.",
-    )
-
-    simulate_parser.add_argument(
-        "--output-plot",
-        default=None,
-        help="Optional path to write simulation plot image.",
-    )
-
-    simulate_parser.set_defaults(func=command_simulate)
 
     return parser
 
