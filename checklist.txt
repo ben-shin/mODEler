@@ -575,8 +575,8 @@ Legend:
 
 7.9 Remaining fitting features
 ------------------------------
-[ ] Weighted residuals
-[ ] Per-signal weights
+[x] Weighted residuals
+[x] Per-signal weights
 [ ] Per-point uncertainty weighting
 [ ] Observable mapping: signal = scale * species + offset
 [ ] Fit scale factors
