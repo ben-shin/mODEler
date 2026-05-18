@@ -22,3 +22,5 @@ class FitResult:
     cost: float
     fitted_initial_conditions: dict[str, float] | None = None
     initial_conditions: dict[str, float] | None = None
+    fitted_observables: dict[str, dict[str, float | str]] | None = None
+    initial_observables: dict[str, dict[str, float | str]] | None = None

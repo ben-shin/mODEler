@@ -3,7 +3,12 @@ import numpy as np
 from odefit.data.dataset import Dataset
 from odefit.fitting.fit_settings import FitSettings
 from odefit.fitting.initial_condition_spec import InitialConditionSpec
-from odefit.fitting.optimization_vector import vector_to_model_inputs
+from odefit.fitting.observable_residuals import calculate_observable_residuals
+from odefit.fitting.observable_spec import ObservableSpec
+from odefit.fitting.optimization_vector import (
+    vector_to_fit_inputs,
+    vector_to_model_inputs,
+)
 from odefit.fitting.parameter_spec import ParameterSpec
 from odefit.fitting.residuals import calculate_residuals
 from odefit.model.model_spec import ModelSpec
@@ -18,20 +23,34 @@ def objective_function(
     parameter_specs: list[ParameterSpec],
     initial_condition_specs: list[InitialConditionSpec],
     settings: FitSettings,
+    observable_specs: list[ObservableSpec] | None = None,
 ) -> np.ndarray:
     """
     Objective function for least-squares fitting.
 
-    The optimization vector contains both:
-    - free kinetic parameters
-    - free initial conditions
+    If observable_specs are provided, residuals are calculated with:
+
+        observed = scale * species + offset
+
+    Otherwise, old direct species_mapping behavior is used.
     """
 
-    parameters, initial_conditions = vector_to_model_inputs(
-        vector=optimization_vector,
-        parameter_specs=parameter_specs,
-        initial_condition_specs=initial_condition_specs,
-    )
+    if observable_specs is None:
+        parameters, initial_conditions = vector_to_model_inputs(
+            vector=optimization_vector,
+            parameter_specs=parameter_specs,
+            initial_condition_specs=initial_condition_specs,
+        )
+
+        observable_parameters = None
+
+    else:
+        parameters, initial_conditions, observable_parameters = vector_to_fit_inputs(
+            vector=optimization_vector,
+            parameter_specs=parameter_specs,
+            initial_condition_specs=initial_condition_specs,
+            observable_specs=observable_specs,
+        )
 
     simulation_settings = SimulationSettings(
         rtol=settings.rtol,
@@ -45,6 +64,14 @@ def objective_function(
         timepoints=dataset.time_values,
         settings=simulation_settings,
     )
+
+    if observable_parameters is not None:
+        return calculate_observable_residuals(
+            dataset=dataset,
+            simulation_result=simulation_result,
+            observable_parameters=observable_parameters,
+            use_normalized_data=settings.use_normalized_data,
+        )
 
     return calculate_residuals(
         dataset=dataset,

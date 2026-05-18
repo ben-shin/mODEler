@@ -6,6 +6,11 @@ from odefit.fitting.initial_condition_vector import (
     make_fixed_initial_condition_specs,
     validate_initial_condition_specs,
 )
+from odefit.fitting.observable_spec import ObservableSpec
+from odefit.fitting.observable_vector import (
+    get_free_observable_parameter_names,
+    validate_observable_specs,
+)
 from odefit.fitting.parameter_spec import ParameterSpec
 from odefit.fitting.parameter_vector import (
     get_free_parameter_specs,
@@ -120,7 +125,7 @@ def validate_normalized_data_available(
 
 def validate_residual_count(
     dataset: Dataset,
-    settings: FitSettings,
+    number_of_mapped_signals: int,
     number_of_free_variables: int,
 ) -> None:
     """
@@ -128,7 +133,6 @@ def validate_residual_count(
     """
 
     number_of_timepoints = len(dataset.time_values)
-    number_of_mapped_signals = len(settings.species_mapping)
     number_of_residuals = number_of_timepoints * number_of_mapped_signals
 
     if number_of_free_variables == 0:
@@ -147,6 +151,7 @@ def validate_fit_inputs(
     initial_conditions: dict[str, float] | None = None,
     settings: FitSettings | None = None,
     initial_condition_specs: list[InitialConditionSpec] | None = None,
+    observable_specs: list[ObservableSpec] | None = None,
 ) -> list[InitialConditionSpec]:
     """
     Validate all fitting inputs before optimization.
@@ -168,7 +173,23 @@ def validate_fit_inputs(
     validate_model_parameter_specs(model, parameter_specs)
     validate_model_initial_condition_specs(model, resolved_initial_condition_specs)
 
-    validate_species_mapping(model, dataset, settings)
+    if observable_specs is not None:
+        validate_observable_specs(
+            model=model,
+            dataset=dataset,
+            observable_specs=observable_specs,
+        )
+
+        number_of_mapped_signals = len(observable_specs)
+        number_of_free_observable_parameters = len(
+            get_free_observable_parameter_names(observable_specs)
+        )
+
+    else:
+        validate_species_mapping(model, dataset, settings)
+        number_of_mapped_signals = len(settings.species_mapping)
+        number_of_free_observable_parameters = 0
+
     validate_normalized_data_available(dataset, settings)
 
     number_of_free_parameters = len(get_free_parameter_specs(parameter_specs))
@@ -178,9 +199,11 @@ def validate_fit_inputs(
 
     validate_residual_count(
         dataset=dataset,
-        settings=settings,
+        number_of_mapped_signals=number_of_mapped_signals,
         number_of_free_variables=(
-            number_of_free_parameters + number_of_free_initial_conditions
+            number_of_free_parameters
+            + number_of_free_initial_conditions
+            + number_of_free_observable_parameters
         ),
     )
 

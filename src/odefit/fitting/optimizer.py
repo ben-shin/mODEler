@@ -9,9 +9,15 @@ from odefit.fitting.initial_condition_vector import (
     get_free_initial_condition_specs,
 )
 from odefit.fitting.objective import objective_function
+from odefit.fitting.observable_spec import ObservableSpec
+from odefit.fitting.observable_vector import (
+    build_initial_observable_parameters,
+    get_free_observable_parameter_names,
+)
 from odefit.fitting.optimization_vector import (
     build_optimization_bounds,
     build_optimization_vector,
+    vector_to_fit_inputs,
     vector_to_model_inputs,
 )
 from odefit.fitting.parameter_spec import ParameterSpec
@@ -30,15 +36,18 @@ def fit_model(
     initial_conditions: dict[str, float] | None = None,
     settings: FitSettings | None = None,
     initial_condition_specs: list[InitialConditionSpec] | None = None,
+    observable_specs: list[ObservableSpec] | None = None,
 ) -> FitResult:
     """
     Fit a model to a dataset.
 
     Backward-compatible usage:
-        pass initial_conditions as a dict
+        pass species_mapping in FitSettings
 
-    New usage:
-        pass initial_condition_specs to allow fitted initial conditions
+    Observable usage:
+        pass observable_specs to fit mappings of the form:
+
+            observed = scale * species + offset
     """
 
     resolved_initial_condition_specs = validate_fit_inputs(
@@ -48,6 +57,7 @@ def fit_model(
         initial_conditions=initial_conditions,
         settings=settings,
         initial_condition_specs=initial_condition_specs,
+        observable_specs=observable_specs,
     )
 
     if settings is None:
@@ -56,11 +66,13 @@ def fit_model(
     initial_vector = build_optimization_vector(
         parameter_specs=parameter_specs,
         initial_condition_specs=resolved_initial_condition_specs,
+        observable_specs=observable_specs,
     )
 
     bounds = build_optimization_bounds(
         parameter_specs=parameter_specs,
         initial_condition_specs=resolved_initial_condition_specs,
+        observable_specs=observable_specs,
     )
 
     result = least_squares(
@@ -73,17 +85,36 @@ def fit_model(
             parameter_specs,
             resolved_initial_condition_specs,
             settings,
+            observable_specs,
         ),
         method=settings.method,
         loss=settings.loss,
         max_nfev=settings.max_nfev,
     )
 
-    fitted_parameters, fitted_initial_conditions = vector_to_model_inputs(
-        vector=result.x,
-        parameter_specs=parameter_specs,
-        initial_condition_specs=resolved_initial_condition_specs,
-    )
+    if observable_specs is None:
+        fitted_parameters, fitted_initial_conditions = vector_to_model_inputs(
+            vector=result.x,
+            parameter_specs=parameter_specs,
+            initial_condition_specs=resolved_initial_condition_specs,
+        )
+
+        fitted_observables = None
+        initial_observables = None
+
+    else:
+        (
+            fitted_parameters,
+            fitted_initial_conditions,
+            fitted_observables,
+        ) = vector_to_fit_inputs(
+            vector=result.x,
+            parameter_specs=parameter_specs,
+            initial_condition_specs=resolved_initial_condition_specs,
+            observable_specs=observable_specs,
+        )
+
+        initial_observables = build_initial_observable_parameters(observable_specs)
 
     initial_parameters = build_initial_parameter_dict(parameter_specs)
 
@@ -105,11 +136,17 @@ def fit_model(
         parameter_specs=parameter_specs,
         initial_condition_specs=resolved_initial_condition_specs,
         settings=settings,
+        observable_specs=observable_specs,
     )
 
     number_of_free_variables = len(get_free_parameter_specs(parameter_specs)) + len(
         get_free_initial_condition_specs(resolved_initial_condition_specs)
     )
+
+    if observable_specs is not None:
+        number_of_free_variables += len(
+            get_free_observable_parameter_names(observable_specs)
+        )
 
     statistics = calculate_fit_statistics(
         residuals=residuals,
@@ -128,4 +165,6 @@ def fit_model(
         cost=float(result.cost),
         fitted_initial_conditions=fitted_initial_conditions,
         initial_conditions=initial_condition_values,
+        fitted_observables=fitted_observables,
+        initial_observables=initial_observables,
     )
