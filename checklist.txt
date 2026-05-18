@@ -251,8 +251,8 @@ Legend:
 [x] Apply reverse reaction stoichiometry
 [x] Build SciPy-compatible RHS function
 [x] Raise error for missing parameter values
-[ ] Add optional protection against negative concentrations
-[ ] Add warning if simulated values go negative
+[x] Add optional protection against negative concentrations
+[x] Add warning if simulated values go negative
 [ ] Add Jacobian support later
 
 3.3 Solver
@@ -269,8 +269,8 @@ Legend:
 [x] Test missing parameter
 [x] Test missing initial condition
 [x] Test non-increasing timepoints
-[ ] Add solver method selection tests
-[ ] Add stiff solver tests, e.g. BDF/Radau
+[x] Add solver method selection tests
+[x] Add stiff solver tests, e.g. BDF/Radau
 [ ] Add simulation-only CLI later
 
 
