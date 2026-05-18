@@ -1,0 +1,11 @@
+diagnostic,value
+success,True
+status,1
+message,`gtol` termination condition is satisfied.
+nfev,6
+njev,6
+cost,0.00012004115647536797
+optimality,9.421225408307391e-10
+active_bound_count,0
+active_mask,0
+warning,

@@ -357,3 +357,96 @@ def test_fit_command_with_config_writes_output_bundle(tmp_path):
     assert (output_dir / "fitted_initial_conditions.csv").exists()
     assert (output_dir / "simulated_curves.csv").exists()
     assert (output_dir / "residuals.csv").exists()
+
+
+def test_multistart_command_with_config_writes_outputs(tmp_path):
+    model_path = tmp_path / "model.txt"
+    data_path = tmp_path / "data.csv"
+    output_dir = tmp_path / "multistart_output"
+    config_path = tmp_path / "multistart_config.json"
+
+    model_path.write_text("A>B")
+
+    dataframe = pd.DataFrame(
+        {
+            "time": [0.0, 1.0, 2.0, 3.0, 4.0],
+            "A": [1.0, 0.6, 0.35, 0.2, 0.12],
+            "B": [0.0, 0.4, 0.65, 0.8, 0.88],
+        }
+    )
+
+    dataframe.to_csv(data_path, index=False)
+
+    config = {
+        "model": str(model_path),
+        "data": str(data_path),
+        "time_column": "time",
+        "signal_columns": ["A", "B"],
+        "mapping": {
+            "A": "A",
+            "B": "B",
+        },
+        "parameters": {
+            "k1f": {
+                "initial_guess": 0.2,
+                "lower_bound": 0.001,
+                "upper_bound": 10.0,
+            }
+        },
+        "initial_conditions": {
+            "A": {
+                "value": 1.0,
+                "mode": "fixed",
+                "lower_bound": 0.0,
+                "upper_bound": 10.0,
+            },
+            "B": {
+                "value": 0.0,
+                "mode": "fixed",
+                "lower_bound": 0.0,
+                "upper_bound": 10.0,
+            },
+        },
+        "signal_weights": {
+            "A": 1.0,
+            "B": 1.0,
+        },
+        "method": "trf",
+        "loss": "linear",
+        "rtol": 1e-6,
+        "atol": 1e-9,
+        "max_nfev": 1000,
+        "output_dir": str(output_dir),
+        "no_plots": True,
+        "n_starts": 3,
+        "n_workers": 1,
+        "random_seed": 1,
+        "sort_by": "aic",
+        "log_uniform": True,
+    }
+
+    config_path.write_text(json.dumps(config))
+
+    main(
+        [
+            "multistart",
+            "--config",
+            str(config_path),
+        ]
+    )
+
+    assert output_dir.exists()
+
+    assert (output_dir / "multistart_comparison.csv").exists()
+    assert (output_dir / "multistart_starting_parameters.csv").exists()
+
+    best_fit_dir = output_dir / "best_fit"
+
+    assert best_fit_dir.exists()
+    assert (best_fit_dir / "fit_statistics.csv").exists()
+    assert (best_fit_dir / "optimizer_diagnostics.csv").exists()
+    assert (best_fit_dir / "fit_diagnostics.csv").exists()
+    assert (best_fit_dir / "fitted_parameters.csv").exists()
+    assert (best_fit_dir / "fitted_initial_conditions.csv").exists()
+    assert (best_fit_dir / "simulated_curves.csv").exists()
+    assert (best_fit_dir / "residuals.csv").exists()

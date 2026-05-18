@@ -1,0 +1,11 @@
+statistic,value
+success,True
+message,`gtol` termination condition is satisfied.
+nfev,6
+cost,0.00012004115647536797
+rss,0.00024008231295073596
+rmse,0.005478164758278268
+aic,-81.31176211580026
+bic,-81.23232057412042
+n_residuals,8.0
+n_parameters,1.0

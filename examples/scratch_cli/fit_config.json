@@ -38,5 +38,10 @@
   "atol": 1e-9,
   "max_nfev": 1000,
   "output_dir": "examples/scratch_cli/fit_output_from_config",
-  "no_plots": true
+  "no_plots": true,
+  "n_starts": 6,
+  "n_workers": 1,
+  "random_seed": 1,
+  "sort_by": "aic",
+  "log_uniform": true
 }
