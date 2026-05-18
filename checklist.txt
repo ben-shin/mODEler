@@ -569,8 +569,10 @@ Legend:
 [x] Add table tests
 [x] Create initial_condition_table.py
 [ ] Create full fit summary table
-[ ] Add parameter-at-bound warning table
+[x] Add parameter-at-bound warning table
 [ ] Add convergence diagnostics table
+  [X] Bound diagnostics table
+  [ ] Optimizer convergence diagnostics table
 [x] Create observable_table.py
 
 7.9 Remaining fitting features
