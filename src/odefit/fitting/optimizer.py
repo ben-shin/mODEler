@@ -167,4 +167,8 @@ def fit_model(
         initial_conditions=initial_condition_values,
         fitted_observables=fitted_observables,
         initial_observables=initial_observables,
+        status=result.status,
+        optimality=float(result.optimality),
+        active_mask=result.active_mask,
+        njev=result.njev,
     )

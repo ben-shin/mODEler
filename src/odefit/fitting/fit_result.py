@@ -24,3 +24,9 @@ class FitResult:
     initial_conditions: dict[str, float] | None = None
     fitted_observables: dict[str, dict[str, float | str]] | None = None
     initial_observables: dict[str, dict[str, float | str]] | None = None
+
+    # SciPy optimizer diagnostics.
+    status: int | None = None
+    optimality: float | None = None
+    active_mask: np.ndarray | None = None
+    njev: int | None = None

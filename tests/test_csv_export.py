@@ -295,3 +295,25 @@ def test_export_fit_result_tables_writes_fit_diagnostics(tmp_path):
     assert "kind" in table.columns
     assert "name" in table.columns
     assert "warning" in table.columns
+
+
+def test_export_fit_result_tables_writes_optimizer_diagnostics(tmp_path):
+    fit_result = make_fit_result()
+
+    written_files = export_fit_result_tables(
+        fit_result=fit_result,
+        output_dir=tmp_path,
+    )
+
+    assert "optimizer_diagnostics" in written_files
+    assert (tmp_path / "optimizer_diagnostics.csv").exists()
+
+    table = pd.read_csv(tmp_path / "optimizer_diagnostics.csv")
+
+    assert list(table.columns) == ["diagnostic", "value"]
+    assert "success" in list(table["diagnostic"])
+    assert "status" in list(table["diagnostic"])
+    assert "message" in list(table["diagnostic"])
+    assert "nfev" in list(table["diagnostic"])
+    assert "cost" in list(table["diagnostic"])
+    assert "warning" in list(table["diagnostic"])

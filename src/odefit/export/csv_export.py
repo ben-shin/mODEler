@@ -9,6 +9,7 @@ from odefit.fitting.initial_condition_spec import InitialConditionSpec
 from odefit.fitting.initial_condition_table import build_initial_condition_table
 from odefit.fitting.observable_spec import ObservableSpec
 from odefit.fitting.observable_table import build_observable_table
+from odefit.fitting.optimizer_diagnostics import build_optimizer_diagnostics_table
 from odefit.fitting.parameter_spec import ParameterSpec
 from odefit.fitting.parameter_table import build_parameter_table
 from odefit.fitting.residual_table import build_residual_table
@@ -88,6 +89,12 @@ def export_fit_result_tables(
     written_files["fit_statistics"] = write_dataframe_csv(
         dataframe=statistics_table,
         file_path=output_path / "fit_statistics.csv",
+    )
+
+    optimizer_diagnostics_table = build_optimizer_diagnostics_table(fit_result)
+    written_files["optimizer_diagnostics"] = write_dataframe_csv(
+        dataframe=optimizer_diagnostics_table,
+        file_path=output_path / "optimizer_diagnostics.csv",
     )
 
     simulated_curves_table = build_simulated_curves_table(fit_result.simulation_result)
