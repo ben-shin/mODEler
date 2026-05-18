@@ -96,8 +96,8 @@ Legend:
 [x] Store reversibility
 [x] Store forward rate name
 [x] Store reverse rate name
-[ ] Add optional reaction label
-[ ] Add optional source line number for better parser errors
+[x] Add optional reaction label
+[x] Add optional source line number for better parser errors
 
 1.2 Reaction parser
 -------------------
@@ -119,10 +119,10 @@ Legend:
 [x] Test spaces
 [x] Test comments
 [x] Test invalid syntax
-[ ] Support explicit reversible arrow: A<->B
-[ ] Support explicit irreversible arrow: A->B
-[ ] Support products with multiple species: A>B+C
-[ ] Add line-number-aware error messages
+[x] Support explicit reversible arrow: A<->B
+[x] Support explicit irreversible arrow: A->B
+[x] Support products with multiple species: A>B+C
+[x] Add line-number-aware error messages
 [x] Add formal reaction syntax guide
 
 1.3 Species detection
@@ -241,6 +241,9 @@ Legend:
 [x] Store timepoints
 [x] Store species list
 [x] Store values matrix
+[x] Store solver success flag
+[x] Store solver message
+[x] Store simulation warnings
 [x] Implement get_species_values()
 
 3.2 Numerical RHS
@@ -672,6 +675,20 @@ Legend:
 [ ] PDF report later
 
 
+8.6 Text/model summary export
+-----------------------------
+[x] Export generated ODE text
+[x] Export generated model summary text
+[x] Export reaction table text
+[x] Include model name in summary
+[x] Include model metadata in summary
+[x] Include species in summary
+[x] Include parameters in summary
+[x] Include warnings in summary
+[x] Include generated ODEs in summary
+[x] Add text export tests
+
+
 9. GUI
 ======
 
@@ -829,8 +846,16 @@ Legend:
 [x] Run simulation from CLI
 [x] Accept parameter values
 [x] Accept initial conditions
+[x] Accept explicit timepoints
+[x] Accept time_start/time_end/num_points
+[x] Accept solver method
+[x] Accept solver tolerances
+[x] Accept negative-concentration clipping flag
+[x] Accept negative-value warning toggle
 [x] Save simulation CSV
 [x] Save simulation plot
+[x] Support JSON simulation config
+[x] Add simulation CLI tests
 
 11.3 CLI fitting
 ----------------
@@ -842,6 +867,55 @@ Legend:
 [x] Accept fitted initial conditions
 [x] Export fit bundle
 [x] Add CLI tests
+
+
+11.4 CLI multistart
+-------------------
+[x] Run multistart from CLI
+[x] Accept JSON multistart config
+[x] Support serial multistart from CLI
+[x] Support parallel multistart from CLI
+[x] Accept n_starts
+[x] Accept n_workers
+[x] Accept random_seed
+[x] Accept ranking metric / sort_by
+[x] Export multistart comparison table
+[x] Export multistart starting-parameters table
+[x] Export best fit bundle
+[x] Add multistart CLI tests
+
+11.5 CLI config-driven jobs
+---------------------------
+[x] Support JSON config loading
+[x] CLI arguments override config values
+[x] Config-driven simulation
+[x] Config-driven fitting
+[x] Config-driven multistart fitting
+[x] Parse model path from config
+[x] Parse data path from config
+[x] Parse time column from config
+[x] Parse signal columns from config
+[x] Parse species mapping from config
+[x] Parse parameter guesses/bounds from config
+[x] Parse initial conditions from config
+[x] Parse signal weights from config
+[x] Parse solver settings from config
+[x] Parse optimizer settings from config
+[ ] Observable-aware CLI fitting/config
+[ ] YAML config support, optional
+[ ] TOML config support, optional
+
+11.6 CLI documentation and examples
+-----------------------------------
+[ ] docs/cli_usage.md
+[ ] examples/configs/model_first_order.txt
+[ ] examples/configs/example_timecourse.csv
+[ ] examples/configs/example_nmr_amide_normalized.csv
+[ ] examples/configs/simulation_config.json
+[ ] examples/configs/fit_config.json
+[ ] examples/configs/multistart_config.json
+[ ] examples/configs/nmr_amide_fit_config.json
+[ ] README CLI workflow section
 
 
 12. PARALLEL COMPUTING / HPC / GPU / CLUSTERS
@@ -929,25 +1003,25 @@ Legend:
 
 12.8 Cluster compatibility
 --------------------------
-[ ] Ensure backend works without GUI
-[ ] Ensure fitting can run from Python script
+[x] Ensure backend works without GUI
+[x] Ensure fitting can run from Python script
 [x] Add CLI fitting command
-[ ] Add CLI simulation command
+[x] Add CLI simulation command
 [x] Add CLI batch fitting command
 [x] Add config-file-driven jobs
 [ ] Avoid hardcoded local paths
 [ ] Save all job settings to output folder
 [ ] Save reproducibility metadata
 [x] Add multistart command
-[x] Add config-file-drive multistart fitting
+[x] Add config-file-driven multistart fitting
 [x] Support serial multistart from CLI
-[x] Support parallel multistart form CLI
+[x] Support parallel multistart from CLI
 [x] Export multistart comparison table
 [x] Export best fit bundle from multistart
 
 12.9 Job configuration files
 ----------------------------
-[x] Choose config format: YAML, JSON, or TOML
+[x] Choose config format: JSON
 [x] Create job config schema
 [x] Store model path
 [x] Store data path
@@ -956,14 +1030,19 @@ Legend:
 [x] Store species mapping
 [x] Store parameter guesses
 [x] Store parameter bounds
-[x] Store fixed parameters
-[x] Store tied parameters
+[x] Store fixed initial-condition settings
+[ ] Store fixed kinetic-parameter settings
+[ ] Store tied kinetic-parameter settings
 [x] Store initial conditions
 [x] Store output directory
 [x] Store solver settings
 [x] Store optimizer settings
+[x] Store simulation settings
+[x] Store multistart settings
 [x] Add config validation
 [x] Add example config files
+[ ] Add formal JSON schema file
+[ ] Add YAML support, optional
 
 12.10 SLURM cluster support
 ---------------------------
@@ -1038,12 +1117,12 @@ Legend:
 
 12.15 Recommended performance roadmap
 -------------------------------------
-[ ] Finish stable local fitting/export workflow
-[ ] Add CLI
-[ ] Add config-file-driven fitting
+[x] Finish stable local fitting/export workflow
+[x] Add CLI
+[x] Add config-file-driven fitting
 [ ] Add local batch execution
-[ ] Add multiprocessing parallel execution
-[ ] Add multi-start fitting
+[x] Add multiprocessing parallel execution
+[x] Add multi-start fitting
 [ ] Add bootstrap/profile likelihood
 [ ] Add SLURM script generation
 [ ] Add SLURM submission/status helpers
@@ -1093,7 +1172,8 @@ Legend:
 [x] Fit observable scale
 [x] Fit observable offset
 [x] Add tests
-[x] Add GUI observable mapping table
+[x] Add observable table for export / GUI backend
+[ ] Add GUI observable mapping table
 
 14.2 Weighted fitting
 ---------------------
@@ -1145,6 +1225,12 @@ Legend:
 
 15.2 Generic examples
 ---------------------
+[ ] examples/configs/
+[ ] examples/configs/model_first_order.txt
+[ ] examples/configs/example_timecourse.csv
+[ ] examples/configs/simulation_config.json
+[ ] examples/configs/fit_config.json
+[ ] examples/configs/multistart_config.json
 [ ] examples/simple_decay/
 [ ] examples/reversible_conversion/
 [ ] examples/dimerization/
@@ -1158,7 +1244,8 @@ Legend:
 16.1 User documentation
 -----------------------
 [ ] docs/user_guide.md
-[ ] docs/reaction_syntax.md
+[x] docs/reaction_syntax.md
+[ ] docs/cli_usage.md
 [ ] docs/csv_format.md
 [ ] docs/normalization.md
 [ ] docs/simulation.md
@@ -1183,6 +1270,8 @@ Legend:
 [ ] Update current features based on implemented code
 [ ] Mark planned features separately from implemented features
 [ ] Add quickstart example
+[ ] Add CLI workflow section
+[ ] Add example config section
 [ ] Add command to run tests
 [ ] Add collaborator workflow
 [ ] Add screenshots later
@@ -1218,6 +1307,39 @@ Legend:
 [ ] Tag v0.1.0
 [ ] Create GitHub release
 [ ] Add release notes
+
+
+18. IMMEDIATE NEXT TECHNICAL TASKS
+==================================
+
+18.1 Documentation and examples
+-------------------------------
+[ ] Add docs/cli_usage.md
+[ ] Add examples/configs/
+[ ] Add simulation_config.json
+[ ] Add fit_config.json
+[ ] Add multistart_config.json
+[ ] Add nmr_amide_fit_config.json
+[ ] Update README with CLI workflow
+[ ] Confirm all documented commands run from a clean repo checkout
+
+18.2 Observable-aware CLI fitting
+---------------------------------
+[ ] Add ObservableSpec parsing from JSON config
+[ ] Support signal = scale * species + offset in CLI
+[ ] Support fixed/free observable scale in CLI
+[ ] Support fixed/free observable offset in CLI
+[ ] Export fitted_observables.csv from CLI observable fits
+[ ] Use observable-aware plots in CLI bundle export
+[ ] Add observable CLI tests
+[ ] Add real NMR percent-integral config example
+
+18.3 Custom rate law planning
+-----------------------------
+[ ] Design custom rate law syntax
+[ ] Decide how custom rates interact with mass-action reactions
+[ ] Design safe expression parser
+[ ] Add tests before implementation
 
 TYPES OF DATASET TO EXPECT
 ======================
