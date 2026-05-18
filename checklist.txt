@@ -372,7 +372,7 @@ Legend:
 [ ] Support per-column normalization
 [ ] Add GUI preview support
 [ ] Add undo/reset normalization
-
+[ ] Add smoothing (eg SG filter, cubic smoothing, LOESS)
 
 6. PLOTTING BACKEND
 ===================
