@@ -5,6 +5,7 @@ from odefit.export.csv_export import export_fit_result_tables, write_dataframe_c
 from odefit.export.text_export import write_generated_odes
 from odefit.fitting.fit_result import FitResult
 from odefit.fitting.initial_condition_spec import InitialConditionSpec
+from odefit.fitting.observable_spec import ObservableSpec
 from odefit.fitting.parameter_spec import ParameterSpec
 from odefit.model.model_spec import ModelSpec
 from odefit.plotting.observed_vs_predicted import save_observed_vs_fitted_plot
@@ -129,6 +130,7 @@ def export_fit_bundle(
     species_mapping: dict[str, str],
     use_normalized_data: bool = False,
     include_plots: bool = True,
+    observable_specs: list[ObservableSpec] | None = None,
 ) -> dict[str, Path]:
     """
     Export a complete fit result bundle.
@@ -172,6 +174,7 @@ def export_fit_bundle(
             output_dir=output_path,
             parameter_specs=parameter_specs,
             initial_condition_specs=initial_condition_specs,
+            observable_specs=observable_specs,
             dataset=dataset,
             species_mapping=species_mapping,
             use_normalized_data=use_normalized_data,

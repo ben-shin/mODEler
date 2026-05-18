@@ -6,6 +6,8 @@ from odefit.data.dataset import Dataset
 from odefit.fitting.fit_result import FitResult
 from odefit.fitting.initial_condition_spec import InitialConditionSpec
 from odefit.fitting.initial_condition_table import build_initial_condition_table
+from odefit.fitting.observable_spec import ObservableSpec
+from odefit.fitting.observable_table import build_observable_table
 from odefit.fitting.parameter_spec import ParameterSpec
 from odefit.fitting.parameter_table import build_parameter_table
 from odefit.fitting.residual_table import build_residual_table
@@ -54,6 +56,7 @@ def export_fit_result_tables(
     output_dir: str | Path,
     parameter_specs: list[ParameterSpec] | None = None,
     initial_condition_specs: list[InitialConditionSpec] | None = None,
+    observable_specs: list[ObservableSpec] | None = None,
     dataset: Dataset | None = None,
     species_mapping: dict[str, str] | None = None,
     use_normalized_data: bool = False,
@@ -89,6 +92,20 @@ def export_fit_result_tables(
         dataframe=simulated_curves_table,
         file_path=output_path / "simulated_curves.csv",
     )
+
+    if observable_specs is not None:
+        if fit_result.fitted_observables is None:
+            raise ValueError("FitResult is missing fitted observables")
+
+        observable_table = build_observable_table(
+            observable_specs=observable_specs,
+            fitted_observables=fit_result.fitted_observables,
+        )
+
+        written_files["fitted_observables"] = write_dataframe_csv(
+            dataframe=observable_table,
+            file_path=output_path / "fitted_observables.csv",
+        )
 
     if parameter_specs is not None:
         parameter_table = build_parameter_table(

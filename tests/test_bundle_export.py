@@ -11,6 +11,7 @@ from odefit.export.bundle_export import (
 )
 from odefit.fitting.fit_result import FitResult
 from odefit.fitting.initial_condition_spec import InitialConditionSpec
+from odefit.fitting.observable_spec import ObservableSpec
 from odefit.fitting.parameter_spec import ParameterSpec
 from odefit.model.model_spec import build_model_spec
 from odefit.simulation.simulation_result import SimulationResult
@@ -290,3 +291,59 @@ def test_export_fit_bundle_can_skip_plots(tmp_path):
 
     assert not (tmp_path / "observed_vs_fitted.png").exists()
     assert not (tmp_path / "residuals.png").exists()
+
+
+def test_export_fit_bundle_writes_observable_table(tmp_path):
+    model = make_model()
+    dataset = make_dataset()
+    fit_result = make_fit_result()
+
+    fit_result.fitted_observables = {
+        "A_signal": {
+            "species": "A",
+            "scale": 2.0,
+            "offset": 0.1,
+        }
+    }
+
+    observable_specs = [
+        ObservableSpec(
+            data_column="A_signal",
+            species="A",
+            scale_initial_guess=1.0,
+            scale_lower_bound=0.0,
+            scale_upper_bound=10.0,
+            scale_fixed=False,
+            offset_initial_guess=0.0,
+            offset_lower_bound=-1.0,
+            offset_upper_bound=1.0,
+            offset_fixed=False,
+        )
+    ]
+
+    dataset.raw_dataframe["A_signal"] = 2.0 * dataset.raw_dataframe["A"] + 0.1
+    dataset.signal_columns.append("A_signal")
+
+    written_files = export_fit_bundle(
+        fit_result=fit_result,
+        model=model,
+        dataset=dataset,
+        output_dir=tmp_path,
+        parameter_specs=make_parameter_specs(),
+        initial_condition_specs=make_initial_condition_specs(),
+        species_mapping={
+            "A": "A",
+            "B": "B",
+        },
+        observable_specs=observable_specs,
+        include_plots=False,
+    )
+
+    assert "fitted_observables" in written_files
+    assert (tmp_path / "fitted_observables.csv").exists()
+
+    table = pd.read_csv(tmp_path / "fitted_observables.csv")
+
+    assert list(table["data_column"]) == ["A_signal"]
+    assert list(table["scale_fitted_value"]) == [2.0]
+    assert list(table["offset_fitted_value"]) == [0.1]
