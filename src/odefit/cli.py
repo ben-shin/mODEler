@@ -10,6 +10,10 @@ import pandas as pd
 from odefit.data.dataset import Dataset
 from odefit.export.bundle_export import export_fit_bundle
 from odefit.fitting.fit_settings import FitSettings
+from odefit.fitting.global_observables import (
+    fit_global_observable_model,
+    read_wide_observable_dataset,
+)
 from odefit.fitting.initial_condition_spec import InitialConditionSpec
 from odefit.fitting.multistart import (
     export_multistart_comparison,
@@ -1297,6 +1301,244 @@ def command_multistart(args: argparse.Namespace) -> None:
         print(f"  {name}: {path}")
 
 
+def command_fit_global_observables(args: argparse.Namespace) -> None:
+    """
+    Fit many observable columns to one shared global kinetic model.
+
+    Intended first use case:
+        wide-format assigned HSQC peak intensities
+
+    Example data:
+
+        time,A23_HN,G45_HN,L78_HN
+        0,1000,850,1200
+        1,920,810,1105
+
+    Default observable model:
+
+        signal_i(t) = scale_i * observed_species(t) + offset_i
+    """
+
+    config = load_fit_config(args.config)
+
+    model_path = get_config_value(
+        args=args,
+        config=config,
+        argument_name="model",
+        required=True,
+    )
+
+    data_path = get_config_value(
+        args=args,
+        config=config,
+        argument_name="data",
+        required=True,
+    )
+
+    time_column = get_config_value(
+        args=args,
+        config=config,
+        argument_name="time_column",
+        default="time",
+    )
+
+    signal_columns = get_config_value(
+        args=args,
+        config=config,
+        argument_name="signal_columns",
+        default=None,
+    )
+
+    exclude_columns = get_config_value(
+        args=args,
+        config=config,
+        argument_name="exclude_columns",
+        default=None,
+    )
+
+    observed_species = get_config_value(
+        args=args,
+        config=config,
+        argument_name="observed_species",
+        default="A",
+    )
+
+    output_dir = get_config_value(
+        args=args,
+        config=config,
+        argument_name="output_dir",
+        required=True,
+    )
+
+    model = read_model_file(model_path)
+
+    dataset = read_wide_observable_dataset(
+        file_path=data_path,
+        time_column=time_column,
+        signal_columns=signal_columns,
+        exclude_columns=exclude_columns,
+        numeric_only=True,
+    )
+
+    parameter_entries = get_config_list_or_dict_value(
+        args=args,
+        config=config,
+        argument_name="parameter",
+        alternative_config_name="parameters",
+    )
+
+    initial_entries = get_config_list_or_dict_value(
+        args=args,
+        config=config,
+        argument_name="initial",
+        alternative_config_name="initial_conditions",
+    )
+
+    signal_weight_entries = get_config_list_or_dict_value(
+        args=args,
+        config=config,
+        argument_name="signal_weight",
+        alternative_config_name="signal_weights",
+    )
+
+    default_parameter_guess = get_config_value(
+        args=args,
+        config=config,
+        argument_name="default_parameter_guess",
+        default=0.1,
+    )
+
+    default_parameter_lower = get_config_value(
+        args=args,
+        config=config,
+        argument_name="default_parameter_lower",
+        default=0.0,
+    )
+
+    default_parameter_upper = get_config_value(
+        args=args,
+        config=config,
+        argument_name="default_parameter_upper",
+        default=100.0,
+    )
+
+    method = get_config_value(
+        args=args,
+        config=config,
+        argument_name="method",
+        default="trf",
+    )
+
+    loss = get_config_value(
+        args=args,
+        config=config,
+        argument_name="loss",
+        default="linear",
+    )
+
+    max_nfev = get_config_value(
+        args=args,
+        config=config,
+        argument_name="max_nfev",
+        default=None,
+    )
+
+    rtol = get_config_value(
+        args=args,
+        config=config,
+        argument_name="rtol",
+        default=1e-6,
+    )
+
+    atol = get_config_value(
+        args=args,
+        config=config,
+        argument_name="atol",
+        default=1e-9,
+    )
+
+    fit_scale = bool(config.get("fit_scale", True))
+    fit_offset = bool(config.get("fit_offset", True))
+
+    scale_initial_guess = float(config.get("scale_initial_guess", 1.0))
+    scale_lower_bound = float(config.get("scale_lower_bound", 0.0))
+    scale_upper_bound = float(config.get("scale_upper_bound", float("inf")))
+
+    offset_initial_guess = float(config.get("offset_initial_guess", 0.0))
+    offset_lower_bound = float(config.get("offset_lower_bound", -float("inf")))
+    offset_upper_bound = float(config.get("offset_upper_bound", float("inf")))
+
+    no_plots = bool(config.get("no_plots", False)) or bool(args.no_plots)
+
+    parameter_specs = build_parameter_specs(
+        model=model,
+        parameter_entries=parameter_entries,
+        default_guess=default_parameter_guess,
+        default_lower=default_parameter_lower,
+        default_upper=default_parameter_upper,
+    )
+
+    initial_condition_specs = build_initial_condition_specs(
+        model=model,
+        initial_entries=initial_entries,
+    )
+
+    settings = FitSettings(
+        species_mapping={},
+        use_normalized_data=False,
+        method=method,
+        loss=loss,
+        max_nfev=max_nfev,
+        rtol=rtol,
+        atol=atol,
+        signal_weights=parse_signal_weight_entries(signal_weight_entries),
+    )
+
+    output = fit_global_observable_model(
+        model=model,
+        dataset=dataset,
+        parameter_specs=parameter_specs,
+        initial_condition_specs=initial_condition_specs,
+        observed_species=observed_species,
+        settings=settings,
+        signal_columns=dataset.signal_columns,
+        fit_scale=fit_scale,
+        fit_offset=fit_offset,
+        scale_initial_guess=scale_initial_guess,
+        scale_lower_bound=scale_lower_bound,
+        scale_upper_bound=scale_upper_bound,
+        offset_initial_guess=offset_initial_guess,
+        offset_lower_bound=offset_lower_bound,
+        offset_upper_bound=offset_upper_bound,
+    )
+
+    result = output.fit_result
+
+    written_files = export_fit_bundle(
+        fit_result=result,
+        model=model,
+        dataset=dataset,
+        output_dir=output_dir,
+        parameter_specs=parameter_specs,
+        initial_condition_specs=initial_condition_specs,
+        observable_specs=output.observable_specs,
+        species_mapping={},
+        include_plots=not no_plots,
+    )
+
+    print("Global observable fit success:", result.success)
+    print("Message:", result.message)
+    print("Observed species:", observed_species)
+    print("Number of observable columns:", len(dataset.signal_columns))
+    print("Fitted kinetic parameters:", result.fitted_parameters)
+    print("Statistics:", result.statistics)
+    print(f"\nWrote output bundle to: {Path(output_dir)}")
+
+    print("\nWritten files:")
+    for name, path in written_files.items():
+        print(f"  {name}: {path}")
+
+
 def build_parser() -> argparse.ArgumentParser:
     """
     Build CLI argument parser.
@@ -1744,6 +1986,150 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     multistart_parser.set_defaults(func=command_multistart)
+
+    global_observable_parser = subparsers.add_parser(
+        "fit-global-observables",
+        help="Fit many observable columns to one shared kinetic model.",
+    )
+
+    global_observable_parser.add_argument(
+        "--config",
+        default=None,
+        help="Path to JSON global observable fitting config.",
+    )
+
+    global_observable_parser.add_argument(
+        "--model",
+        default=None,
+        help="Path to model text file.",
+    )
+
+    global_observable_parser.add_argument(
+        "--data",
+        default=None,
+        help="Path to wide-format observable CSV file.",
+    )
+
+    global_observable_parser.add_argument(
+        "--time-column",
+        default=None,
+        help="Name of the time column.",
+    )
+
+    global_observable_parser.add_argument(
+        "--signal-columns",
+        nargs="+",
+        default=None,
+        help="Observable/signal columns. If omitted, numeric columns are inferred.",
+    )
+
+    global_observable_parser.add_argument(
+        "--exclude-columns",
+        nargs="+",
+        default=None,
+        help="Columns to exclude when inferring signal columns.",
+    )
+
+    global_observable_parser.add_argument(
+        "--observed-species",
+        default=None,
+        help="Model species that all observables map to. Default: A.",
+    )
+
+    global_observable_parser.add_argument(
+        "--parameter",
+        action="append",
+        default=None,
+        help=(
+            "Parameter override: name:initial_guess:lower_bound:upper_bound. "
+            "Can be repeated."
+        ),
+    )
+
+    global_observable_parser.add_argument(
+        "--initial",
+        action="append",
+        default=None,
+        help=(
+            "Initial condition: species:value:fixed_or_fit:lower_bound:upper_bound. "
+            "Can be repeated."
+        ),
+    )
+
+    global_observable_parser.add_argument(
+        "--signal-weight",
+        action="append",
+        default=None,
+        help="Signal residual weight: data_column:weight. Can be repeated.",
+    )
+
+    global_observable_parser.add_argument(
+        "--default-parameter-guess",
+        type=float,
+        default=None,
+        help="Default initial guess for model parameters.",
+    )
+
+    global_observable_parser.add_argument(
+        "--default-parameter-lower",
+        type=float,
+        default=None,
+        help="Default lower bound for model parameters.",
+    )
+
+    global_observable_parser.add_argument(
+        "--default-parameter-upper",
+        type=float,
+        default=None,
+        help="Default upper bound for model parameters.",
+    )
+
+    global_observable_parser.add_argument(
+        "--method",
+        default=None,
+        help="scipy.optimize.least_squares method.",
+    )
+
+    global_observable_parser.add_argument(
+        "--loss",
+        default=None,
+        help="scipy.optimize.least_squares loss.",
+    )
+
+    global_observable_parser.add_argument(
+        "--max-nfev",
+        type=int,
+        default=None,
+        help="Maximum number of function evaluations.",
+    )
+
+    global_observable_parser.add_argument(
+        "--rtol",
+        type=float,
+        default=None,
+        help="ODE solver relative tolerance.",
+    )
+
+    global_observable_parser.add_argument(
+        "--atol",
+        type=float,
+        default=None,
+        help="ODE solver absolute tolerance.",
+    )
+
+    global_observable_parser.add_argument(
+        "--output-dir",
+        default=None,
+        help="Output directory for global observable fit bundle.",
+    )
+
+    global_observable_parser.add_argument(
+        "--no-plots",
+        action="store_true",
+        help="Skip plot generation.",
+    )
+
+    global_observable_parser.set_defaults(func=command_fit_global_observables)
 
     return parser
 

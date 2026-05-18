@@ -801,3 +801,111 @@ def test_simulate_command_with_config_writes_csv(tmp_path):
 
     assert list(dataframe.columns) == ["time", "A", "B"]
     assert len(dataframe) == 6
+
+
+def test_fit_global_observables_command_with_config_writes_output_bundle(tmp_path):
+    model_path = tmp_path / "model.txt"
+    data_path = tmp_path / "hsqc.csv"
+    output_dir = tmp_path / "global_observable_fit"
+    config_path = tmp_path / "global_observable_config.json"
+
+    model_path.write_text("A>B")
+
+    true_k = 0.4
+    timepoints = np.linspace(0.0, 8.0, 30)
+    a_values = np.exp(-true_k * timepoints)
+
+    dataframe = pd.DataFrame(
+        {
+            "time": timepoints,
+            "A23_HN": 2.0 * a_values + 0.10,
+            "G45_HN": 1.5 * a_values + 0.20,
+            "L78_HN": 0.8 * a_values + 0.05,
+        }
+    )
+
+    dataframe.to_csv(data_path, index=False)
+
+    config = {
+        "model": str(model_path),
+        "data": str(data_path),
+        "time_column": "time",
+        "observed_species": "A",
+        "parameters": {
+            "k1f": {
+                "initial_guess": 0.1,
+                "lower_bound": 0.001,
+                "upper_bound": 10.0,
+            }
+        },
+        "initial_conditions": {
+            "A": {
+                "value": 1.0,
+                "mode": "fixed",
+                "lower_bound": 0.0,
+                "upper_bound": 2.0,
+            },
+            "B": {
+                "value": 0.0,
+                "mode": "fixed",
+                "lower_bound": 0.0,
+                "upper_bound": 2.0,
+            },
+        },
+        "fit_scale": True,
+        "fit_offset": True,
+        "scale_initial_guess": 1.0,
+        "scale_lower_bound": 0.0,
+        "scale_upper_bound": 5.0,
+        "offset_initial_guess": 0.0,
+        "offset_lower_bound": -1.0,
+        "offset_upper_bound": 1.0,
+        "method": "trf",
+        "loss": "linear",
+        "rtol": 1e-8,
+        "atol": 1e-10,
+        "max_nfev": 2000,
+        "output_dir": str(output_dir),
+        "no_plots": True,
+    }
+
+    config_path.write_text(json.dumps(config))
+
+    main(
+        [
+            "fit-global-observables",
+            "--config",
+            str(config_path),
+        ]
+    )
+
+    assert output_dir.exists()
+
+    assert (output_dir / "fit_statistics.csv").exists()
+    assert (output_dir / "optimizer_diagnostics.csv").exists()
+    assert (output_dir / "fit_diagnostics.csv").exists()
+    assert (output_dir / "fitted_parameters.csv").exists()
+    assert (output_dir / "fitted_initial_conditions.csv").exists()
+    assert (output_dir / "fitted_observables.csv").exists()
+    assert (output_dir / "simulated_curves.csv").exists()
+    assert (output_dir / "residuals.csv").exists()
+
+    fitted_parameters = pd.read_csv(output_dir / "fitted_parameters.csv")
+
+    k1f_row = fitted_parameters[fitted_parameters["parameter"] == "k1f"].iloc[0]
+
+    assert k1f_row["fitted_value"] == pytest.approx(true_k, rel=1e-2)
+
+    fitted_observables = pd.read_csv(output_dir / "fitted_observables.csv")
+
+    assert set(fitted_observables["data_column"]) == {
+        "A23_HN",
+        "G45_HN",
+        "L78_HN",
+    }
+
+    residuals = pd.read_csv(output_dir / "residuals.csv")
+
+    assert "A23_HN_observed" in residuals.columns
+    assert "A23_HN_fit" in residuals.columns
+    assert "A23_HN_residual" in residuals.columns

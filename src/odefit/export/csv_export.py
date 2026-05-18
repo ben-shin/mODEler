@@ -7,6 +7,7 @@ from odefit.fitting.diagnostics import build_fit_diagnostics_table
 from odefit.fitting.fit_result import FitResult
 from odefit.fitting.initial_condition_spec import InitialConditionSpec
 from odefit.fitting.initial_condition_table import build_initial_condition_table
+from odefit.fitting.observable_residual_table import build_observable_residual_table
 from odefit.fitting.observable_spec import ObservableSpec
 from odefit.fitting.observable_table import build_observable_table
 from odefit.fitting.optimizer_diagnostics import build_optimizer_diagnostics_table
@@ -68,6 +69,7 @@ def export_fit_result_tables(
 
     Always exports:
         fit_statistics.csv
+        optimizer_diagnostics.csv
         simulated_curves.csv
 
     Optionally exports:
@@ -77,7 +79,10 @@ def export_fit_result_tables(
         fit_diagnostics.csv
         residuals.csv
 
-    Returns a dictionary mapping output names to file paths.
+    Residual export behavior:
+        - If observable_specs and fitted_observables are present, residuals.csv
+          is observable-aware.
+        - Otherwise, residuals.csv uses direct species mapping.
     """
 
     output_path = Path(output_dir)
@@ -155,23 +160,34 @@ def export_fit_result_tables(
             file_path=output_path / "fit_diagnostics.csv",
         )
 
-    if dataset is not None or species_mapping is not None:
-        if dataset is None:
-            raise ValueError("dataset is required to export residuals")
+    if dataset is not None:
+        if observable_specs is not None and fit_result.fitted_observables is not None:
+            residual_table = build_observable_residual_table(
+                dataset=dataset,
+                simulation_result=fit_result.simulation_result,
+                observable_parameters=fit_result.fitted_observables,
+                use_normalized_data=use_normalized_data,
+            )
 
-        if species_mapping is None:
-            raise ValueError("species_mapping is required to export residuals")
+            written_files["residuals"] = write_dataframe_csv(
+                dataframe=residual_table,
+                file_path=output_path / "residuals.csv",
+            )
 
-        residual_table = build_residual_table(
-            dataset=dataset,
-            simulation_result=fit_result.simulation_result,
-            species_mapping=species_mapping,
-            use_normalized_data=use_normalized_data,
-        )
+        elif species_mapping is not None:
+            residual_table = build_residual_table(
+                dataset=dataset,
+                simulation_result=fit_result.simulation_result,
+                species_mapping=species_mapping,
+                use_normalized_data=use_normalized_data,
+            )
 
-        written_files["residuals"] = write_dataframe_csv(
-            dataframe=residual_table,
-            file_path=output_path / "residuals.csv",
-        )
+            written_files["residuals"] = write_dataframe_csv(
+                dataframe=residual_table,
+                file_path=output_path / "residuals.csv",
+            )
+
+    elif species_mapping is not None:
+        raise ValueError("dataset is required to export residuals")
 
     return written_files
