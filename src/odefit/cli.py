@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from odefit.data.dataset import Dataset
@@ -22,6 +23,9 @@ from odefit.fitting.parallel_multistart import (
 from odefit.fitting.parameter_spec import ParameterSpec
 from odefit.model.model_spec import ModelSpec, build_model_spec
 from odefit.model.ode_generator import generate_ode_lines
+from odefit.plotting.timecourse_plots import plot_simulation_timecourse, save_figure
+from odefit.simulation.simulation_settings import SimulationSettings
+from odefit.simulation.solver import simulate_model
 
 
 def read_model_file(model_path: str | Path) -> ModelSpec:
@@ -446,6 +450,137 @@ def build_initial_condition_specs(
     return initial_condition_specs
 
 
+def parse_float_value_entries(
+    value_entries: list[str] | dict | None,
+) -> dict[str, float]:
+    """
+    Parse name:value entries into a dictionary of floats.
+
+    CLI format:
+        ["k1f:0.5", "k1r:0.1"]
+
+    JSON config format:
+        {
+            "k1f": 0.5,
+            "k1r": 0.1
+        }
+
+    Also accepts config values like:
+        {
+            "A": {"value": 1.0}
+        }
+    """
+
+    if not value_entries:
+        return {}
+
+    values: dict[str, float] = {}
+
+    if isinstance(value_entries, dict):
+        for name, value in value_entries.items():
+            if isinstance(value, dict):
+                if "value" in value:
+                    values[str(name)] = float(value["value"])
+                elif "initial_guess" in value:
+                    values[str(name)] = float(value["initial_guess"])
+                else:
+                    raise ValueError(
+                        f"Dictionary entry for {name} must contain 'value' "
+                        "or 'initial_guess'"
+                    )
+            else:
+                values[str(name)] = float(value)
+
+        return values
+
+    for entry in value_entries:
+        parts = entry.split(":")
+
+        if len(parts) != 2:
+            raise ValueError(f"Value entries must have format name:value. Got: {entry}")
+
+        name, value = parts
+
+        if not name:
+            raise ValueError(f"Invalid value entry: {entry}")
+
+        values[name] = float(value)
+
+    return values
+
+
+def build_simulation_timepoints(
+    timepoints: list[float] | list[str] | None = None,
+    time_start: float | None = None,
+    time_end: float | None = None,
+    num_points: int | None = None,
+) -> np.ndarray:
+    """
+    Build simulation timepoints.
+
+    Either provide explicit timepoints, or provide:
+        time_start, time_end, num_points
+    """
+
+    if timepoints is not None:
+        return np.asarray(
+            [float(timepoint) for timepoint in timepoints],
+            dtype=float,
+        )
+
+    if time_start is None or time_end is None or num_points is None:
+        raise ValueError(
+            "Simulation requires either explicit timepoints or "
+            "time_start, time_end, and num_points"
+        )
+
+    if num_points < 2:
+        raise ValueError("num_points must be at least 2")
+
+    return np.linspace(
+        float(time_start),
+        float(time_end),
+        int(num_points),
+    )
+
+
+def build_simulation_dataframe(
+    simulation_result,
+) -> pd.DataFrame:
+    """
+    Build a tidy simulation output dataframe.
+
+    Columns:
+        time, species_1, species_2, ...
+    """
+
+    data = {
+        "time": simulation_result.timepoints,
+    }
+
+    for species_name in simulation_result.species:
+        data[species_name] = simulation_result.get_species_values(species_name)
+
+    return pd.DataFrame(data)
+
+
+def write_simulation_csv(
+    simulation_result,
+    output_csv: str | Path,
+) -> Path:
+    """
+    Write simulation result to CSV.
+    """
+
+    path = Path(output_csv)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    dataframe = build_simulation_dataframe(simulation_result)
+    dataframe.to_csv(path, index=False)
+
+    return path
+
+
 def command_generate_odes(args: argparse.Namespace) -> None:
     """
     Generate ODE text from a model file.
@@ -675,6 +810,171 @@ def command_fit(args: argparse.Namespace) -> None:
     print("\nWritten files:")
     for name, path in written_files.items():
         print(f"  {name}: {path}")
+
+
+def command_simulate(args: argparse.Namespace) -> None:
+    """
+    Simulate a model from CLI/config and write simulated curves to CSV.
+    """
+
+    config = load_fit_config(args.config)
+
+    model_path = get_config_value(
+        args=args,
+        config=config,
+        argument_name="model",
+        required=True,
+    )
+
+    model = read_model_file(model_path)
+
+    parameter_entries = get_config_list_or_dict_value(
+        args=args,
+        config=config,
+        argument_name="parameter_value",
+        alternative_config_name="parameter_values",
+    )
+
+    initial_entries = get_config_list_or_dict_value(
+        args=args,
+        config=config,
+        argument_name="initial_value",
+        alternative_config_name="initial_values",
+    )
+
+    # Also allow simulation configs to use "parameters" and "initial_conditions"
+    # when they are simple name:value dictionaries.
+    if parameter_entries is None:
+        parameter_entries = config.get("parameters")
+
+    if initial_entries is None:
+        initial_entries = config.get("initial_conditions")
+
+    parameters = parse_float_value_entries(parameter_entries)
+    initial_conditions = parse_float_value_entries(initial_entries)
+
+    timepoints = get_config_value(
+        args=args,
+        config=config,
+        argument_name="timepoints",
+        default=None,
+    )
+
+    time_start = get_config_value(
+        args=args,
+        config=config,
+        argument_name="time_start",
+        default=None,
+    )
+
+    time_end = get_config_value(
+        args=args,
+        config=config,
+        argument_name="time_end",
+        default=None,
+    )
+
+    num_points = get_config_value(
+        args=args,
+        config=config,
+        argument_name="num_points",
+        default=None,
+    )
+
+    simulation_timepoints = build_simulation_timepoints(
+        timepoints=timepoints,
+        time_start=time_start,
+        time_end=time_end,
+        num_points=num_points,
+    )
+
+    method = get_config_value(
+        args=args,
+        config=config,
+        argument_name="method",
+        default="LSODA",
+    )
+
+    rtol = get_config_value(
+        args=args,
+        config=config,
+        argument_name="rtol",
+        default=1e-6,
+    )
+
+    atol = get_config_value(
+        args=args,
+        config=config,
+        argument_name="atol",
+        default=1e-9,
+    )
+
+    clip_negative_concentrations = bool(
+        config.get("clip_negative_concentrations", False)
+    ) or bool(args.clip_negative_concentrations)
+
+    warn_on_negative_values = bool(config.get("warn_on_negative_values", True))
+
+    if args.no_negative_warnings:
+        warn_on_negative_values = False
+
+    settings = SimulationSettings(
+        method=method,
+        rtol=rtol,
+        atol=atol,
+        clip_negative_concentrations=clip_negative_concentrations,
+        warn_on_negative_values=warn_on_negative_values,
+    )
+
+    result = simulate_model(
+        model=model,
+        parameters=parameters,
+        initial_conditions=initial_conditions,
+        timepoints=simulation_timepoints,
+        settings=settings,
+    )
+
+    output_csv = get_config_value(
+        args=args,
+        config=config,
+        argument_name="output_csv",
+        required=True,
+    )
+
+    written_csv = write_simulation_csv(
+        simulation_result=result,
+        output_csv=output_csv,
+    )
+
+    output_plot = get_config_value(
+        args=args,
+        config=config,
+        argument_name="output_plot",
+        default=None,
+    )
+
+    written_plot = None
+
+    if output_plot is not None:
+        fig, _ = plot_simulation_timecourse(result)
+
+        written_plot = save_figure(
+            fig=fig,
+            file_path=output_plot,
+        )
+
+    print("Simulation success:", result.success)
+    print("Message:", result.message)
+
+    if result.warnings:
+        print("\nWarnings:")
+        for warning in result.warnings:
+            print(f"  {warning}")
+
+    print(f"\nWrote simulation CSV to: {written_csv}")
+
+    if written_plot is not None:
+        print(f"Wrote simulation plot to: {written_plot}")
 
 
 def command_multistart(args: argparse.Namespace) -> None:
@@ -1339,6 +1639,111 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     multistart_parser.set_defaults(func=command_multistart)
+
+    simulate_parser = subparsers.add_parser(
+        "simulate",
+        help="Simulate a reaction model and export simulated curves.",
+    )
+
+    simulate_parser.add_argument(
+        "--config",
+        default=None,
+        help="Path to JSON simulation configuration file.",
+    )
+
+    simulate_parser.add_argument(
+        "--model",
+        default=None,
+        help="Path to model text file.",
+    )
+
+    simulate_parser.add_argument(
+        "--parameter-value",
+        action="append",
+        default=None,
+        help="Parameter value: name:value. Example: k1f:0.5. Can be repeated.",
+    )
+
+    simulate_parser.add_argument(
+        "--initial-value",
+        action="append",
+        default=None,
+        help="Initial condition value: species:value. Example: A:1.0. Can be repeated.",
+    )
+
+    simulate_parser.add_argument(
+        "--timepoints",
+        nargs="+",
+        default=None,
+        help="Explicit simulation timepoints.",
+    )
+
+    simulate_parser.add_argument(
+        "--time-start",
+        type=float,
+        default=None,
+        help="Simulation start time.",
+    )
+
+    simulate_parser.add_argument(
+        "--time-end",
+        type=float,
+        default=None,
+        help="Simulation end time.",
+    )
+
+    simulate_parser.add_argument(
+        "--num-points",
+        type=int,
+        default=None,
+        help="Number of simulation timepoints.",
+    )
+
+    simulate_parser.add_argument(
+        "--method",
+        default=None,
+        help="solve_ivp method, e.g. LSODA, RK45, BDF, Radau.",
+    )
+
+    simulate_parser.add_argument(
+        "--rtol",
+        type=float,
+        default=None,
+        help="ODE solver relative tolerance.",
+    )
+
+    simulate_parser.add_argument(
+        "--atol",
+        type=float,
+        default=None,
+        help="ODE solver absolute tolerance.",
+    )
+
+    simulate_parser.add_argument(
+        "--clip-negative-concentrations",
+        action="store_true",
+        help="Clip negative concentrations to zero inside RHS evaluation.",
+    )
+
+    simulate_parser.add_argument(
+        "--no-negative-warnings",
+        action="store_true",
+        help="Do not report warnings for negative simulated values.",
+    )
+
+    simulate_parser.add_argument(
+        "--output-csv",
+        default=None,
+        help="Path to write simulated curves CSV.",
+    )
+
+    simulate_parser.add_argument(
+        "--output-plot",
+        default=None,
+        help="Optional path to write simulation plot image.",
+    )
+
+    simulate_parser.set_defaults(func=command_simulate)
 
     return parser
 

@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -450,3 +451,179 @@ def test_multistart_command_with_config_writes_outputs(tmp_path):
     assert (best_fit_dir / "fitted_initial_conditions.csv").exists()
     assert (best_fit_dir / "simulated_curves.csv").exists()
     assert (best_fit_dir / "residuals.csv").exists()
+
+
+from odefit.cli import (
+    build_simulation_timepoints,
+    parse_float_value_entries,
+    write_simulation_csv,
+)
+from odefit.simulation.simulation_result import SimulationResult
+
+
+def test_parse_float_value_entries_from_cli_list():
+    values = parse_float_value_entries(
+        [
+            "k1f:0.5",
+            "k1r:0.1",
+        ]
+    )
+
+    assert values == {
+        "k1f": 0.5,
+        "k1r": 0.1,
+    }
+
+
+def test_parse_float_value_entries_from_dict():
+    values = parse_float_value_entries(
+        {
+            "k1f": 0.5,
+            "k1r": 0.1,
+        }
+    )
+
+    assert values == {
+        "k1f": 0.5,
+        "k1r": 0.1,
+    }
+
+
+def test_parse_float_value_entries_from_nested_dict():
+    values = parse_float_value_entries(
+        {
+            "A": {
+                "value": 1.0,
+            },
+            "B": {
+                "initial_guess": 0.0,
+            },
+        }
+    )
+
+    assert values == {
+        "A": 1.0,
+        "B": 0.0,
+    }
+
+
+def test_build_simulation_timepoints_from_explicit_values():
+    timepoints = build_simulation_timepoints(
+        timepoints=["0", "1", "2"],
+    )
+
+    assert np.allclose(timepoints, [0.0, 1.0, 2.0])
+
+
+def test_build_simulation_timepoints_from_range():
+    timepoints = build_simulation_timepoints(
+        time_start=0.0,
+        time_end=10.0,
+        num_points=6,
+    )
+
+    assert np.allclose(timepoints, [0.0, 2.0, 4.0, 6.0, 8.0, 10.0])
+
+
+def test_write_simulation_csv(tmp_path):
+    result = SimulationResult(
+        timepoints=np.array([0.0, 1.0]),
+        species=["A", "B"],
+        values=np.array(
+            [
+                [1.0, 0.0],
+                [0.5, 0.5],
+            ]
+        ),
+    )
+
+    output_csv = tmp_path / "simulation.csv"
+
+    written_path = write_simulation_csv(
+        simulation_result=result,
+        output_csv=output_csv,
+    )
+
+    assert written_path == output_csv
+    assert output_csv.exists()
+
+    dataframe = pd.read_csv(output_csv)
+
+    assert list(dataframe.columns) == ["time", "A", "B"]
+    assert list(dataframe["A"]) == [1.0, 0.5]
+
+
+def test_simulate_command_writes_csv(tmp_path):
+    model_path = tmp_path / "model.txt"
+    output_csv = tmp_path / "simulation.csv"
+
+    model_path.write_text("A>B")
+
+    main(
+        [
+            "simulate",
+            "--model",
+            str(model_path),
+            "--parameter-value",
+            "k1f:0.5",
+            "--initial-value",
+            "A:1.0",
+            "--initial-value",
+            "B:0.0",
+            "--time-start",
+            "0",
+            "--time-end",
+            "5",
+            "--num-points",
+            "6",
+            "--output-csv",
+            str(output_csv),
+        ]
+    )
+
+    assert output_csv.exists()
+
+    dataframe = pd.read_csv(output_csv)
+
+    assert list(dataframe.columns) == ["time", "A", "B"]
+    assert len(dataframe) == 6
+    assert dataframe["A"].iloc[0] == 1.0
+    assert dataframe["B"].iloc[0] == 0.0
+
+
+def test_simulate_command_with_config_writes_csv(tmp_path):
+    model_path = tmp_path / "model.txt"
+    output_csv = tmp_path / "simulation_from_config.csv"
+    config_path = tmp_path / "simulation_config.json"
+
+    model_path.write_text("A>B")
+
+    config = {
+        "model": str(model_path),
+        "parameter_values": {"k1f": 0.5},
+        "initial_values": {"A": 1.0, "B": 0.0},
+        "time_start": 0.0,
+        "time_end": 5.0,
+        "num_points": 6,
+        "method": "LSODA",
+        "rtol": 1e-6,
+        "atol": 1e-9,
+        "output_csv": str(output_csv),
+    }
+
+    config_path.write_text(json.dumps(config))
+
+    main(
+        [
+            "simulate",
+            "--config",
+            str(config_path),
+        ]
+    )
+
+    assert output_csv.exists()
+
+    dataframe = pd.read_csv(output_csv)
+
+    assert list(dataframe.columns) == ["time", "A", "B"]
+    assert len(dataframe) == 6
