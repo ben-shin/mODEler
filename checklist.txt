@@ -271,7 +271,7 @@ Legend:
 [x] Test non-increasing timepoints
 [x] Add solver method selection tests
 [x] Add stiff solver tests, e.g. BDF/Radau
-[ ] Add simulation-only CLI later
+[x] Add simulation-only CLI later
 
 
 4. DATA IMPORT AND PREPROCESSING
@@ -826,11 +826,11 @@ Legend:
 
 11.2 CLI simulation
 -------------------
-[ ] Run simulation from CLI
-[ ] Accept parameter values
-[ ] Accept initial conditions
-[ ] Save simulation CSV
-[ ] Save simulation plot
+[x] Run simulation from CLI
+[x] Accept parameter values
+[x] Accept initial conditions
+[x] Save simulation CSV
+[x] Save simulation plot
 
 11.3 CLI fitting
 ----------------
