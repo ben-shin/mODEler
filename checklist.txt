@@ -571,6 +571,7 @@ Legend:
 [ ] Create full fit summary table
 [ ] Add parameter-at-bound warning table
 [ ] Add convergence diagnostics table
+[x] Create observable_table.py
 
 7.9 Remaining fitting features
 ------------------------------
@@ -621,6 +622,7 @@ Legend:
 [x] Export fit_statistics.csv
 [x] Export residuals.csv
 [x] Export simulated_curves.csv
+[x] Export fitted_observables.csv
 [ ] Export model_definition.txt
 [ ] Export generated_odes.txt
 [x] Add tests for CSV export
@@ -642,6 +644,7 @@ Legend:
 [x] Save all plots
 [x] Save model text
 [x] Save generated ODEs
+[x] Save fitted_observables.csv
 [ ] Save metadata
 [x] Add tests for bundle export
 
@@ -1073,7 +1076,7 @@ Legend:
 [x] Fit observable scale
 [x] Fit observable offset
 [x] Add tests
-[ ] Add GUI observable mapping table
+[x] Add GUI observable mapping table
 
 14.2 Weighted fitting
 ---------------------
