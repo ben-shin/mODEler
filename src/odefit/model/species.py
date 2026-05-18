@@ -1,17 +1,40 @@
+import re
+
 from odefit.model.reaction import Reaction
 
 
-def detect_species(reactions: list[Reaction]) -> list[str]:
+def natural_sort_key(text: str) -> list[int | str]:
     """
-    Detect all unique species appearing in a list of reactions
+    Return a natural-sort key.
 
-    Species are collected from both reactants and products
+    Example:
+        P2 comes before P10.
     """
 
-    species_set: set[str] = set()
+    parts = re.split(r"(\d+)", text)
+
+    key: list[int | str] = []
+
+    for part in parts:
+        if part.isdigit():
+            key.append(int(part))
+        else:
+            key.append(part)
+
+    return key
+
+
+def get_species_from_reactions(
+    reactions: list[Reaction],
+) -> list[str]:
+    """
+    Get a naturally sorted list of all species in reactions.
+    """
+
+    species = set()
 
     for reaction in reactions:
-        species_set.update(reaction.reactants.keys())
-        species_set.update(reaction.products.keys())
+        species.update(reaction.reactants)
+        species.update(reaction.products)
 
-    return sorted(species_set)
+    return sorted(species, key=natural_sort_key)
