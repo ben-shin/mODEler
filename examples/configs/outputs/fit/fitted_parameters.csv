@@ -1,0 +1,2 @@
+parameter,initial_guess,fitted_value,lower_bound,upper_bound,fixed,fixed_value,tied_to
+k1f,0.2,0.5000201253767381,0.001,10.0,False,,

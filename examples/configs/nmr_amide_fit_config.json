@@ -1,0 +1,40 @@
+{
+  "model": "examples/configs/model_first_order.txt",
+  "data": "examples/configs/example_nmr_amide_normalized.csv",
+  "time_column": "time",
+  "signal_columns": ["amide_norm"],
+  "mapping": {
+    "amide_norm": "A"
+  },
+  "parameters": {
+    "k1f": {
+      "initial_guess": 0.01,
+      "lower_bound": 0.000001,
+      "upper_bound": 10.0
+    }
+  },
+  "initial_conditions": {
+    "A": {
+      "value": 1.0,
+      "mode": "fixed",
+      "lower_bound": 0.0,
+      "upper_bound": 10.0
+    },
+    "B": {
+      "value": 0.0,
+      "mode": "fixed",
+      "lower_bound": 0.0,
+      "upper_bound": 10.0
+    }
+  },
+  "signal_weights": {
+    "amide_norm": 1.0
+  },
+  "method": "trf",
+  "loss": "linear",
+  "rtol": 1e-8,
+  "atol": 1e-10,
+  "max_nfev": 2000,
+  "output_dir": "examples/configs/outputs/nmr_amide_fit",
+  "no_plots": true
+}

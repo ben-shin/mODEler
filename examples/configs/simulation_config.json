@@ -1,0 +1,20 @@
+{
+  "model": "examples/configs/model_first_order.txt",
+  "parameter_values": {
+    "k1f": 0.5
+  },
+  "initial_values": {
+    "A": 1.0,
+    "B": 0.0
+  },
+  "time_start": 0.0,
+  "time_end": 10.0,
+  "num_points": 101,
+  "method": "LSODA",
+  "rtol": 1e-6,
+  "atol": 1e-9,
+  "clip_negative_concentrations": false,
+  "warn_on_negative_values": true,
+  "output_csv": "examples/configs/outputs/simulation/simulation.csv",
+  "output_plot": "examples/configs/outputs/simulation/simulation.png"
+}
