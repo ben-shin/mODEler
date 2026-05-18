@@ -1,58 +1,80 @@
 from odefit.model.parser import parse_model_text
-from odefit.model.species import detect_species
+from odefit.model.species import get_species_from_reactions, natural_sort_key
 
 
-def test_detect_species_from_reversible_model():
-    text = """
-    2P1-P2
-    P1+P2-P3
-    """
+def test_get_species_from_reversible_reaction():
+    reactions = parse_model_text("A-B")
 
-    reactions = parse_model_text(text)
-    species = detect_species(reactions)
+    species = get_species_from_reactions(reactions)
 
-    assert species == ["P1", "P2", "P3"]
+    assert species == ["A", "B"]
 
 
-def test_detect_species_from_irreversible_model():
-    text = """
-    A>B
-    B>C
-    """
+def test_get_species_from_irreversible_reaction():
+    reactions = parse_model_text("A>B")
 
-    reactions = parse_model_text(text)
-    species = detect_species(reactions)
+    species = get_species_from_reactions(reactions)
+
+    assert species == ["A", "B"]
+
+
+def test_get_species_from_mixed_model():
+    reactions = parse_model_text(
+        """
+A>B
+B-C
+"""
+    )
+
+    species = get_species_from_reactions(reactions)
 
     assert species == ["A", "B", "C"]
 
 
-def test_detect_species_from_mixed_model():
-    text = """
-    A-B
-    B>C
-    C+D-E
-    """
+def test_get_species_from_oligomer_model():
+    reactions = parse_model_text(
+        """
+2A-A2
+A2+A-A3
+"""
+    )
 
-    reactions = parse_model_text(text)
-    species = detect_species(reactions)
+    species = get_species_from_reactions(reactions)
 
-    assert species == ["A", "B", "C", "D", "E"]
+    assert species == ["A", "A2", "A3"]
 
 
-def test_detect_species_from_oligomer_model():
-    text = """
-    2P1-P2
-    P1+P2-P3
-    P1+P3-P4
-    2P2-P4
-    P1+P4-P5
-    P2+P3-P5
-    P1+P5-P6
-    P2+P4-P6
-    2P3-P6
-    """
+def test_natural_sort_key_orders_numbers_naturally():
+    species = ["P10", "P2", "P1", "P11", "P3"]
 
-    reactions = parse_model_text(text)
-    species = detect_species(reactions)
+    sorted_species = sorted(species, key=natural_sort_key)
 
-    assert species == ["P1", "P2", "P3", "P4", "P5", "P6"]
+    assert sorted_species == ["P1", "P2", "P3", "P10", "P11"]
+
+
+def test_get_species_from_reactions_uses_natural_sorting():
+    reactions = parse_model_text(
+        """
+P10>P11
+P1>P2
+P2>P10
+"""
+    )
+
+    species = get_species_from_reactions(reactions)
+
+    assert species == ["P1", "P2", "P10", "P11"]
+
+
+def test_natural_sorting_with_mixed_species_prefixes():
+    reactions = parse_model_text(
+        """
+A10>A11
+A2>A10
+B1>B2
+"""
+    )
+
+    species = get_species_from_reactions(reactions)
+
+    assert species == ["A2", "A10", "A11", "B1", "B2"]
