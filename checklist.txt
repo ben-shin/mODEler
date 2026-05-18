@@ -407,10 +407,10 @@ Legend:
 
 6.3 Remaining plots
 -------------------
-[ ] Create residual_plots.py
-[ ] Plot residuals over time
-[ ] Create observed_vs_predicted.py
-[ ] Plot observed vs fitted
+[x] Create residual_plots.py
+[x] Plot residuals over time
+[x] Create observed_vs_predicted.py
+[x] Plot observed vs fitted
 [ ] Create parameter_plots.py
 [ ] Plot fitted parameter bars/table visual
 [ ] Create diagnostics_plots.py
@@ -567,7 +567,7 @@ Legend:
 [x] Create statistics_table.py
 [x] Create residual_table.py
 [x] Add table tests
-[ ] Create initial_condition_table.py
+[x] Create initial_condition_table.py
 [ ] Create full fit summary table
 [ ] Add parameter-at-bound warning table
 [ ] Add convergence diagnostics table
@@ -613,17 +613,17 @@ Legend:
 
 8.2 CSV export
 --------------
-[ ] Create csv_export.py
+[x] Create csv_export.py
 [ ] Export raw_data.csv
 [ ] Export normalized_data.csv
-[ ] Export fitted_parameters.csv
-[ ] Export fitted_initial_conditions.csv
-[ ] Export fit_statistics.csv
-[ ] Export residuals.csv
-[ ] Export simulated_curves.csv
+[x] Export fitted_parameters.csv
+[x] Export fitted_initial_conditions.csv
+[x] Export fit_statistics.csv
+[x] Export residuals.csv
+[x] Export simulated_curves.csv
 [ ] Export model_definition.txt
 [ ] Export generated_odes.txt
-[ ] Add tests for CSV export
+[x] Add tests for CSV export
 
 8.3 JSON export
 ---------------
@@ -765,7 +765,7 @@ Legend:
 
 10.1 Project state
 ------------------
-[ ] Create src/odefit/project/
+[x] Create src/odefit/project/
 [ ] Create project.py
 [ ] Create project_state.py
 [ ] Store model text
