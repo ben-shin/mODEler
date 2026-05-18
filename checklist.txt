@@ -895,14 +895,14 @@ Legend:
 
 12.5 Multi-start fitting
 ------------------------
-[ ] Create fitting/multistart.py
-[ ] Generate random initial guesses inside bounds
-[ ] Generate log-uniform guesses for rate constants
-[ ] Run N fits
-[ ] Select best fit by RSS/cost/AIC/BIC
-[ ] Return all fit results
+[x] Create fitting/multistart.py
+[x] Generate random initial guesses inside bounds
+[x] Generate log-uniform guesses for rate constants
+[x] Run N fits
+[x] Select best fit by RSS/cost/AIC/BIC
+[x] Return all fit results
 [ ] Support parallel execution
-[ ] Add tests
+[x] Add tests
 [ ] Add GUI support later
 
 12.6 Bootstrap fitting
