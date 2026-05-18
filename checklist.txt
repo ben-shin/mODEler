@@ -854,7 +854,7 @@ Legend:
 [ ] Add execution backend layer
 [ ] Add job abstraction for simulations/fits
 [ ] Add local execution first
-[ ] Add parallel CPU execution second
+[x] Add parallel CPU execution second
 [ ] Add cluster execution later
 [ ] Add GPU acceleration only after profiling proves it helps
 
@@ -884,13 +884,13 @@ Legend:
 12.4 Parallel CPU execution
 ---------------------------
 [ ] Create parallel_executor.py
-[ ] Use concurrent.futures ProcessPoolExecutor
+[x] Use concurrent.futures ProcessPoolExecutor
 [ ] Run many simulation jobs in parallel
-[ ] Run many fitting jobs in parallel
-[ ] Preserve job order
-[ ] Capture failed jobs
+[x] Run many fitting jobs in parallel
+[x] Preserve job order
+[x] Capture failed jobs
 [ ] Add progress reporting
-[ ] Add tests with small jobs
+[x] Add tests with small jobs
 [ ] Add benchmark script
 
 12.5 Multi-start fitting
@@ -901,7 +901,7 @@ Legend:
 [x] Run N fits
 [x] Select best fit by RSS/cost/AIC/BIC
 [x] Return all fit results
-[ ] Support parallel execution
+[x] Support parallel execution
 [x] Add tests
 [ ] Add GUI support later
 
