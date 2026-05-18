@@ -934,30 +934,30 @@ Legend:
 [x] Add CLI fitting command
 [ ] Add CLI simulation command
 [ ] Add CLI batch fitting command
-[ ] Add config-file-driven jobs
+[x] Add config-file-driven jobs
 [ ] Avoid hardcoded local paths
 [ ] Save all job settings to output folder
 [ ] Save reproducibility metadata
 
 12.9 Job configuration files
 ----------------------------
-[ ] Choose config format: YAML, JSON, or TOML
-[ ] Create job config schema
-[ ] Store model path
-[ ] Store data path
-[ ] Store time column
-[ ] Store signal columns
-[ ] Store species mapping
-[ ] Store parameter guesses
-[ ] Store parameter bounds
-[ ] Store fixed parameters
-[ ] Store tied parameters
-[ ] Store initial conditions
-[ ] Store output directory
-[ ] Store solver settings
-[ ] Store optimizer settings
-[ ] Add config validation
-[ ] Add example config files
+[x] Choose config format: YAML, JSON, or TOML
+[x] Create job config schema
+[x] Store model path
+[x] Store data path
+[x] Store time column
+[x] Store signal columns
+[x] Store species mapping
+[x] Store parameter guesses
+[x] Store parameter bounds
+[x] Store fixed parameters
+[x] Store tied parameters
+[x] Store initial conditions
+[x] Store output directory
+[x] Store solver settings
+[x] Store optimizer settings
+[x] Add config validation
+[x] Add example config files
 
 12.10 SLURM cluster support
 ---------------------------
