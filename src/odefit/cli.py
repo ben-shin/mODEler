@@ -40,6 +40,10 @@ from odefit.fitting.variable_projection import (
     export_variable_projection_fit,
     fit_global_observable_model_variable_projection,
 )
+from odefit.fitting.variable_projection_model_comparison import (
+    export_variable_projection_model_comparison,
+    fit_global_observable_variable_projection_model_comparison,
+)
 from odefit.fitting.variable_projection_multistart import (
     export_variable_projection_multistart_summary,
     fit_global_observable_variable_projection_multistart,
@@ -2650,7 +2654,16 @@ def command_compare_global_observables(args: argparse.Namespace) -> None:
     """
 
     config = load_fit_config(args.config)
+    use_variable_projection = bool(
+        config.get("use_variable_projection", False)
+    ) or bool(getattr(args, "variable_projection", False))
 
+    if use_variable_projection:
+        command_compare_global_observables_variable_projection(
+            args=args,
+            config=config,
+        )
+        return
     data_path = get_config_value(
         args=args,
         config=config,
@@ -2916,6 +2929,233 @@ def command_compare_global_observables(args: argparse.Namespace) -> None:
 
     print("\nWritten best-fit files:")
     for name, path in best_fit_files.items():
+        print(f"  {name}: {path}")
+
+
+def command_compare_global_observables_variable_projection(
+    args: argparse.Namespace,
+    config: dict,
+) -> None:
+    """
+    Compare global observable mechanisms using variable projection.
+
+    This is the fast HSQC-style model-comparison path:
+
+        peak_i(t) = scale_i * observed_species(t) + offset_i
+
+    Each candidate mechanism is fit using nonlinear kinetic parameters only.
+    Per-column scale/offset values are solved analytically.
+    """
+
+    data_path = get_config_value(
+        args=args,
+        config=config,
+        argument_name="data",
+        required=True,
+    )
+
+    time_column = get_config_value(
+        args=args,
+        config=config,
+        argument_name="time_column",
+        default="time",
+    )
+
+    signal_columns = get_config_value(
+        args=args,
+        config=config,
+        argument_name="signal_columns",
+        default=None,
+    )
+
+    exclude_columns = get_config_value(
+        args=args,
+        config=config,
+        argument_name="exclude_columns",
+        default=None,
+    )
+
+    output_dir = get_config_value(
+        args=args,
+        config=config,
+        argument_name="output_dir",
+        required=True,
+    )
+
+    observed_species = get_config_value(
+        args=args,
+        config=config,
+        argument_name="observed_species",
+        default="A",
+    )
+
+    observed_species_by_model = config.get(
+        "observed_species_by_model",
+        observed_species,
+    )
+
+    sort_by = get_config_value(
+        args=args,
+        config=config,
+        argument_name="sort_by",
+        default="aic",
+    )
+
+    method = get_config_value(
+        args=args,
+        config=config,
+        argument_name="method",
+        default="trf",
+    )
+
+    loss = get_config_value(
+        args=args,
+        config=config,
+        argument_name="loss",
+        default="linear",
+    )
+
+    max_nfev = get_config_value(
+        args=args,
+        config=config,
+        argument_name="max_nfev",
+        default=None,
+    )
+
+    rtol = get_config_value(
+        args=args,
+        config=config,
+        argument_name="rtol",
+        default=1e-6,
+    )
+
+    atol = get_config_value(
+        args=args,
+        config=config,
+        argument_name="atol",
+        default=1e-9,
+    )
+
+    fit_scale = bool(config.get("fit_scale", True))
+    fit_offset = bool(config.get("fit_offset", True))
+
+    variable_projection_backend = str(
+        config.get("variable_projection_backend", "numpy")
+    )
+
+    variable_projection_method = str(config.get("variable_projection_method", "LSODA"))
+
+    models = build_model_specs_from_comparison_config(config)
+
+    peak_filtering_settings = get_peak_filtering_settings(
+        args=args,
+        config=config,
+    )
+
+    dataset, filtering_result = read_wide_observable_dataset_with_filtering(
+        file_path=data_path,
+        time_column=time_column,
+        signal_columns=signal_columns,
+        exclude_columns=exclude_columns,
+        max_missing_fraction=peak_filtering_settings["max_missing_fraction"],
+        min_initial_intensity=peak_filtering_settings["min_initial_intensity"],
+        initial_points=peak_filtering_settings["initial_points"],
+        min_dynamic_range=peak_filtering_settings["min_dynamic_range"],
+        interpolate_missing=peak_filtering_settings["interpolate_missing"],
+    )
+
+    parameter_specs_by_model = build_parameter_specs_by_model_from_config(
+        models=models,
+        config=config,
+        default_guess=float(config.get("default_parameter_guess", 0.1)),
+        default_lower=float(config.get("default_parameter_lower", 0.0)),
+        default_upper=float(config.get("default_parameter_upper", 100.0)),
+    )
+
+    initial_condition_specs_by_model = (
+        build_initial_condition_specs_by_model_from_config(
+            models=models,
+            config=config,
+        )
+    )
+
+    signal_weight_entries = get_config_list_or_dict_value(
+        args=args,
+        config=config,
+        argument_name="signal_weight",
+        alternative_config_name="signal_weights",
+    )
+
+    settings = FitSettings(
+        species_mapping={},
+        use_normalized_data=False,
+        method=method,
+        loss=loss,
+        max_nfev=max_nfev,
+        rtol=rtol,
+        atol=atol,
+        signal_weights=parse_signal_weight_entries(signal_weight_entries),
+    )
+
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    print("Running global observable model comparison with variable projection")
+    print("Models:", ", ".join(models))
+    print(f"Data: {data_path}")
+    print(f"Observed species: {observed_species}")
+    print(f"Observable columns: {len(dataset.signal_columns)}")
+    print(f"Kept observable columns: {len(filtering_result.kept_columns)}")
+    print(f"Removed observable columns: {len(filtering_result.removed_columns)}")
+    print(f"Sort by: {sort_by}")
+    print(f"Variable projection backend: {variable_projection_backend}")
+    print(f"ODE method: {variable_projection_method}")
+
+    result = fit_global_observable_variable_projection_model_comparison(
+        models=models,
+        dataset=dataset,
+        parameter_specs_by_model=parameter_specs_by_model,
+        initial_condition_specs_by_model=initial_condition_specs_by_model,
+        observed_species_by_model=observed_species_by_model,
+        settings_by_model=settings,
+        signal_columns=dataset.signal_columns,
+        fit_scale=fit_scale,
+        fit_offset=fit_offset,
+        backend=variable_projection_backend,
+        method=variable_projection_method,
+        sort_by=sort_by,
+    )
+
+    written_files = export_variable_projection_model_comparison(
+        result=result,
+        output_dir=output_path,
+        export_best_fit=True,
+    )
+
+    peak_filtering_path = write_peak_filtering_table(
+        filtering_result=filtering_result,
+        output_dir=output_path,
+    )
+
+    written_files["peak_filtering"] = peak_filtering_path
+
+    print("\nBest model:", result.best_model_name)
+    print("Best fit success:", result.best_result.success)
+    print("Best fit message:", result.best_result.message)
+    print("Best fitted kinetic parameters:", result.best_result.fitted_parameters)
+    print("Best statistics:", result.best_result.statistics)
+
+    if result.failures:
+        print("\nFailed models:")
+        for failure in result.failures:
+            print(
+                f"  {failure.model_name}: {failure.error_type}: {failure.error_message}"
+            )
+
+    print(f"\nWrote variable projection model comparison outputs to: {output_path}")
+    print("\nWritten files:")
+
+    for name, path in written_files.items():
         print(f"  {name}: {path}")
 
 
@@ -4301,6 +4541,15 @@ def build_parser() -> argparse.ArgumentParser:
         "--no-plots",
         action="store_true",
         help="Skip plot generation for best fit bundle.",
+    )
+    compare_global_observable_parser.add_argument(
+        "--variable-projection",
+        action="store_true",
+        help=(
+            "Use variable projection for shared-species global observable "
+            "model comparison. This analytically solves per-column "
+            "scale/offset terms."
+        ),
     )
 
     compare_global_observable_parser.set_defaults(

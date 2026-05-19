@@ -1610,3 +1610,147 @@ def test_multistart_global_observables_variable_projection_command_writes_output
     ].iloc[0]
 
     assert fitted_k == pytest.approx(true_k, rel=1e-2)
+
+
+def test_compare_global_observables_variable_projection_command_writes_outputs(
+    tmp_path,
+):
+    data_path = tmp_path / "hsqc.csv"
+    output_dir = tmp_path / "global_hsqc_variable_projection_model_comparison"
+    config_path = (
+        tmp_path / "global_hsqc_variable_projection_model_comparison_config.json"
+    )
+
+    true_k = 0.4
+    timepoints = np.linspace(0.0, 8.0, 30)
+    a_values = np.exp(-true_k * timepoints)
+
+    dataframe = pd.DataFrame(
+        {
+            "time": timepoints,
+            "P1": 1.0 * a_values + 0.00,
+            "P2": 1.5 * a_values + 0.10,
+            "P3": 2.0 * a_values + 0.20,
+            "P4": 2.5 * a_values + 0.30,
+        }
+    )
+
+    dataframe.to_csv(data_path, index=False)
+
+    config = {
+        "model_texts": {
+            "irreversible": "A>B",
+            "reversible": "A-B",
+        },
+        "data": str(data_path),
+        "time_column": "time",
+        "observed_species": "A",
+        "parameters_by_model": {
+            "irreversible": {
+                "k1f": {
+                    "initial_guess": 0.1,
+                    "lower_bound": 0.001,
+                    "upper_bound": 10.0,
+                }
+            },
+            "reversible": {
+                "k1f": {
+                    "initial_guess": 0.1,
+                    "lower_bound": 0.001,
+                    "upper_bound": 10.0,
+                },
+                "k1r": {
+                    "initial_guess": 0.01,
+                    "lower_bound": 0.000001,
+                    "upper_bound": 10.0,
+                },
+            },
+        },
+        "initial_conditions_by_model": {
+            "irreversible": {
+                "A": {
+                    "value": 1.0,
+                    "mode": "fixed",
+                    "lower_bound": 0.0,
+                    "upper_bound": 2.0,
+                },
+                "B": {
+                    "value": 0.0,
+                    "mode": "fixed",
+                    "lower_bound": 0.0,
+                    "upper_bound": 2.0,
+                },
+            },
+            "reversible": {
+                "A": {
+                    "value": 1.0,
+                    "mode": "fixed",
+                    "lower_bound": 0.0,
+                    "upper_bound": 2.0,
+                },
+                "B": {
+                    "value": 0.0,
+                    "mode": "fixed",
+                    "lower_bound": 0.0,
+                    "upper_bound": 2.0,
+                },
+            },
+        },
+        "fit_scale": True,
+        "fit_offset": True,
+        "method": "trf",
+        "loss": "linear",
+        "rtol": 1e-8,
+        "atol": 1e-10,
+        "max_nfev": 2000,
+        "sort_by": "aic",
+        "max_missing_fraction": 0.25,
+        "min_initial_intensity": None,
+        "initial_points": 1,
+        "min_dynamic_range": None,
+        "interpolate_missing": True,
+        "use_variable_projection": True,
+        "variable_projection_backend": "numpy",
+        "variable_projection_method": "LSODA",
+        "output_dir": str(output_dir),
+        "no_plots": True,
+    }
+
+    config_path.write_text(json.dumps(config))
+
+    main(
+        [
+            "compare-global-observables",
+            "--config",
+            str(config_path),
+        ]
+    )
+
+    assert output_dir.exists()
+
+    assert (output_dir / "variable_projection_model_comparison.csv").exists()
+    assert (output_dir / "variable_projection_model_comparison_failures.csv").exists()
+    assert (output_dir / "peak_filtering.csv").exists()
+
+    best_fit_dir = output_dir / "best_fit"
+
+    assert best_fit_dir.exists()
+    assert (best_fit_dir / "projected_observables.csv").exists()
+    assert (best_fit_dir / "projected_predictions.csv").exists()
+    assert (best_fit_dir / "projected_residuals.csv").exists()
+    assert (best_fit_dir / "projected_simulation.csv").exists()
+    assert (best_fit_dir / "projected_fit_statistics.csv").exists()
+    assert (best_fit_dir / "projected_fitted_parameters.csv").exists()
+
+    comparison = pd.read_csv(output_dir / "variable_projection_model_comparison.csv")
+
+    assert len(comparison) == 2
+    assert "rank" in comparison.columns
+    assert "model" in comparison.columns
+    assert "aic" in comparison.columns
+    assert "parameter_k1f" in comparison.columns
+
+    assert set(comparison["model"]) == {
+        "irreversible",
+        "reversible",
+    }
