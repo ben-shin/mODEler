@@ -1,0 +1,13 @@
+{
+  "parameter_specs": [
+    {
+      "fixed": false,
+      "fixed_value": null,
+      "initial_guess": 0.1,
+      "lower_bound": 1e-06,
+      "name": "k1f",
+      "tied_to": null,
+      "upper_bound": 10.0
+    }
+  ]
+}

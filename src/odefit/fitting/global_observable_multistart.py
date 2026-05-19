@@ -20,6 +20,7 @@ from odefit.fitting.observable_spec import ObservableSpec
 from odefit.fitting.optimizer import fit_model
 from odefit.fitting.parameter_spec import ParameterSpec
 from odefit.model.model_spec import ModelSpec
+from odefit.utils.progress import ProgressReporter
 
 
 @dataclass
@@ -169,6 +170,102 @@ def sample_observable_specs(
     return sampled_specs
 
 
+def parameter_specs_to_initial_guess_dict(
+    parameter_specs: list[ParameterSpec],
+) -> dict[str, float]:
+    """
+    Convert ParameterSpec objects into a simple initial-guess dictionary.
+
+    This local version avoids depending on the standard multistart module's
+    internal helper behavior.
+    """
+
+    guesses: dict[str, float] = {}
+
+    for parameter_spec in parameter_specs:
+        if parameter_spec.fixed:
+            if parameter_spec.fixed_value is not None:
+                value = parameter_spec.fixed_value
+            else:
+                value = parameter_spec.initial_guess
+        else:
+            value = parameter_spec.initial_guess
+
+        guesses[parameter_spec.name] = float(value)
+
+    return guesses
+
+
+def sample_parameter_initial_guess(
+    initial_guess: float,
+    lower_bound: float,
+    upper_bound: float,
+    rng: np.random.Generator,
+    log_uniform: bool = True,
+) -> float:
+    """
+    Sample a parameter initial guess inside finite bounds.
+
+    If bounds are infinite, return the original initial guess because random
+    sampling over an infinite interval is not well-defined.
+    """
+
+    if not np.isfinite(lower_bound) or not np.isfinite(upper_bound):
+        return float(initial_guess)
+
+    if lower_bound >= upper_bound:
+        raise ValueError("Parameter lower bound must be less than upper bound")
+
+    if log_uniform and lower_bound > 0.0 and upper_bound > 0.0:
+        return float(
+            np.exp(
+                rng.uniform(
+                    np.log(lower_bound),
+                    np.log(upper_bound),
+                )
+            )
+        )
+
+    return float(rng.uniform(lower_bound, upper_bound))
+
+
+def sample_parameter_specs(
+    parameter_specs: list[ParameterSpec],
+    rng: np.random.Generator,
+    log_uniform: bool = True,
+) -> list[ParameterSpec]:
+    """
+    Create a new list of ParameterSpec objects with randomized free parameter
+    initial guesses.
+
+    Fixed or tied parameters are left unchanged.
+    """
+
+    sampled_specs: list[ParameterSpec] = []
+
+    for parameter_spec in parameter_specs:
+        if parameter_spec.fixed or parameter_spec.tied_to is not None:
+            sampled_specs.append(parameter_spec)
+            continue
+
+        sampled_initial_guess = sample_parameter_initial_guess(
+            initial_guess=parameter_spec.initial_guess,
+            lower_bound=parameter_spec.lower_bound,
+            upper_bound=parameter_spec.upper_bound,
+            rng=rng,
+            log_uniform=log_uniform,
+        )
+
+        sampled_specs.append(
+            replace(
+                parameter_spec,
+                initial_guess=sampled_initial_guess,
+            )
+        )
+
+    return sampled_specs
+
+
 def build_global_observable_multistart_spec_sets(
     parameter_specs: list[ParameterSpec],
     observable_specs: list[ObservableSpec],
@@ -260,6 +357,8 @@ def fit_global_observable_multistart(
     randomize_observable_offsets: bool = True,
     log_uniform_observable_scales: bool = False,
     raise_on_failure: bool = False,
+    show_progress: bool = False,
+    progress_label: str = "Global observable multistart",
 ) -> GlobalObservableMultistartResult:
     """
     Run global observable multistart fitting.
@@ -289,6 +388,12 @@ def fit_global_observable_multistart(
     failures: list[GlobalObservableMultistartFailure] = []
 
     if n_workers is None or n_workers <= 1:
+        progress = ProgressReporter(
+            total=n_starts,
+            label=progress_label,
+            enabled=show_progress,
+        )
+
         for start_index in range(n_starts):
             start_parameter_specs = parameter_spec_sets[start_index]
             start_observable_specs = observable_spec_sets[start_index]
@@ -329,7 +434,18 @@ def fit_global_observable_multistart(
                 if raise_on_failure:
                     raise
 
+            finally:
+                progress.update()
+
+        progress.close()
+
     else:
+        progress = ProgressReporter(
+            total=n_starts,
+            label=progress_label,
+            enabled=show_progress,
+        )
+
         with ProcessPoolExecutor(max_workers=n_workers) as executor:
             future_to_start_index = {}
 
@@ -359,9 +475,7 @@ def fit_global_observable_multistart(
                     ) = future.result()
 
                     completed_results[returned_start_index] = result
-                    starting_parameter_sets[returned_start_index] = (
-                        starting_parameters
-                    )
+                    starting_parameter_sets[returned_start_index] = starting_parameters
                     starting_observable_sets[returned_start_index] = (
                         starting_observables
                     )
@@ -384,29 +498,39 @@ def fit_global_observable_multistart(
                     if raise_on_failure:
                         raise
 
+                finally:
+                    progress.update()
+
+        progress.close()
+
     if not completed_results:
-        raise RuntimeError("All global observable multistart fits failed")
+        failure_details = "; ".join(
+            (
+                f"start_{failure.start_index}: "
+                f"{failure.error_type}: "
+                f"{failure.error_message}"
+            )
+            for failure in failures
+        )
+
+        raise RuntimeError(
+            f"All global observable multistart fits failed. Failures: {failure_details}"
+        )
 
     ordered_indices = sorted(completed_results)
 
-    all_results = [
-        completed_results[index]
-        for index in ordered_indices
-    ]
+    all_results = [completed_results[index] for index in ordered_indices]
 
     ordered_starting_parameter_sets = [
-        starting_parameter_sets[index]
-        for index in ordered_indices
+        starting_parameter_sets[index] for index in ordered_indices
     ]
 
     ordered_starting_observable_sets = [
-        starting_observable_sets[index]
-        for index in ordered_indices
+        starting_observable_sets[index] for index in ordered_indices
     ]
 
     fit_result_map = {
-        f"start_{index}": completed_results[index]
-        for index in ordered_indices
+        f"start_{index}": completed_results[index] for index in ordered_indices
     }
 
     comparison_table = build_ranked_model_comparison_table(

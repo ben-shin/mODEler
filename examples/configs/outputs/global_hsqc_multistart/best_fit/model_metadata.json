@@ -1,0 +1,33 @@
+{
+  "metadata": {},
+  "name": null,
+  "parameters": [
+    "k1f"
+  ],
+  "raw_text": "A>B\n",
+  "reactions": [
+    {
+      "forward_rate": "k1f",
+      "index": 1,
+      "label": null,
+      "products": {
+        "B": 1
+      },
+      "reactants": {
+        "A": 1
+      },
+      "reverse_rate": null,
+      "reversible": false,
+      "source_line": 1
+    }
+  ],
+  "species": [
+    "A",
+    "B"
+  ],
+  "warnings": [
+    "Species appear only as reactants and are never produced: A",
+    "Species appear only as products and are never consumed: B",
+    "Model contains only irreversible reactions"
+  ]
+}

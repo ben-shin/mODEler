@@ -1,0 +1,60 @@
+{
+  "observable_specs": [
+    {
+      "data_column": "A23_HN",
+      "offset_fixed": false,
+      "offset_fixed_value": null,
+      "offset_initial_guess": 0.0,
+      "offset_lower_bound": -1000000.0,
+      "offset_upper_bound": 1000000.0,
+      "scale_fixed": false,
+      "scale_fixed_value": null,
+      "scale_initial_guess": 1.0,
+      "scale_lower_bound": 0.0,
+      "scale_upper_bound": 1000000.0,
+      "species": "A"
+    },
+    {
+      "data_column": "G45_HN",
+      "offset_fixed": false,
+      "offset_fixed_value": null,
+      "offset_initial_guess": 0.0,
+      "offset_lower_bound": -1000000.0,
+      "offset_upper_bound": 1000000.0,
+      "scale_fixed": false,
+      "scale_fixed_value": null,
+      "scale_initial_guess": 1.0,
+      "scale_lower_bound": 0.0,
+      "scale_upper_bound": 1000000.0,
+      "species": "A"
+    },
+    {
+      "data_column": "L78_HN",
+      "offset_fixed": false,
+      "offset_fixed_value": null,
+      "offset_initial_guess": 0.0,
+      "offset_lower_bound": -1000000.0,
+      "offset_upper_bound": 1000000.0,
+      "scale_fixed": false,
+      "scale_fixed_value": null,
+      "scale_initial_guess": 1.0,
+      "scale_lower_bound": 0.0,
+      "scale_upper_bound": 1000000.0,
+      "species": "A"
+    },
+    {
+      "data_column": "V90_HN",
+      "offset_fixed": false,
+      "offset_fixed_value": null,
+      "offset_initial_guess": 0.0,
+      "offset_lower_bound": -1000000.0,
+      "offset_upper_bound": 1000000.0,
+      "scale_fixed": false,
+      "scale_fixed_value": null,
+      "scale_initial_guess": 1.0,
+      "scale_lower_bound": 0.0,
+      "scale_upper_bound": 1000000.0,
+      "species": "A"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "initial_condition_specs": [
+    {
+      "fixed": true,
+      "fixed_value": 1.0,
+      "initial_guess": 1.0,
+      "lower_bound": 0.0,
+      "species": "A",
+      "upper_bound": 2.0
+    },
+    {
+      "fixed": true,
+      "fixed_value": 0.0,
+      "initial_guess": 0.0,
+      "lower_bound": 0.0,
+      "species": "B",
+      "upper_bound": 2.0
+    }
+  ]
+}

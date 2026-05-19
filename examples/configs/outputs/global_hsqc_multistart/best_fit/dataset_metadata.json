@@ -1,0 +1,19 @@
+{
+  "columns": [
+    "time",
+    "A23_HN",
+    "G45_HN",
+    "L78_HN",
+    "V90_HN"
+  ],
+  "n_columns": 5,
+  "n_rows": 9,
+  "normalization_method": null,
+  "signal_columns": [
+    "A23_HN",
+    "G45_HN",
+    "L78_HN",
+    "V90_HN"
+  ],
+  "time_column": "time"
+}

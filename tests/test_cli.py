@@ -1356,3 +1356,13 @@ def test_multistart_compare_global_observables_command_with_config_writes_output
 
     assert "rank" in comparison.columns
     assert "aic" in comparison.columns
+
+
+def test_performance_info_command_runs(capsys):
+    main(["performance-info"])
+
+    captured = capsys.readouterr()
+
+    assert "Performance backend availability" in captured.out
+    assert "SciPy CPU" in captured.out
+    assert "Recommended acceleration roadmap" in captured.out

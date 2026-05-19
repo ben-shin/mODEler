@@ -4,12 +4,12 @@ import pytest
 
 from odefit.data.dataset import Dataset
 from odefit.fitting.fit_settings import FitSettings
+from odefit.fitting.global_observable_model_comparison import (
+    build_model_specs_from_texts,
+)
 from odefit.fitting.global_observable_multistart_model_comparison import (
     export_global_observable_multistart_model_comparison,
     fit_global_observable_multistart_model_comparison,
-)
-from odefit.fitting.global_observable_model_comparison import (
-    build_model_specs_from_texts,
 )
 from odefit.fitting.initial_condition_spec import InitialConditionSpec
 from odefit.fitting.parameter_spec import ParameterSpec
@@ -273,15 +273,11 @@ def test_export_global_observable_multistart_model_comparison(tmp_path):
     assert "global_observable_multistart_model_comparison_failures" in written_files
     assert "global_observable_multistart_model_summary" in written_files
 
-    assert (
-        tmp_path / "global_observable_multistart_model_comparison.csv"
-    ).exists()
+    assert (tmp_path / "global_observable_multistart_model_comparison.csv").exists()
     assert (
         tmp_path / "global_observable_multistart_model_comparison_failures.csv"
     ).exists()
-    assert (
-        tmp_path / "global_observable_multistart_model_summary.csv"
-    ).exists()
+    assert (tmp_path / "global_observable_multistart_model_summary.csv").exists()
 
     assert (
         tmp_path

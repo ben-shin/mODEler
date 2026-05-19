@@ -1,0 +1,17 @@
+{
+  "command": "multistart-global-observables-best-fit",
+  "config_path": "examples/configs/global_hsqc_multistart_config.json",
+  "created_at_utc": "2026-05-19T19:11:25.823676+00:00",
+  "extra_metadata": {
+    "best_start_index": 2,
+    "n_observable_columns": 4,
+    "n_starts": 8,
+    "n_workers": 1,
+    "observed_species": "A",
+    "sort_by": "aic"
+  },
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "platform_release": "6.6.87.2-microsoft-standard-WSL2",
+  "platform_system": "Linux",
+  "python_version": "3.11.15 | packaged by conda-forge | (main, Mar  5 2026, 16:45:40) [GCC 14.3.0]"
+}

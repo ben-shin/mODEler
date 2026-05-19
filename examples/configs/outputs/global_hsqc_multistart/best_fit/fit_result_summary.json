@@ -1,0 +1,86 @@
+{
+  "active_mask": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "cost": 6.840374056900827e-08,
+  "fitted_initial_conditions": {
+    "A": 1.0,
+    "B": 0.0
+  },
+  "fitted_observables": {
+    "A23_HN": {
+      "offset": 0.10020230556494843,
+      "scale": 1.9997866414084293,
+      "species": "A"
+    },
+    "G45_HN": {
+      "offset": 0.2001470505174223,
+      "scale": 1.4998627290802524,
+      "species": "A"
+    },
+    "L78_HN": {
+      "offset": 0.05008000780803118,
+      "scale": 0.7999106667255143,
+      "species": "A"
+    },
+    "V90_HN": {
+      "offset": 0.20032120545776166,
+      "scale": 2.9996766659045244,
+      "species": "A"
+    }
+  },
+  "fitted_parameters": {
+    "k1f": 0.4000591948209724
+  },
+  "initial_conditions": {
+    "A": 1.0,
+    "B": 0.0
+  },
+  "initial_observables": {
+    "A23_HN": {
+      "offset": 0.0,
+      "scale": 1.0,
+      "species": "A"
+    },
+    "G45_HN": {
+      "offset": 0.0,
+      "scale": 1.0,
+      "species": "A"
+    },
+    "L78_HN": {
+      "offset": 0.0,
+      "scale": 1.0,
+      "species": "A"
+    },
+    "V90_HN": {
+      "offset": 0.0,
+      "scale": 1.0,
+      "species": "A"
+    }
+  },
+  "initial_parameters": {
+    "k1f": 4.500345682595963
+  },
+  "message": "Both `ftol` and `xtol` termination conditions are satisfied.",
+  "nfev": 8,
+  "njev": 8,
+  "optimality": 9.166558239073234e-07,
+  "statistics": {
+    "aic": -679.9755630610053,
+    "bic": -665.7238926149004,
+    "n_parameters": 9.0,
+    "n_residuals": 36.0,
+    "rmse": 6.164582556336924e-05,
+    "rss": 1.3680748113801654e-07
+  },
+  "status": 4,
+  "success": true
+}

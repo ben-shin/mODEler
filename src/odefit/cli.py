@@ -38,6 +38,10 @@ from odefit.fitting.parallel_multistart import (
 from odefit.fitting.parameter_spec import ParameterSpec
 from odefit.model.model_spec import ModelSpec, build_model_spec
 from odefit.model.ode_generator import generate_ode_lines
+from odefit.performance.backend_capabilities import (
+    build_backend_capabilities_table,
+    summarize_backend_strategy,
+)
 from odefit.plotting.timecourse_plots import (
     plot_simulation_timecourse,
     save_figure,
@@ -789,6 +793,21 @@ def command_simulate(args: argparse.Namespace) -> None:
 
     if written_plot is not None:
         print(f"Wrote simulation plot to: {written_plot}")
+
+
+def command_performance_info(args: argparse.Namespace) -> None:
+    """
+    Print optional performance backend availability and acceleration roadmap.
+    """
+
+    table = build_backend_capabilities_table()
+
+    print("Performance backend availability:")
+    print(table.to_string(index=False))
+
+    print("\nRecommended acceleration roadmap:")
+    for line in summarize_backend_strategy():
+        print(f"  {line}")
 
 
 def get_peak_filtering_settings(
@@ -3720,6 +3739,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Do not interpolate missing values in kept signal columns.",
     )
 
+    global_observable_multistart_parser.add_argument(
+        "--no-progress",
+        action="store_true",
+        help="Disable progress and ETA output.",
+    )
+
     global_observable_multistart_parser.set_defaults(
         func=command_multistart_global_observables
     )
@@ -4065,9 +4090,21 @@ def build_parser() -> argparse.ArgumentParser:
         help="Skip plot generation for best fit bundle.",
     )
 
+    multistart_compare_global_observable_parser.add_argument(
+        "--no-progress",
+        action="store_true",
+        help="Disable progress and ETA output.",
+    )
+
     multistart_compare_global_observable_parser.set_defaults(
         func=command_multistart_compare_global_observables
     )
+    performance_parser = subparsers.add_parser(
+        "performance-info",
+        help="Show optional performance backend availability.",
+    )
+
+    performance_parser.set_defaults(func=command_performance_info)
 
     return parser
 

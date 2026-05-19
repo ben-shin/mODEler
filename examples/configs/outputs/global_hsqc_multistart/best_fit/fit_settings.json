@@ -1,0 +1,12 @@
+{
+  "fit_settings": {
+    "atol": 1e-10,
+    "loss": "linear",
+    "max_nfev": 5000,
+    "method": "trf",
+    "rtol": 1e-08,
+    "signal_weights": null,
+    "species_mapping": {},
+    "use_normalized_data": false
+  }
+}

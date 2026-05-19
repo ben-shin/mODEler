@@ -145,8 +145,7 @@ def fit_global_observable_multistart_model_comparison(
 
             if observed_species not in model.species:
                 raise ValueError(
-                    f"Observed species {observed_species} is not in model: "
-                    f"{model_name}"
+                    f"Observed species {observed_species} is not in model: {model_name}"
                 )
 
             settings = _get_model_specific_value(
@@ -218,7 +217,14 @@ def fit_global_observable_multistart_model_comparison(
                 raise
 
     if not best_fit_results_by_model:
-        raise RuntimeError("All multistart model comparison fits failed")
+        failure_details = "; ".join(
+            (f"{failure.model_name}: {failure.error_type}: {failure.error_message}")
+            for failure in failures
+        )
+
+        raise RuntimeError(
+            f"All multistart model comparison fits failed. Failures: {failure_details}"
+        )
 
     comparison_table = build_ranked_model_comparison_table(
         fit_results=best_fit_results_by_model,
@@ -251,18 +257,14 @@ def export_global_observable_multistart_model_comparison(
 
     written_files: dict[str, Path] = {}
 
-    comparison_path = (
-        output_path / "global_observable_multistart_model_comparison.csv"
-    )
+    comparison_path = output_path / "global_observable_multistart_model_comparison.csv"
 
     result.comparison_table.to_csv(
         comparison_path,
         index=False,
     )
 
-    written_files["global_observable_multistart_model_comparison"] = (
-        comparison_path
-    )
+    written_files["global_observable_multistart_model_comparison"] = comparison_path
 
     failure_rows = [
         {
@@ -314,18 +316,14 @@ def export_global_observable_multistart_model_comparison(
         index=False,
     )
 
-    written_files["global_observable_multistart_model_summary"] = (
-        per_model_summary_path
-    )
+    written_files["global_observable_multistart_model_summary"] = per_model_summary_path
 
     if export_per_model_summaries:
         per_model_dir = output_path / "per_model_multistart"
 
         for model_name, multistart_result in result.multistart_results.items():
             safe_model_name = (
-                model_name.replace("/", "_")
-                .replace("\\", "_")
-                .replace(" ", "_")
+                model_name.replace("/", "_").replace("\\", "_").replace(" ", "_")
             )
 
             model_output_dir = per_model_dir / safe_model_name
