@@ -37,6 +37,11 @@
   "rtol": 1e-8,
   "atol": 1e-10,
   "max_nfev": 5000,
+  "max_missing_fraction": 0.25,
+  "min_initial_intensity": null,
+  "initial_points": 1,
+  "min_dynamic_range": null,
+  "interpolate_missing": true,
   "output_dir": "examples/configs/outputs/global_hsqc_fit",
   "no_plots": true
 }

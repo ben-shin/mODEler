@@ -865,6 +865,11 @@ def test_fit_global_observables_command_with_config_writes_output_bundle(tmp_pat
         "rtol": 1e-8,
         "atol": 1e-10,
         "max_nfev": 2000,
+        "max_missing_fraction": 0.25,
+        "min_initial_intensity": None,
+        "initial_points": 1,
+        "min_dynamic_range": None,
+        "interpolate_missing": True,
         "output_dir": str(output_dir),
         "no_plots": True,
     }
@@ -889,6 +894,7 @@ def test_fit_global_observables_command_with_config_writes_output_bundle(tmp_pat
     assert (output_dir / "fitted_observables.csv").exists()
     assert (output_dir / "simulated_curves.csv").exists()
     assert (output_dir / "residuals.csv").exists()
+    assert (output_dir / "peak_filtering.csv").exists()
 
     fitted_parameters = pd.read_csv(output_dir / "fitted_parameters.csv")
 
@@ -973,6 +979,11 @@ def test_multistart_global_observables_command_with_config_writes_outputs(tmp_pa
         "rtol": 1e-8,
         "atol": 1e-10,
         "max_nfev": 2000,
+        "max_missing_fraction": 0.25,
+        "min_initial_intensity": None,
+        "initial_points": 1,
+        "min_dynamic_range": None,
+        "interpolate_missing": True,
         "output_dir": str(output_dir),
         "no_plots": True,
         "n_starts": 3,
@@ -1000,6 +1011,7 @@ def test_multistart_global_observables_command_with_config_writes_outputs(tmp_pa
     ).exists()
 
     best_fit_dir = output_dir / "best_fit"
+    assert (output_dir / "peak_filtering.csv").exists()
 
     assert best_fit_dir.exists()
 

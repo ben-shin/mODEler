@@ -8,12 +8,13 @@ import numpy as np
 import pandas as pd
 
 from odefit.data.dataset import Dataset
+from odefit.data.peak_filtering import build_peak_filtering_table
 from odefit.export.bundle_export import export_fit_bundle
 from odefit.fitting.fit_settings import FitSettings
 from odefit.fitting.global_observables import (
     build_shared_species_observable_specs,
     fit_global_observable_model,
-    read_wide_observable_dataset,
+    read_wide_observable_dataset_with_filtering,
 )
 from odefit.fitting.initial_condition_spec import InitialConditionSpec
 from odefit.fitting.multistart import (
@@ -781,6 +782,88 @@ def command_simulate(args: argparse.Namespace) -> None:
         print(f"Wrote simulation plot to: {written_plot}")
 
 
+def get_peak_filtering_settings(
+    args: argparse.Namespace,
+    config: dict,
+) -> dict:
+    """
+    Get HSQC/global observable peak-filtering settings from CLI/config.
+
+    CLI values override config values.
+
+    Filtering options:
+    - max_missing_fraction
+    - min_initial_intensity
+    - initial_points
+    - min_dynamic_range
+    - interpolate_missing
+    """
+
+    max_missing_fraction = get_config_value(
+        args=args,
+        config=config,
+        argument_name="max_missing_fraction",
+        default=0.0,
+    )
+
+    min_initial_intensity = get_config_value(
+        args=args,
+        config=config,
+        argument_name="min_initial_intensity",
+        default=None,
+    )
+
+    initial_points = get_config_value(
+        args=args,
+        config=config,
+        argument_name="initial_points",
+        default=1,
+    )
+
+    min_dynamic_range = get_config_value(
+        args=args,
+        config=config,
+        argument_name="min_dynamic_range",
+        default=None,
+    )
+
+    interpolate_missing = bool(config.get("interpolate_missing", True))
+
+    if getattr(args, "no_interpolate_missing", False):
+        interpolate_missing = False
+
+    return {
+        "max_missing_fraction": float(max_missing_fraction),
+        "min_initial_intensity": (
+            None if min_initial_intensity is None else float(min_initial_intensity)
+        ),
+        "initial_points": int(initial_points),
+        "min_dynamic_range": (
+            None if min_dynamic_range is None else float(min_dynamic_range)
+        ),
+        "interpolate_missing": interpolate_missing,
+    }
+
+
+def write_peak_filtering_table(
+    filtering_result,
+    output_dir: str | Path,
+) -> Path:
+    """
+    Write peak-filtering results to peak_filtering.csv.
+    """
+
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    table = build_peak_filtering_table(filtering_result)
+
+    path = output_path / "peak_filtering.csv"
+    table.to_csv(path, index=False)
+
+    return path
+
+
 def command_fit(args: argparse.Namespace) -> None:
     """
     Fit a model to a CSV dataset using direct species mapping.
@@ -1373,12 +1456,21 @@ def command_fit_global_observables(args: argparse.Namespace) -> None:
 
     model = read_model_file(model_path)
 
-    dataset = read_wide_observable_dataset(
+    peak_filtering_settings = get_peak_filtering_settings(
+        args=args,
+        config=config,
+    )
+
+    dataset, filtering_result = read_wide_observable_dataset_with_filtering(
         file_path=data_path,
         time_column=time_column,
         signal_columns=signal_columns,
         exclude_columns=exclude_columns,
-        numeric_only=True,
+        max_missing_fraction=peak_filtering_settings["max_missing_fraction"],
+        min_initial_intensity=peak_filtering_settings["min_initial_intensity"],
+        initial_points=peak_filtering_settings["initial_points"],
+        min_dynamic_range=peak_filtering_settings["min_dynamic_range"],
+        interpolate_missing=peak_filtering_settings["interpolate_missing"],
     )
 
     parameter_entries = get_config_list_or_dict_value(
@@ -1527,10 +1619,19 @@ def command_fit_global_observables(args: argparse.Namespace) -> None:
         include_plots=not no_plots,
     )
 
+    peak_filtering_path = write_peak_filtering_table(
+        filtering_result=filtering_result,
+        output_dir=output_dir,
+    )
+
+    written_files["peak_filtering"] = peak_filtering_path
+
     print("Global observable fit success:", result.success)
     print("Message:", result.message)
     print("Observed species:", observed_species)
     print("Number of observable columns:", len(dataset.signal_columns))
+    print("Kept observable columns:", len(filtering_result.kept_columns))
+    print("Removed observable columns:", len(filtering_result.removed_columns))
     print("Fitted kinetic parameters:", result.fitted_parameters)
     print("Statistics:", result.statistics)
     print(f"\nWrote output bundle to: {Path(output_dir)}")
@@ -1661,12 +1762,21 @@ def command_multistart_global_observables(args: argparse.Namespace) -> None:
 
     model = read_model_file(model_path)
 
-    dataset = read_wide_observable_dataset(
+    peak_filtering_settings = get_peak_filtering_settings(
+        args=args,
+        config=config,
+    )
+
+    dataset, filtering_result = read_wide_observable_dataset_with_filtering(
         file_path=data_path,
         time_column=time_column,
         signal_columns=signal_columns,
         exclude_columns=exclude_columns,
-        numeric_only=True,
+        max_missing_fraction=peak_filtering_settings["max_missing_fraction"],
+        min_initial_intensity=peak_filtering_settings["min_initial_intensity"],
+        initial_points=peak_filtering_settings["initial_points"],
+        min_dynamic_range=peak_filtering_settings["min_dynamic_range"],
+        interpolate_missing=peak_filtering_settings["interpolate_missing"],
     )
 
     parameter_entries = get_config_list_or_dict_value(
@@ -1798,6 +1908,10 @@ def command_multistart_global_observables(args: argparse.Namespace) -> None:
 
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
+    peak_filtering_path = write_peak_filtering_table(
+        filtering_result=filtering_result,
+        output_dir=output_path,
+    )
 
     if n_workers is None or n_workers <= 1:
         print(f"Running serial global observable multistart with {n_starts} starts")
@@ -1851,6 +1965,7 @@ def command_multistart_global_observables(args: argparse.Namespace) -> None:
             parallel_result=parallel_result,
             output_dir=output_path,
         )
+        written_summary_files["peak_filtering"] = peak_filtering_path
 
         multistart_result = parallel_result.successful_result
         best_result = multistart_result.best_result
@@ -1900,6 +2015,8 @@ def command_multistart_global_observables(args: argparse.Namespace) -> None:
     print("Best fit message:", best_result.message)
     print("Observed species:", observed_species)
     print("Number of observable columns:", len(dataset.signal_columns))
+    print("Kept observable columns:", len(filtering_result.kept_columns))
+    print("Removed observable columns:", len(filtering_result.removed_columns))
     print("Best fitted kinetic parameters:", best_result.fitted_parameters)
     print("Best statistics:", best_result.statistics)
 
@@ -2505,6 +2622,40 @@ def build_parser() -> argparse.ArgumentParser:
         help="Skip plot generation.",
     )
 
+    global_observable_parser.add_argument(
+        "--max-missing-fraction",
+        type=float,
+        default=None,
+        help="Remove signal columns with missing fraction above this value.",
+    )
+
+    global_observable_parser.add_argument(
+        "--min-initial-intensity",
+        type=float,
+        default=None,
+        help="Remove signal columns with initial intensity below this value.",
+    )
+
+    global_observable_parser.add_argument(
+        "--initial-points",
+        type=int,
+        default=None,
+        help="Number of initial timepoints used to estimate initial intensity.",
+    )
+
+    global_observable_parser.add_argument(
+        "--min-dynamic-range",
+        type=float,
+        default=None,
+        help="Remove signal columns with dynamic range below this value.",
+    )
+
+    global_observable_parser.add_argument(
+        "--no-interpolate-missing",
+        action="store_true",
+        help="Do not interpolate missing values in kept signal columns.",
+    )
+
     global_observable_parser.set_defaults(func=command_fit_global_observables)
 
     global_observable_multistart_parser = subparsers.add_parser(
@@ -2680,6 +2831,39 @@ def build_parser() -> argparse.ArgumentParser:
         "--no-plots",
         action="store_true",
         help="Skip plot generation for best fit bundle.",
+    )
+    global_observable_multistart_parser.add_argument(
+        "--max-missing-fraction",
+        type=float,
+        default=None,
+        help="Remove signal columns with missing fraction above this value.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--min-initial-intensity",
+        type=float,
+        default=None,
+        help="Remove signal columns with initial intensity below this value.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--initial-points",
+        type=int,
+        default=None,
+        help="Number of initial timepoints used to estimate initial intensity.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--min-dynamic-range",
+        type=float,
+        default=None,
+        help="Remove signal columns with dynamic range below this value.",
+    )
+
+    global_observable_multistart_parser.add_argument(
+        "--no-interpolate-missing",
+        action="store_true",
+        help="Do not interpolate missing values in kept signal columns.",
     )
 
     global_observable_multistart_parser.set_defaults(
