@@ -1,0 +1,11 @@
+statistic,value
+success,True
+message,Both `ftol` and `xtol` termination conditions are satisfied.
+nfev,8
+cost,6.840374056900827e-08
+rss,1.3680748113801654e-07
+rmse,6.164582556336924e-05
+aic,-679.9755630610053
+bic,-665.7238926149004
+n_residuals,36.0
+n_parameters,9.0
