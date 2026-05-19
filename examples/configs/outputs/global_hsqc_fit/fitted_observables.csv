@@ -1,5 +1,0 @@
-data_column,species,fitted_species,scale_initial_guess,scale_fitted_value,scale_lower_bound,scale_upper_bound,scale_fixed,scale_fixed_value,offset_initial_guess,offset_fitted_value,offset_lower_bound,offset_upper_bound,offset_fixed,offset_fixed_value
-A23_HN,A,A,1.0,1.999786643051038,0.0,1000000.0,False,,0.0,0.10020230181838923,-1000000.0,1000000.0,False,
-G45_HN,A,A,1.0,1.499862730312434,0.0,1000000.0,False,,0.0,0.2001470477073927,-1000000.0,1000000.0,False,
-L78_HN,A,A,1.0,0.7999106673829289,0.0,1000000.0,False,,0.0,0.050080006309292116,-1000000.0,1000000.0,False,
-V90_HN,A,A,1.0,2.999676668369266,0.0,1000000.0,False,,0.0,0.20032119983765656,-1000000.0,1000000.0,False,

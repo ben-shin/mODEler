@@ -1,4 +1,0 @@
-kind,name,value,lower_bound,upper_bound,fixed,tied_to,optimized,at_lower_bound,at_upper_bound,warning
-parameter,k1f,0.010582699828132102,1e-06,10.0,False,,True,False,False,
-initial_condition,A,1.0,0.0,10.0,True,,False,False,False,
-initial_condition,B,0.0,0.0,10.0,True,,False,False,False,
