@@ -9,6 +9,7 @@ from odefit.performance.benchmarking import (
     BenchmarkResult,
     benchmark_callable,
     benchmark_global_observable_fit,
+    benchmark_array_solve_ivp,
     benchmark_array_rhs_evaluation,
     benchmark_global_observable_multistart,
     benchmark_numba_array_rhs_evaluation,
@@ -34,7 +35,15 @@ from odefit.performance.numba_rhs import (
     is_numba_available,
     warm_up_numba_rhs,
 )
+from odefit.performance.array_solve_ivp import (
+    ArraySolveResult,
+    make_array_rhs_function,
+    solve_array_mass_action_model,
+)
 __all__ = [
+    "ArraySolveResult",
+    "make_array_rhs_function",
+    "solve_array_mass_action_model",
     "BackendCapability",
     "BenchmarkResult",
     "benchmark_callable",

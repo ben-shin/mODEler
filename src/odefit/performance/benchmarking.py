@@ -27,6 +27,7 @@ from odefit.performance.array_rhs import (
     evaluate_mass_action_rhs,
     parameter_dict_to_array,
 )
+from odefit.performance.array_solve_ivp import solve_array_mass_action_model
 from odefit.performance.numba_rhs import (
     evaluate_mass_action_rhs_numba,
     is_numba_available,
@@ -375,6 +376,68 @@ def benchmark_numba_array_rhs_evaluation(
     )
 
 
+def benchmark_array_solve_ivp(
+    backend: str = "numpy",
+    n_timepoints: int = 100,
+) -> BenchmarkResult:
+    """
+    Benchmark array-based solve_ivp simulation.
+
+    This tests whether array/Numba RHS helps inside scipy.solve_ivp.
+    """
+
+    backend = backend.lower()
+
+    if backend == "numba" and not is_numba_available():
+        return BenchmarkResult(
+            name="array_solve_ivp_numba",
+            elapsed_seconds=0.0,
+            metadata={
+                "available": False,
+                "backend": backend,
+                "n_timepoints": n_timepoints,
+                "n_peaks": None,
+                "n_starts": None,
+                "n_workers": None,
+            },
+        )
+
+    model = build_model_spec("A+B>C")
+
+    timepoints = np.linspace(0.0, 10.0, n_timepoints)
+
+    def run() -> None:
+        solve_array_mass_action_model(
+            model=model,
+            parameters={
+                "k1f": 0.5,
+            },
+            initial_conditions={
+                "A": 2.0,
+                "B": 3.0,
+                "C": 0.0,
+            },
+            timepoints=timepoints,
+            backend=backend,
+            method="LSODA",
+            rtol=1e-8,
+            atol=1e-10,
+        )
+
+    return benchmark_callable(
+        name=f"array_solve_ivp_{backend}",
+        function=run,
+        metadata={
+            "available": True,
+            "backend": backend,
+            "n_timepoints": n_timepoints,
+            "n_peaks": None,
+            "n_starts": None,
+            "n_workers": None,
+        },
+    )
+
+
 def benchmark_global_observable_fit(
     n_peaks: int = 25,
     n_timepoints: int = 30,
@@ -503,6 +566,8 @@ def run_default_benchmarks() -> list[BenchmarkResult]:
     results = [
         benchmark_array_rhs_evaluation(n_evaluations=10000),
         benchmark_numba_array_rhs_evaluation(n_evaluations=10000),
+        benchmark_array_solve_ivp(backend="numpy", n_timepoints=100),
+        benchmark_array_solve_ivp(backend="numba", n_timepoints=100),
         benchmark_standard_fit(n_timepoints=30),
         benchmark_global_observable_fit(n_peaks=10, n_timepoints=30),
         benchmark_global_observable_fit(n_peaks=50, n_timepoints=30),
