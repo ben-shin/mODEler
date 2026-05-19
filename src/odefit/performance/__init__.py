@@ -12,6 +12,7 @@ from odefit.performance.benchmarking import (
     benchmark_array_solve_ivp,
     benchmark_array_rhs_evaluation,
     benchmark_global_observable_multistart,
+    benchmark_global_observable_variable_projection_fit,
     benchmark_numba_array_rhs_evaluation,
     benchmark_results_to_dataframe,
     benchmark_standard_fit,
