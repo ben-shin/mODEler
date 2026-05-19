@@ -705,6 +705,115 @@ def benchmark_global_observable_variable_projection_model_comparison(
     )
 
 
+def benchmark_variable_projection_multistart_model_comparison():
+    import time
+
+    import numpy as np
+    import pandas as pd
+
+    from odefit.data.dataset import Dataset
+    from odefit.fitting.fit_settings import FitSettings
+    from odefit.fitting.initial_condition_spec import InitialConditionSpec
+    from odefit.fitting.parameter_spec import ParameterSpec
+    from odefit.fitting.variable_projection_multistart_model_comparison import (
+        fit_global_observable_variable_projection_multistart_model_comparison,
+    )
+    from odefit.model.model_spec import build_model_spec
+
+    timepoints = np.linspace(0.0, 10.0, 40)
+    signal = np.exp(-0.3 * timepoints)
+
+    rng = np.random.default_rng(123)
+
+    dataframe = pd.DataFrame({"time": timepoints})
+
+    for i in range(50):
+        scale = rng.uniform(0.5, 2.0)
+        offset = rng.uniform(-0.2, 0.2)
+        noise = rng.normal(0.0, 0.01, size=len(timepoints))
+
+        dataframe[f"peak_{i}"] = scale * signal + offset + noise
+
+    dataset = Dataset(
+        raw_dataframe=dataframe,
+        time_column="time",
+        signal_columns=[f"peak_{i}" for i in range(50)],
+    )
+
+    models = {
+        "single_step": build_model_spec(
+            "A -> B ; k1",
+            name="single_step",
+        ),
+        "two_step": build_model_spec(
+            "A -> B ; k1\nB -> C ; k2",
+            name="two_step",
+        ),
+    }
+
+    parameter_specs_by_model = {
+        "single_step": [
+            ParameterSpec("k1", 0.2, 1e-6, 10.0),
+        ],
+        "two_step": [
+            ParameterSpec("k1", 0.2, 1e-6, 10.0),
+            ParameterSpec("k2", 0.1, 1e-6, 10.0),
+        ],
+    }
+
+    initial_condition_specs_by_model = {
+        "single_step": [
+            InitialConditionSpec("A", 1.0, fixed=True, fixed_value=1.0),
+            InitialConditionSpec("B", 0.0, fixed=True, fixed_value=0.0),
+        ],
+        "two_step": [
+            InitialConditionSpec("A", 1.0, fixed=True, fixed_value=1.0),
+            InitialConditionSpec("B", 0.0, fixed=True, fixed_value=0.0),
+            InitialConditionSpec("C", 0.0, fixed=True, fixed_value=0.0),
+        ],
+    }
+
+    settings = FitSettings(
+        species_mapping={},
+        use_normalized_data=False,
+        method="trf",
+        loss="linear",
+        max_nfev=None,
+        rtol=1e-6,
+        atol=1e-9,
+    )
+
+    start = time.perf_counter()
+
+    result = fit_global_observable_variable_projection_multistart_model_comparison(
+        models=models,
+        dataset=dataset,
+        parameter_specs_by_model=parameter_specs_by_model,
+        initial_condition_specs_by_model=initial_condition_specs_by_model,
+        observed_species_by_model="A",
+        settings=settings,
+        signal_columns=dataset.signal_columns,
+        n_starts=4,
+        random_seed=123,
+        sort_by="bic",
+        multistart_sort_by="bic",
+        show_progress=False,
+    )
+
+    elapsed = time.perf_counter() - start
+
+    return {
+        "name": "global_observable_variable_projection_multistart_model_comparison",
+        "elapsed_seconds": elapsed,
+        "metadata": {
+            "n_models": len(models),
+            "n_peaks": len(dataset.signal_columns),
+            "n_starts": 4,
+            "best_model": result.best_model_name,
+        },
+    }
+
+
 def benchmark_global_observable_multistart(
     n_peaks: int = 25,
     n_timepoints: int = 30,

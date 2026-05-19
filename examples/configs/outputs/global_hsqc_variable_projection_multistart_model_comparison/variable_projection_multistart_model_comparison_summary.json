@@ -1,0 +1,9 @@
+{
+  "best_model_name": "single_step",
+  "models": [
+    "single_step",
+    "two_step"
+  ],
+  "n_models": 2,
+  "n_failed_models": 2
+}

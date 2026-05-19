@@ -1,0 +1,13 @@
+model_name,error_type,error_message,traceback
+single_step,AttributeError,'VariableProjectionMultistartResult' object has no attribute 'results',"Traceback (most recent call last):
+  File ""/home/benshin/mODEler/src/odefit/fitting/variable_projection_multistart_model_comparison.py"", line 170, in fit_global_observable_variable_projection_multistart_model_comparison
+    ""n_successful_starts"": len(result.results),
+                               ^^^^^^^^^^^^^^
+AttributeError: 'VariableProjectionMultistartResult' object has no attribute 'results'
+"
+two_step,AttributeError,'VariableProjectionMultistartResult' object has no attribute 'results',"Traceback (most recent call last):
+  File ""/home/benshin/mODEler/src/odefit/fitting/variable_projection_multistart_model_comparison.py"", line 170, in fit_global_observable_variable_projection_multistart_model_comparison
+    ""n_successful_starts"": len(result.results),
+                               ^^^^^^^^^^^^^^
+AttributeError: 'VariableProjectionMultistartResult' object has no attribute 'results'
+"
