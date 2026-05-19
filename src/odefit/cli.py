@@ -42,6 +42,10 @@ from odefit.performance.backend_capabilities import (
     build_backend_capabilities_table,
     summarize_backend_strategy,
 )
+from odefit.performance.benchmarking import (
+    run_default_benchmarks,
+    write_benchmark_results,
+)
 from odefit.plotting.timecourse_plots import (
     plot_simulation_timecourse,
     save_figure,
@@ -808,6 +812,28 @@ def command_performance_info(args: argparse.Namespace) -> None:
     print("\nRecommended acceleration roadmap:")
     for line in summarize_backend_strategy():
         print(f"  {line}")
+
+
+def command_benchmark_performance(args: argparse.Namespace) -> None:
+    """
+    Run small benchmark suite for current CPU/SciPy backend.
+    """
+
+    print("Running mODEler performance benchmarks...")
+    print("This may take a little while.\n")
+
+    results = run_default_benchmarks()
+
+    table_path = write_benchmark_results(
+        results=results,
+        output_path=args.output,
+    )
+
+    print("Benchmark results:")
+    for result in results:
+        print(f"  {result.name}: {result.elapsed_seconds:.4f} s {result.metadata}")
+
+    print(f"\nWrote benchmark table to: {table_path}")
 
 
 def get_peak_filtering_settings(
@@ -4103,6 +4129,18 @@ def build_parser() -> argparse.ArgumentParser:
         "performance-info",
         help="Show optional performance backend availability.",
     )
+    benchmark_parser = subparsers.add_parser(
+        "benchmark-performance",
+        help="Run small mODEler performance benchmarks.",
+    )
+
+    benchmark_parser.add_argument(
+        "--output",
+        default="benchmarks/performance_benchmarks.csv",
+        help="Path to benchmark output CSV.",
+    )
+
+    benchmark_parser.set_defaults(func=command_benchmark_performance)
 
     performance_parser.set_defaults(func=command_performance_info)
 

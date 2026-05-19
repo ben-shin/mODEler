@@ -1366,3 +1366,23 @@ def test_performance_info_command_runs(capsys):
     assert "Performance backend availability" in captured.out
     assert "SciPy CPU" in captured.out
     assert "Recommended acceleration roadmap" in captured.out
+
+
+def test_benchmark_performance_command_writes_output(tmp_path):
+    output_path = tmp_path / "benchmarks.csv"
+
+    main(
+        [
+            "benchmark-performance",
+            "--output",
+            str(output_path),
+        ]
+    )
+
+    assert output_path.exists()
+
+    table = pd.read_csv(output_path)
+
+    assert "name" in table.columns
+    assert "elapsed_seconds" in table.columns
+    assert "standard_fit" in set(table["name"])
