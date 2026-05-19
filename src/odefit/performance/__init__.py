@@ -17,6 +17,15 @@ from odefit.performance.benchmarking import (
     run_default_benchmarks,
     write_benchmark_results,
 )
+from odefit.performance.array_rhs import (
+    CompiledMassActionModel,
+    array_to_species_dict,
+    compile_mass_action_model,
+    concentration_dict_to_array,
+    evaluate_mass_action_rates,
+    evaluate_mass_action_rhs,
+    parameter_dict_to_array,
+)
 
 __all__ = [
     "BackendCapability",
@@ -27,6 +36,13 @@ __all__ = [
     "benchmark_results_to_dataframe",
     "benchmark_standard_fit",
     "build_backend_capabilities_table",
+    "CompiledMassActionModel",
+    "array_to_species_dict",
+    "compile_mass_action_model",
+    "concentration_dict_to_array",
+    "evaluate_mass_action_rates",
+    "evaluate_mass_action_rhs",
+    "parameter_dict_to_array",
     "detect_backend_capabilities",
     "is_module_available",
     "make_first_order_dataset",
