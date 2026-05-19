@@ -3,7 +3,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Any
+from typing import Any, Callable
 
 import numpy as np
 import pandas as pd
@@ -21,6 +21,17 @@ from odefit.fitting.initial_condition_spec import InitialConditionSpec
 from odefit.fitting.optimizer import fit_model
 from odefit.fitting.parameter_spec import ParameterSpec
 from odefit.model.model_spec import build_model_spec
+from odefit.performance.array_rhs import (
+    compile_mass_action_model,
+    concentration_dict_to_array,
+    evaluate_mass_action_rhs,
+    parameter_dict_to_array,
+)
+from odefit.performance.numba_rhs import (
+    evaluate_mass_action_rhs_numba,
+    is_numba_available,
+    warm_up_numba_rhs,
+)
 
 
 @dataclass
@@ -152,11 +163,7 @@ def make_hsqc_like_dataset(
 
     dataframe = pd.DataFrame(dataframe_data)
 
-    signal_columns = [
-        column
-        for column in dataframe.columns
-        if column != "time"
-    ]
+    signal_columns = [column for column in dataframe.columns if column != "time"]
 
     return Dataset(
         raw_dataframe=dataframe,
@@ -244,6 +251,126 @@ def benchmark_standard_fit(
             "n_peaks": None,
             "n_starts": None,
             "n_workers": None,
+        },
+    )
+
+
+def benchmark_array_rhs_evaluation(
+    n_evaluations: int = 10000,
+) -> BenchmarkResult:
+    """
+    Benchmark NumPy/Python array-based RHS evaluation.
+
+    This isolates raw RHS function cost without ODE solver overhead.
+    """
+
+    model = build_model_spec("A+B>C")
+    compiled = compile_mass_action_model(model)
+
+    y = concentration_dict_to_array(
+        compiled,
+        {
+            "A": 2.0,
+            "B": 3.0,
+            "C": 0.0,
+        },
+    )
+
+    p = parameter_dict_to_array(
+        compiled,
+        {
+            "k1f": 0.5,
+        },
+    )
+
+    def run() -> None:
+        for _ in range(n_evaluations):
+            evaluate_mass_action_rhs(
+                compiled_model=compiled,
+                concentrations=y,
+                parameters=p,
+            )
+
+    return benchmark_callable(
+        name="array_rhs_evaluation",
+        function=run,
+        metadata={
+            "available": True,
+            "n_timepoints": None,
+            "n_peaks": None,
+            "n_starts": None,
+            "n_workers": None,
+            "n_evaluations": n_evaluations,
+        },
+    )
+
+
+def benchmark_numba_array_rhs_evaluation(
+    n_evaluations: int = 10000,
+) -> BenchmarkResult:
+    """
+    Benchmark Numba-compiled array RHS evaluation.
+
+    Compilation time is excluded by warming up before timing.
+    """
+
+    if not is_numba_available():
+        return BenchmarkResult(
+            name="numba_array_rhs_evaluation",
+            elapsed_seconds=0.0,
+            metadata={
+                "available": False,
+                "n_timepoints": None,
+                "n_peaks": None,
+                "n_starts": None,
+                "n_workers": None,
+                "n_evaluations": n_evaluations,
+            },
+        )
+
+    model = build_model_spec("A+B>C")
+    compiled = compile_mass_action_model(model)
+
+    y = concentration_dict_to_array(
+        compiled,
+        {
+            "A": 2.0,
+            "B": 3.0,
+            "C": 0.0,
+        },
+    )
+
+    p = parameter_dict_to_array(
+        compiled,
+        {
+            "k1f": 0.5,
+        },
+    )
+
+    warm_up_numba_rhs(
+        compiled_model=compiled,
+        concentrations=y,
+        parameters=p,
+    )
+
+    def run() -> None:
+        for _ in range(n_evaluations):
+            evaluate_mass_action_rhs_numba(
+                compiled_model=compiled,
+                concentrations=y,
+                parameters=p,
+            )
+
+    return benchmark_callable(
+        name="numba_array_rhs_evaluation",
+        function=run,
+        metadata={
+            "available": True,
+            "n_timepoints": None,
+            "n_peaks": None,
+            "n_starts": None,
+            "n_workers": None,
+            "n_evaluations": n_evaluations,
         },
     )
 
@@ -374,6 +501,8 @@ def run_default_benchmarks() -> list[BenchmarkResult]:
     """
 
     results = [
+        benchmark_array_rhs_evaluation(n_evaluations=10000),
+        benchmark_numba_array_rhs_evaluation(n_evaluations=10000),
         benchmark_standard_fit(n_timepoints=30),
         benchmark_global_observable_fit(n_peaks=10, n_timepoints=30),
         benchmark_global_observable_fit(n_peaks=50, n_timepoints=30),

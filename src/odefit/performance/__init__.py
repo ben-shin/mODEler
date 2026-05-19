@@ -9,7 +9,9 @@ from odefit.performance.benchmarking import (
     BenchmarkResult,
     benchmark_callable,
     benchmark_global_observable_fit,
+    benchmark_array_rhs_evaluation,
     benchmark_global_observable_multistart,
+    benchmark_numba_array_rhs_evaluation,
     benchmark_results_to_dataframe,
     benchmark_standard_fit,
     make_first_order_dataset,
@@ -26,11 +28,17 @@ from odefit.performance.array_rhs import (
     evaluate_mass_action_rhs,
     parameter_dict_to_array,
 )
-
+from odefit.performance.numba_rhs import (
+    evaluate_mass_action_rates_numba,
+    evaluate_mass_action_rhs_numba,
+    is_numba_available,
+    warm_up_numba_rhs,
+)
 __all__ = [
     "BackendCapability",
     "BenchmarkResult",
     "benchmark_callable",
+    "benchmark_array_rhs_evaluation",
     "benchmark_global_observable_fit",
     "benchmark_global_observable_multistart",
     "benchmark_results_to_dataframe",
@@ -49,5 +57,9 @@ __all__ = [
     "make_hsqc_like_dataset",
     "run_default_benchmarks",
     "summarize_backend_strategy",
+    "evaluate_mass_action_rates_numba",
+    "evaluate_mass_action_rhs_numba",
+    "is_numba_available",
+    "warm_up_numba_rhs",
     "write_benchmark_results",
 ]

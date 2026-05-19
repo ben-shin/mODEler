@@ -1,0 +1,7 @@
+name,elapsed_seconds,available,n_timepoints,n_peaks,n_starts,n_workers,n_evaluations
+array_rhs_evaluation,0.06855318000089028,True,,,,,10000.0
+numba_array_rhs_evaluation,0.06699901699903421,True,,,,,10000.0
+standard_fit,0.04915830900063156,,30.0,,,,
+global_observable_fit,0.49102380800104584,,30.0,10.0,,,
+global_observable_fit,29.743487757001276,,30.0,50.0,,,
+global_observable_multistart,2.820201980001002,,30.0,10.0,4.0,1.0,
