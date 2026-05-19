@@ -36,6 +36,10 @@ from odefit.fitting.parallel_multistart import (
     fit_multistart_parallel,
 )
 from odefit.fitting.parameter_spec import ParameterSpec
+from odefit.fitting.variable_projection import (
+    export_variable_projection_fit,
+    fit_global_observable_model_variable_projection,
+)
 from odefit.model.model_spec import ModelSpec, build_model_spec
 from odefit.model.ode_generator import generate_ode_lines
 from odefit.performance.backend_capabilities import (
@@ -1818,6 +1822,65 @@ def command_fit_global_observables(args: argparse.Namespace) -> None:
         signal_weights=parse_signal_weight_entries(signal_weight_entries),
     )
 
+    use_variable_projection = bool(
+        config.get("use_variable_projection", False)
+    ) or bool(getattr(args, "variable_projection", False))
+
+    variable_projection_backend = str(
+        config.get("variable_projection_backend", "numpy")
+    )
+
+    variable_projection_method = str(config.get("variable_projection_method", "LSODA"))
+
+    if use_variable_projection:
+        output_path = Path(output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
+
+        print("Running global observable fit with variable projection")
+        print(f"Observed species: {observed_species}")
+        print(f"Observable columns: {len(dataset.signal_columns)}")
+        print(f"Backend: {variable_projection_backend}")
+        print(f"ODE method: {variable_projection_method}")
+
+        result = fit_global_observable_model_variable_projection(
+            model=model,
+            dataset=dataset,
+            parameter_specs=parameter_specs,
+            initial_condition_specs=initial_condition_specs,
+            observed_species=observed_species,
+            settings=settings,
+            signal_columns=dataset.signal_columns,
+            fit_scale=fit_scale,
+            fit_offset=fit_offset,
+            backend=variable_projection_backend,
+            method=variable_projection_method,
+        )
+
+        written_files = export_variable_projection_fit(
+            result=result,
+            output_dir=str(output_path),
+        )
+
+        peak_filtering_path = write_peak_filtering_table(
+            filtering_result=filtering_result,
+            output_dir=output_path,
+        )
+
+        written_files["peak_filtering"] = str(peak_filtering_path)
+
+        print("\nVariable projection fit success:", result.success)
+        print("Message:", result.message)
+        print("Fitted kinetic parameters:", result.fitted_parameters)
+        print("Statistics:", result.statistics)
+
+        print(f"\nWrote variable projection outputs to: {output_path}")
+        print("\nWritten files:")
+
+        for name, path in written_files.items():
+            print(f"  {name}: {path}")
+
+        return
+
     output = fit_global_observable_model(
         model=model,
         dataset=dataset,
@@ -3553,6 +3616,15 @@ def build_parser() -> argparse.ArgumentParser:
         "--no-interpolate-missing",
         action="store_true",
         help="Do not interpolate missing values in kept signal columns.",
+    )
+
+    global_observable_parser.add_argument(
+        "--variable-projection",
+        action="store_true",
+        help=(
+            "Use variable projection for shared-species global observable fitting. "
+            "This analytically solves per-column scale/offset terms."
+        ),
     )
 
     global_observable_parser.set_defaults(func=command_fit_global_observables)

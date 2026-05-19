@@ -1386,3 +1386,103 @@ def test_benchmark_performance_command_writes_output(tmp_path):
     assert "name" in table.columns
     assert "elapsed_seconds" in table.columns
     assert "standard_fit" in set(table["name"])
+
+
+def test_fit_global_observables_variable_projection_command_writes_outputs(
+    tmp_path,
+):
+    data_path = tmp_path / "hsqc.csv"
+    output_dir = tmp_path / "global_hsqc_variable_projection"
+    config_path = tmp_path / "global_hsqc_variable_projection_config.json"
+    model_path = tmp_path / "model.txt"
+    model_path.write_text("A>B")
+
+    true_k = 0.4
+    timepoints = np.linspace(0.0, 8.0, 30)
+    a_values = np.exp(-true_k * timepoints)
+
+    dataframe = pd.DataFrame(
+        {
+            "time": timepoints,
+            "P1": 1.0 * a_values + 0.00,
+            "P2": 1.5 * a_values + 0.10,
+            "P3": 2.0 * a_values + 0.20,
+            "P4": 2.5 * a_values + 0.30,
+        }
+    )
+
+    dataframe.to_csv(data_path, index=False)
+
+    config = {
+        "model": str(model_path),
+        "data": str(data_path),
+        "time_column": "time",
+        "observed_species": "A",
+        "parameters": {
+            "k1f": {
+                "initial_guess": 0.1,
+                "lower_bound": 0.001,
+                "upper_bound": 10.0,
+            }
+        },
+        "initial_conditions": {
+            "A": {
+                "value": 1.0,
+                "mode": "fixed",
+                "lower_bound": 0.0,
+                "upper_bound": 2.0,
+            },
+            "B": {
+                "value": 0.0,
+                "mode": "fixed",
+                "lower_bound": 0.0,
+                "upper_bound": 2.0,
+            },
+        },
+        "fit_scale": True,
+        "fit_offset": True,
+        "method": "trf",
+        "loss": "linear",
+        "rtol": 1e-8,
+        "atol": 1e-10,
+        "max_nfev": 2000,
+        "max_missing_fraction": 0.25,
+        "min_initial_intensity": None,
+        "initial_points": 1,
+        "min_dynamic_range": None,
+        "interpolate_missing": True,
+        "use_variable_projection": True,
+        "variable_projection_backend": "numpy",
+        "variable_projection_method": "LSODA",
+        "output_dir": str(output_dir),
+        "no_plots": True,
+    }
+
+    config_path.write_text(json.dumps(config))
+
+    main(
+        [
+            "fit-global-observables",
+            "--config",
+            str(config_path),
+        ]
+    )
+
+    assert output_dir.exists()
+
+    assert (output_dir / "projected_observables.csv").exists()
+    assert (output_dir / "projected_predictions.csv").exists()
+    assert (output_dir / "projected_residuals.csv").exists()
+    assert (output_dir / "projected_simulation.csv").exists()
+    assert (output_dir / "projected_fit_statistics.csv").exists()
+    assert (output_dir / "projected_fitted_parameters.csv").exists()
+    assert (output_dir / "peak_filtering.csv").exists()
+
+    parameters = pd.read_csv(output_dir / "projected_fitted_parameters.csv")
+
+    fitted_k = parameters.loc[
+        parameters["parameter"] == "k1f",
+        "value",
+    ].iloc[0]
+
+    assert fitted_k == pytest.approx(true_k, rel=1e-2)
