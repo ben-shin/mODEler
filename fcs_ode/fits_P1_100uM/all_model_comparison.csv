@@ -1,0 +1,9 @@
+model,status,return_code,output_dir,config_file,log_file
+linear_combo,failed,1,fcs_ode/fits_P1_100uM/linear_combo,fcs_ode/configs_P1_100uM/linear_combo_global_multistart.json,fcs_ode/fits_P1_100uM/linear_combo/run.log
+linear_homo,failed,1,fcs_ode/fits_P1_100uM/linear_homo,fcs_ode/configs_P1_100uM/linear_homo_global_multistart.json,fcs_ode/fits_P1_100uM/linear_homo/run.log
+linear_step,failed,1,fcs_ode/fits_P1_100uM/linear_step,fcs_ode/configs_P1_100uM/linear_step_global_multistart.json,fcs_ode/fits_P1_100uM/linear_step/run.log
+order2_combo,failed,1,fcs_ode/fits_P1_100uM/order2_combo,fcs_ode/configs_P1_100uM/order2_combo_global_multistart.json,fcs_ode/fits_P1_100uM/order2_combo/run.log
+order2_homo,failed,1,fcs_ode/fits_P1_100uM/order2_homo,fcs_ode/configs_P1_100uM/order2_homo_global_multistart.json,fcs_ode/fits_P1_100uM/order2_homo/run.log
+order2_step,failed,1,fcs_ode/fits_P1_100uM/order2_step,fcs_ode/configs_P1_100uM/order2_step_global_multistart.json,fcs_ode/fits_P1_100uM/order2_step/run.log
+order3_combo,failed,1,fcs_ode/fits_P1_100uM/order3_combo,fcs_ode/configs_P1_100uM/order3_combo_global_multistart.json,fcs_ode/fits_P1_100uM/order3_combo/run.log
+order3_step,failed,1,fcs_ode/fits_P1_100uM/order3_step,fcs_ode/configs_P1_100uM/order3_step_global_multistart.json,fcs_ode/fits_P1_100uM/order3_step/run.log

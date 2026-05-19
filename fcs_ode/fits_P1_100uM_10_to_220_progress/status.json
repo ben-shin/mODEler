@@ -1,0 +1,17 @@
+{
+  "batch_started": "2026-05-19T16:30:57",
+  "last_updated": "2026-05-19T16:30:57",
+  "current_model_index": 1,
+  "total_models": 8,
+  "current_model": "linear_combo",
+  "completed_models": 0,
+  "remaining_models": 8,
+  "elapsed_batch_seconds": 0.013442277908325195,
+  "elapsed_batch_hms": "0:00:00",
+  "average_finished_model_seconds": null,
+  "average_finished_model_hms": "unknown",
+  "estimated_remaining_seconds": null,
+  "estimated_remaining_hms": "unknown",
+  "output_dir": "fcs_ode/fits_P1_100uM_10_to_220_progress/linear_combo",
+  "log_file": "fcs_ode/fits_P1_100uM_10_to_220_progress/linear_combo/run.log"
+}
