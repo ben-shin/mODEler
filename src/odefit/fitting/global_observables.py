@@ -4,6 +4,10 @@ from pathlib import Path
 import pandas as pd
 
 from odefit.data.dataset import Dataset
+from odefit.data.peak_filtering import (
+    PeakFilteringResult,
+    prepare_peak_dataframe,
+)
 from odefit.fitting.fit_result import FitResult
 from odefit.fitting.fit_settings import FitSettings
 from odefit.fitting.initial_condition_spec import InitialConditionSpec
@@ -115,6 +119,55 @@ def read_wide_observable_dataset(
         time_column=time_column,
         signal_columns=signal_columns,
     )
+
+
+def read_wide_observable_dataset_with_filtering(
+    file_path: str | Path,
+    time_column: str = "time",
+    signal_columns: list[str] | None = None,
+    exclude_columns: list[str] | None = None,
+    max_missing_fraction: float = 0.0,
+    min_initial_intensity: float | None = None,
+    initial_points: int = 1,
+    min_dynamic_range: float | None = None,
+    interpolate_missing: bool = True,
+) -> tuple[Dataset, PeakFilteringResult]:
+    """
+    Read and filter a wide-format observable dataset.
+
+    This is recommended for real HSQC peak tables.
+
+    It can:
+    - infer numeric peak columns
+    - remove peaks with too many missing values
+    - remove weak peaks
+    - remove flat peaks
+    - interpolate small numbers of missing values in kept peaks
+    """
+
+    path = Path(file_path)
+
+    dataframe = pd.read_csv(path)
+
+    prepared_dataframe, filtering_result = prepare_peak_dataframe(
+        dataframe=dataframe,
+        time_column=time_column,
+        signal_columns=signal_columns,
+        exclude_columns=exclude_columns,
+        max_missing_fraction=max_missing_fraction,
+        min_initial_intensity=min_initial_intensity,
+        initial_points=initial_points,
+        min_dynamic_range=min_dynamic_range,
+        interpolate_missing=interpolate_missing,
+    )
+
+    dataset = Dataset(
+        raw_dataframe=prepared_dataframe,
+        time_column=time_column,
+        signal_columns=filtering_result.kept_columns,
+    )
+
+    return dataset, filtering_result
 
 
 def build_shared_species_observable_specs(

@@ -302,3 +302,33 @@ def test_fit_global_observable_model_rejects_unknown_observed_species():
             initial_condition_specs=initial_condition_specs,
             observed_species="missing",
         )
+
+        def test_read_wide_observable_dataset_with_filtering(tmp_path):
+            data_path = tmp_path / "hsqc.csv"
+
+            dataframe = pd.DataFrame(
+                {
+                    "time": [0.0, 1.0, 2.0, 3.0],
+                    "good_peak": [1.0, np.nan, 0.5, 0.25],
+                    "too_missing": [1.0, np.nan, np.nan, np.nan],
+                    "flat_peak": [1.0, 1.0, 1.0, 1.0],
+                    "metadata": ["a", "b", "c", "d"],
+                }
+            )
+
+            dataframe.to_csv(data_path, index=False)
+
+            dataset, filtering_result = read_wide_observable_dataset_with_filtering(
+                file_path=data_path,
+                time_column="time",
+                exclude_columns=["metadata"],
+                max_missing_fraction=0.25,
+                min_dynamic_range=0.1,
+                interpolate_missing=True,
+            )
+
+            assert dataset.signal_columns == ["good_peak"]
+            assert filtering_result.kept_columns == ["good_peak"]
+            assert set(filtering_result.removed_columns) == {"too_missing", "flat_peak"}
+
+            assert not dataset.raw_dataframe["good_peak"].isna().any()
