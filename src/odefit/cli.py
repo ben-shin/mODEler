@@ -40,6 +40,10 @@ from odefit.fitting.variable_projection import (
     export_variable_projection_fit,
     fit_global_observable_model_variable_projection,
 )
+from odefit.fitting.variable_projection_bootstrap import (
+    bootstrap_global_observable_variable_projection_fit,
+    export_variable_projection_bootstrap_result,
+)
 from odefit.fitting.variable_projection_model_comparison import (
     export_variable_projection_model_comparison,
     fit_global_observable_variable_projection_model_comparison,
@@ -1703,10 +1707,21 @@ def command_fit_global_observables(args: argparse.Namespace) -> None:
 
     model = read_model_file(model_path)
 
-    peak_filtering_settings = get_peak_filtering_settings(
-        args=args,
-        config=config,
-    )
+    peak_filtering_settings = {
+        "max_missing_fraction": float(config.get("max_missing_fraction", 0.0)),
+        "min_initial_intensity": (
+            None
+            if config.get("min_initial_intensity") is None
+            else float(config.get("min_initial_intensity"))
+        ),
+        "initial_points": int(config.get("initial_points", 1)),
+        "min_dynamic_range": (
+            None
+            if config.get("min_dynamic_range") is None
+            else float(config.get("min_dynamic_range"))
+        ),
+        "interpolate_missing": bool(config.get("interpolate_missing", True)),
+    }
 
     dataset, filtering_result = read_wide_observable_dataset_with_filtering(
         file_path=data_path,
@@ -2086,10 +2101,21 @@ def command_multistart_global_observables(args: argparse.Namespace) -> None:
 
     model = read_model_file(model_path)
 
-    peak_filtering_settings = get_peak_filtering_settings(
-        args=args,
-        config=config,
-    )
+    peak_filtering_settings = {
+        "max_missing_fraction": float(config.get("max_missing_fraction", 0.0)),
+        "min_initial_intensity": (
+            None
+            if config.get("min_initial_intensity") is None
+            else float(config.get("min_initial_intensity"))
+        ),
+        "initial_points": int(config.get("initial_points", 1)),
+        "min_dynamic_range": (
+            None
+            if config.get("min_dynamic_range") is None
+            else float(config.get("min_dynamic_range"))
+        ),
+        "interpolate_missing": bool(config.get("interpolate_missing", True)),
+    }
 
     dataset, filtering_result = read_wide_observable_dataset_with_filtering(
         file_path=data_path,
@@ -2512,10 +2538,21 @@ def command_multistart_global_observables_variable_projection(
 
     model = read_model_file(model_path)
 
-    peak_filtering_settings = get_peak_filtering_settings(
-        args=args,
-        config=config,
-    )
+    peak_filtering_settings = {
+        "max_missing_fraction": float(config.get("max_missing_fraction", 0.0)),
+        "min_initial_intensity": (
+            None
+            if config.get("min_initial_intensity") is None
+            else float(config.get("min_initial_intensity"))
+        ),
+        "initial_points": int(config.get("initial_points", 1)),
+        "min_dynamic_range": (
+            None
+            if config.get("min_dynamic_range") is None
+            else float(config.get("min_dynamic_range"))
+        ),
+        "interpolate_missing": bool(config.get("interpolate_missing", True)),
+    }
 
     dataset, filtering_result = read_wide_observable_dataset_with_filtering(
         file_path=data_path,
@@ -2793,10 +2830,21 @@ def command_compare_global_observables(args: argparse.Namespace) -> None:
 
     models = build_model_specs_from_comparison_config(config)
 
-    peak_filtering_settings = get_peak_filtering_settings(
-        args=args,
-        config=config,
-    )
+    peak_filtering_settings = {
+        "max_missing_fraction": float(config.get("max_missing_fraction", 0.0)),
+        "min_initial_intensity": (
+            None
+            if config.get("min_initial_intensity") is None
+            else float(config.get("min_initial_intensity"))
+        ),
+        "initial_points": int(config.get("initial_points", 1)),
+        "min_dynamic_range": (
+            None
+            if config.get("min_dynamic_range") is None
+            else float(config.get("min_dynamic_range"))
+        ),
+        "interpolate_missing": bool(config.get("interpolate_missing", True)),
+    }
 
     dataset, filtering_result = read_wide_observable_dataset_with_filtering(
         file_path=data_path,
@@ -3051,10 +3099,21 @@ def command_compare_global_observables_variable_projection(
 
     models = build_model_specs_from_comparison_config(config)
 
-    peak_filtering_settings = get_peak_filtering_settings(
-        args=args,
-        config=config,
-    )
+    peak_filtering_settings = {
+        "max_missing_fraction": float(config.get("max_missing_fraction", 0.0)),
+        "min_initial_intensity": (
+            None
+            if config.get("min_initial_intensity") is None
+            else float(config.get("min_initial_intensity"))
+        ),
+        "initial_points": int(config.get("initial_points", 1)),
+        "min_dynamic_range": (
+            None
+            if config.get("min_dynamic_range") is None
+            else float(config.get("min_dynamic_range"))
+        ),
+        "interpolate_missing": bool(config.get("interpolate_missing", True)),
+    }
 
     dataset, filtering_result = read_wide_observable_dataset_with_filtering(
         file_path=data_path,
@@ -3363,10 +3422,21 @@ def command_multistart_compare_global_observables(args: argparse.Namespace) -> N
 
     models = build_model_specs_from_comparison_config(config)
 
-    peak_filtering_settings = get_peak_filtering_settings(
-        args=args,
-        config=config,
-    )
+    peak_filtering_settings = {
+        "max_missing_fraction": float(config.get("max_missing_fraction", 0.0)),
+        "min_initial_intensity": (
+            None
+            if config.get("min_initial_intensity") is None
+            else float(config.get("min_initial_intensity"))
+        ),
+        "initial_points": int(config.get("initial_points", 1)),
+        "min_dynamic_range": (
+            None
+            if config.get("min_dynamic_range") is None
+            else float(config.get("min_dynamic_range"))
+        ),
+        "interpolate_missing": bool(config.get("interpolate_missing", True)),
+    }
 
     dataset, filtering_result = read_wide_observable_dataset_with_filtering(
         file_path=data_path,
@@ -3710,10 +3780,21 @@ def command_multistart_compare_global_observables_variable_projection(
 
     models = build_model_specs_from_comparison_config(config)
 
-    peak_filtering_settings = get_peak_filtering_settings(
-        args=args,
-        config=config,
-    )
+    peak_filtering_settings = {
+        "max_missing_fraction": float(config.get("max_missing_fraction", 0.0)),
+        "min_initial_intensity": (
+            None
+            if config.get("min_initial_intensity") is None
+            else float(config.get("min_initial_intensity"))
+        ),
+        "initial_points": int(config.get("initial_points", 1)),
+        "min_dynamic_range": (
+            None
+            if config.get("min_dynamic_range") is None
+            else float(config.get("min_dynamic_range"))
+        ),
+        "interpolate_missing": bool(config.get("interpolate_missing", True)),
+    }
 
     dataset, filtering_result = read_wide_observable_dataset_with_filtering(
         file_path=data_path,
@@ -3832,6 +3913,185 @@ def command_multistart_compare_global_observables_variable_projection(
 
     print("\nWritten files:")
     for name, path in written_summary_files.items():
+        print(f"  {name}: {path}")
+
+
+def command_bootstrap_global_observables(args: argparse.Namespace) -> None:
+    """
+    Bootstrap uncertainty estimates for global observable fitting.
+
+    Currently supports the fast variable-projection HSQC path.
+    """
+
+    config = load_fit_config(args.config)
+
+    use_variable_projection = bool(
+        config.get("use_variable_projection", False)
+    ) or bool(getattr(args, "variable_projection", False))
+
+    if not use_variable_projection:
+        raise ValueError(
+            "bootstrap-global-observables currently requires "
+            "--variable-projection or use_variable_projection=true."
+        )
+
+    model_path = config["model"]
+    data_path = config["data"]
+
+    time_column = config.get("time_column", "time")
+    signal_columns = config.get("signal_columns")
+    exclude_columns = config.get("exclude_columns")
+    observed_species = config.get("observed_species", "A")
+    output_dir = config["output_dir"]
+    n_bootstrap = int(config.get("n_bootstrap", 100))
+
+    random_seed = config.get("random_seed")
+
+    if random_seed is not None:
+        random_seed = int(random_seed)
+
+    confidence_level = float(config.get("confidence_level", 0.95))
+
+    method = config.get("method", "trf")
+    loss = config.get("loss", "linear")
+    max_nfev = config.get("max_nfev")
+    rtol = config.get("rtol", 1e-6)
+    atol = config.get("atol", 1e-9)
+
+    fit_scale = bool(config.get("fit_scale", True))
+    fit_offset = bool(config.get("fit_offset", True))
+
+    variable_projection_backend = str(
+        config.get("variable_projection_backend", "numpy")
+    )
+
+    variable_projection_method = str(config.get("variable_projection_method", "LSODA"))
+
+    show_progress = bool(config.get("show_progress", True)) and not bool(
+        getattr(args, "no_progress", False)
+    )
+
+    model = read_model_file(model_path)
+    peak_filtering_settings = {
+        "max_missing_fraction": float(config.get("max_missing_fraction", 0.0)),
+        "min_initial_intensity": (
+            None
+            if config.get("min_initial_intensity") is None
+            else float(config.get("min_initial_intensity"))
+        ),
+        "initial_points": int(config.get("initial_points", 1)),
+        "min_dynamic_range": (
+            None
+            if config.get("min_dynamic_range") is None
+            else float(config.get("min_dynamic_range"))
+        ),
+        "interpolate_missing": bool(config.get("interpolate_missing", True)),
+    }
+
+    dataset, filtering_result = read_wide_observable_dataset_with_filtering(
+        file_path=data_path,
+        time_column=time_column,
+        signal_columns=signal_columns,
+        exclude_columns=exclude_columns,
+        max_missing_fraction=peak_filtering_settings["max_missing_fraction"],
+        min_initial_intensity=peak_filtering_settings["min_initial_intensity"],
+        initial_points=peak_filtering_settings["initial_points"],
+        min_dynamic_range=peak_filtering_settings["min_dynamic_range"],
+        interpolate_missing=peak_filtering_settings["interpolate_missing"],
+    )
+
+    parameter_entries = config.get("parameter")
+
+    if parameter_entries is None:
+        parameter_entries = config.get("parameters")
+
+    parameter_specs = build_parameter_specs(
+        model=model,
+        parameter_entries=parameter_entries,
+        default_guess=float(config.get("default_parameter_guess", 0.1)),
+        default_lower=float(config.get("default_parameter_lower", 0.0)),
+        default_upper=float(config.get("default_parameter_upper", 100.0)),
+    )
+
+    initial_entries = config.get("initial")
+
+    if initial_entries is None:
+        initial_entries = config.get("initial_conditions")
+
+    initial_condition_specs = build_initial_condition_specs(
+        model=model,
+        initial_entries=initial_entries,
+    )
+
+    signal_weight_entries = config.get("signal_weight")
+
+    if signal_weight_entries is None:
+        signal_weight_entries = config.get("signal_weights")
+
+    settings = FitSettings(
+        species_mapping={},
+        use_normalized_data=False,
+        method=method,
+        loss=loss,
+        max_nfev=max_nfev,
+        rtol=rtol,
+        atol=atol,
+        signal_weights=parse_signal_weight_entries(signal_weight_entries),
+    )
+
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    print("Running variable projection bootstrap")
+    print(f"Model: {model_path}")
+    print(f"Data: {data_path}")
+    print(f"Observed species: {observed_species}")
+    print(f"Observable columns: {len(dataset.signal_columns)}")
+    print(f"Bootstrap replicates: {n_bootstrap}")
+    print(f"Confidence level: {confidence_level}")
+    print(f"Backend: {variable_projection_backend}")
+    print(f"ODE method: {variable_projection_method}")
+
+    result = bootstrap_global_observable_variable_projection_fit(
+        model=model,
+        dataset=dataset,
+        parameter_specs=parameter_specs,
+        initial_condition_specs=initial_condition_specs,
+        observed_species=observed_species,
+        settings=settings,
+        signal_columns=dataset.signal_columns,
+        fit_scale=fit_scale,
+        fit_offset=fit_offset,
+        backend=variable_projection_backend,
+        method=variable_projection_method,
+        n_bootstrap=n_bootstrap,
+        random_seed=random_seed,
+        confidence_level=confidence_level,
+        show_progress=show_progress,
+    )
+
+    written_files = export_variable_projection_bootstrap_result(
+        result=result,
+        output_dir=output_path,
+        export_original_fit=True,
+    )
+
+    peak_filtering_path = write_peak_filtering_table(
+        filtering_result=filtering_result,
+        output_dir=output_path,
+    )
+
+    written_files["peak_filtering"] = peak_filtering_path
+
+    print("\nBootstrap successful fits:", len(result.bootstrap_results))
+    print("Bootstrap failed fits:", len(result.failures))
+    print("\nParameter uncertainty summary:")
+    print(result.summary_table.to_string(index=False))
+
+    print(f"\nWrote bootstrap outputs to: {output_path}")
+
+    print("\nWritten files:")
+    for name, path in written_files.items():
         print(f"  {name}: {path}")
 
 
@@ -5067,6 +5327,34 @@ def build_parser() -> argparse.ArgumentParser:
     multistart_compare_global_observable_parser.set_defaults(
         func=command_multistart_compare_global_observables
     )
+
+    bootstrap_global_observables_parser = subparsers.add_parser(
+        "bootstrap-global-observables",
+        help=("Estimate uncertainty for global observable fits using bootstrap."),
+    )
+
+    bootstrap_global_observables_parser.add_argument(
+        "--config",
+        required=True,
+        help="Path to bootstrap configuration JSON.",
+    )
+
+    bootstrap_global_observables_parser.add_argument(
+        "--variable-projection",
+        action="store_true",
+        help="Use variable projection bootstrap.",
+    )
+
+    bootstrap_global_observables_parser.add_argument(
+        "--no-progress",
+        action="store_true",
+        help="Disable bootstrap progress output.",
+    )
+
+    bootstrap_global_observables_parser.set_defaults(
+        func=command_bootstrap_global_observables
+    )
+
     performance_parser = subparsers.add_parser(
         "performance-info",
         help="Show optional performance backend availability.",
