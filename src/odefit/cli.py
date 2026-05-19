@@ -1053,6 +1053,9 @@ def command_fit(args: argparse.Namespace) -> None:
         initial_condition_specs=initial_condition_specs,
         species_mapping=species_mapping,
         include_plots=not no_plots,
+        fit_settings=settings,
+        command="fit",
+        config_path=args.config,
     )
 
     print("Fit success:", result.success)
@@ -1365,6 +1368,15 @@ def command_multistart(args: argparse.Namespace) -> None:
         initial_condition_specs=initial_condition_specs,
         species_mapping=species_mapping,
         include_plots=not no_plots,
+        fit_settings=settings,
+        command="multistart-best-fit",
+        config_path=args.config,
+        extra_run_metadata={
+            "best_start_index": best_index,
+            "n_starts": n_starts,
+            "n_workers": n_workers,
+            "sort_by": sort_by,
+        },
     )
 
     print("\nBest start index:", best_index)
@@ -1617,6 +1629,13 @@ def command_fit_global_observables(args: argparse.Namespace) -> None:
         observable_specs=output.observable_specs,
         species_mapping={},
         include_plots=not no_plots,
+        fit_settings=settings,
+        command="fit-global-observables",
+        config_path=args.config,
+        extra_run_metadata={
+            "observed_species": observed_species,
+            "n_observable_columns": len(dataset.signal_columns),
+        },
     )
 
     peak_filtering_path = write_peak_filtering_table(
@@ -2008,6 +2027,17 @@ def command_multistart_global_observables(args: argparse.Namespace) -> None:
         observable_specs=observable_specs,
         species_mapping={},
         include_plots=not no_plots,
+        fit_settings=settings,
+        command="multistart-global-observables-best-fit",
+        config_path=args.config,
+        extra_run_metadata={
+            "observed_species": observed_species,
+            "n_observable_columns": len(dataset.signal_columns),
+            "best_start_index": best_index,
+            "n_starts": n_starts,
+            "n_workers": n_workers,
+            "sort_by": sort_by,
+        },
     )
 
     print("\nBest start index:", best_index)

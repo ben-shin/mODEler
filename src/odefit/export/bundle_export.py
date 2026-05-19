@@ -2,8 +2,10 @@ from pathlib import Path
 
 from odefit.data.dataset import Dataset
 from odefit.export.csv_export import export_fit_result_tables, write_dataframe_csv
+from odefit.export.json_export import export_fit_metadata_json
 from odefit.export.text_export import write_generated_odes
 from odefit.fitting.fit_result import FitResult
+from odefit.fitting.fit_settings import FitSettings
 from odefit.fitting.initial_condition_spec import InitialConditionSpec
 from odefit.fitting.observable_spec import ObservableSpec
 from odefit.fitting.parameter_spec import ParameterSpec
@@ -161,6 +163,10 @@ def export_fit_bundle(
     use_normalized_data: bool = False,
     include_plots: bool = True,
     observable_specs: list[ObservableSpec] | None = None,
+    fit_settings: FitSettings | None = None,
+    command: str | None = None,
+    config_path: str | Path | None = None,
+    extra_run_metadata: dict | None = None,
 ) -> dict[str, Path]:
     """
     Export a complete fit result bundle.
@@ -222,5 +228,21 @@ def export_fit_bundle(
                 observable_specs=observable_specs,
             )
         )
+
+    json_metadata_files = export_fit_metadata_json(
+        output_dir=output_path,
+        model=model,
+        dataset=dataset,
+        fit_result=fit_result,
+        fit_settings=fit_settings,
+        parameter_specs=parameter_specs,
+        initial_condition_specs=initial_condition_specs,
+        observable_specs=observable_specs,
+        command=command,
+        config_path=config_path,
+        extra_run_metadata=extra_run_metadata,
+    )
+
+    written_files.update(json_metadata_files)
 
     return written_files

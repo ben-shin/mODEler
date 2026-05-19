@@ -1,3 +1,0 @@
-species,initial_guess,fitted_value,lower_bound,upper_bound,fixed,fixed_value
-A,1.0,1.0,0.0,2.0,True,1.0
-B,0.0,0.0,0.0,2.0,True,0.0

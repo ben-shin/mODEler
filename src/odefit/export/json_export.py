@@ -50,28 +50,16 @@ def to_jsonable(value: Any) -> Any:
         return to_jsonable(asdict(value))
 
     if isinstance(value, dict):
-        return {
-            str(key): to_jsonable(item)
-            for key, item in value.items()
-        }
+        return {str(key): to_jsonable(item) for key, item in value.items()}
 
     if isinstance(value, tuple):
-        return [
-            to_jsonable(item)
-            for item in value
-        ]
+        return [to_jsonable(item) for item in value]
 
     if isinstance(value, list):
-        return [
-            to_jsonable(item)
-            for item in value
-        ]
+        return [to_jsonable(item) for item in value]
 
     if isinstance(value, set):
-        return sorted(
-            to_jsonable(item)
-            for item in value
-        )
+        return sorted(to_jsonable(item) for item in value)
 
     if isinstance(value, bool | int | float | str):
         return value
@@ -163,10 +151,7 @@ def build_parameter_specs_metadata(
     if parameter_specs is None:
         return []
 
-    return [
-        to_jsonable(parameter_spec)
-        for parameter_spec in parameter_specs
-    ]
+    return [to_jsonable(parameter_spec) for parameter_spec in parameter_specs]
 
 
 def build_initial_condition_specs_metadata(
@@ -195,10 +180,7 @@ def build_observable_specs_metadata(
     if observable_specs is None:
         return []
 
-    return [
-        to_jsonable(observable_spec)
-        for observable_spec in observable_specs
-    ]
+    return [to_jsonable(observable_spec) for observable_spec in observable_specs]
 
 
 def build_fit_settings_metadata(
@@ -235,13 +217,14 @@ def build_fit_result_summary(
         "fitted_initial_conditions": fit_result.fitted_initial_conditions,
         "initial_conditions": fit_result.initial_conditions,
         "fitted_observables": fit_result.fitted_observables,
+        "initial_observables": fit_result.initial_observables,
         "statistics": fit_result.statistics,
         "nfev": fit_result.nfev,
         "cost": fit_result.cost,
-        "optimizer_status": fit_result.optimizer_status,
-        "optimizer_optimality": fit_result.optimizer_optimality,
-        "optimizer_active_mask": fit_result.optimizer_active_mask,
-        "optimizer_njev": fit_result.optimizer_njev,
+        "status": fit_result.status,
+        "optimality": fit_result.optimality,
+        "active_mask": fit_result.active_mask,
+        "njev": fit_result.njev,
     }
 
 
