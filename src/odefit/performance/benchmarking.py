@@ -613,6 +613,98 @@ def benchmark_global_observable_variable_projection_multistart(
     )
 
 
+def benchmark_global_observable_variable_projection_model_comparison(
+    n_peaks: int = 50,
+    n_timepoints: int = 30,
+) -> BenchmarkResult:
+    """
+    Benchmark variable-projection global observable model comparison.
+    """
+
+    from odefit.fitting.variable_projection_model_comparison import (
+        build_variable_projection_model_specs_from_texts,
+        fit_global_observable_variable_projection_model_comparison,
+    )
+
+    models = build_variable_projection_model_specs_from_texts(
+        {
+            "irreversible": "A>B",
+            "reversible": "A-B",
+        }
+    )
+
+    dataset = make_hsqc_like_dataset(
+        n_peaks=n_peaks,
+        n_timepoints=n_timepoints,
+    )
+
+    parameter_specs_by_model = {
+        "irreversible": [
+            ParameterSpec(
+                name="k1f",
+                initial_guess=0.1,
+                lower_bound=0.001,
+                upper_bound=10.0,
+            )
+        ],
+        "reversible": [
+            ParameterSpec(
+                name="k1f",
+                initial_guess=0.1,
+                lower_bound=0.001,
+                upper_bound=10.0,
+            ),
+            ParameterSpec(
+                name="k1r",
+                initial_guess=0.01,
+                lower_bound=0.000001,
+                upper_bound=10.0,
+            ),
+        ],
+    }
+
+    initial_condition_specs_by_model = {
+        "irreversible": make_first_order_initial_condition_specs(),
+        "reversible": make_first_order_initial_condition_specs(),
+    }
+
+    settings = FitSettings(
+        species_mapping={},
+        method="trf",
+        loss="linear",
+        rtol=1e-8,
+        atol=1e-10,
+    )
+
+    def run() -> None:
+        fit_global_observable_variable_projection_model_comparison(
+            models=models,
+            dataset=dataset,
+            parameter_specs_by_model=parameter_specs_by_model,
+            initial_condition_specs_by_model=initial_condition_specs_by_model,
+            observed_species_by_model="A",
+            settings_by_model=settings,
+            signal_columns=dataset.signal_columns,
+            fit_scale=True,
+            fit_offset=True,
+            backend="numpy",
+            method="LSODA",
+            sort_by="aic",
+        )
+
+    return benchmark_callable(
+        name="global_observable_variable_projection_model_comparison",
+        function=run,
+        metadata={
+            "available": True,
+            "n_timepoints": n_timepoints,
+            "n_peaks": n_peaks,
+            "n_starts": None,
+            "n_workers": 1,
+        },
+    )
+
+
 def benchmark_global_observable_multistart(
     n_peaks: int = 25,
     n_timepoints: int = 30,
@@ -707,6 +799,10 @@ def run_default_benchmarks() -> list[BenchmarkResult]:
             n_peaks=50,
             n_timepoints=30,
             n_starts=4,
+        ),
+        benchmark_global_observable_variable_projection_model_comparison(
+            n_peaks=50,
+            n_timepoints=30,
         ),
     ]
 
