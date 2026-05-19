@@ -551,6 +551,68 @@ def benchmark_global_observable_variable_projection_fit(
     )
 
 
+def benchmark_global_observable_variable_projection_multistart(
+    n_peaks: int = 50,
+    n_timepoints: int = 30,
+    n_starts: int = 4,
+) -> BenchmarkResult:
+    """
+    Benchmark variable-projection global observable multistart fitting.
+    """
+
+    from odefit.fitting.variable_projection_multistart import (
+        fit_global_observable_variable_projection_multistart,
+    )
+
+    model = build_model_spec("A>B")
+    dataset = make_hsqc_like_dataset(
+        n_peaks=n_peaks,
+        n_timepoints=n_timepoints,
+    )
+
+    parameter_specs = make_first_order_parameter_specs()
+    initial_condition_specs = make_first_order_initial_condition_specs()
+
+    settings = FitSettings(
+        species_mapping={},
+        method="trf",
+        loss="linear",
+        rtol=1e-8,
+        atol=1e-10,
+    )
+
+    def run() -> None:
+        fit_global_observable_variable_projection_multistart(
+            model=model,
+            dataset=dataset,
+            parameter_specs=parameter_specs,
+            initial_condition_specs=initial_condition_specs,
+            observed_species="A",
+            settings=settings,
+            signal_columns=dataset.signal_columns,
+            fit_scale=True,
+            fit_offset=True,
+            backend="numpy",
+            method="LSODA",
+            n_starts=n_starts,
+            random_seed=1,
+            sort_by="aic",
+            show_progress=False,
+        )
+
+    return benchmark_callable(
+        name="global_observable_variable_projection_multistart",
+        function=run,
+        metadata={
+            "available": True,
+            "n_timepoints": n_timepoints,
+            "n_peaks": n_peaks,
+            "n_starts": n_starts,
+            "n_workers": 1,
+        },
+    )
+
+
 def benchmark_global_observable_multistart(
     n_peaks: int = 25,
     n_timepoints: int = 30,
@@ -640,6 +702,11 @@ def run_default_benchmarks() -> list[BenchmarkResult]:
             n_timepoints=30,
             n_starts=4,
             n_workers=1,
+        ),
+        benchmark_global_observable_variable_projection_multistart(
+            n_peaks=50,
+            n_timepoints=30,
+            n_starts=4,
         ),
     ]
 
