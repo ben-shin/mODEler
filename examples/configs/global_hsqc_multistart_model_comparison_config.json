@@ -1,0 +1,89 @@
+{
+  "model_texts": {
+    "irreversible": "A>B",
+    "reversible": "A-B"
+  },
+  "data": "examples/configs/example_hsqc_peaks.csv",
+  "time_column": "time",
+  "observed_species": "A",
+  "parameters_by_model": {
+    "irreversible": {
+      "k1f": {
+        "initial_guess": 0.1,
+        "lower_bound": 0.000001,
+        "upper_bound": 10.0
+      }
+    },
+    "reversible": {
+      "k1f": {
+        "initial_guess": 0.1,
+        "lower_bound": 0.000001,
+        "upper_bound": 10.0
+      },
+      "k1r": {
+        "initial_guess": 0.01,
+        "lower_bound": 0.000001,
+        "upper_bound": 10.0
+      }
+    }
+  },
+  "initial_conditions_by_model": {
+    "irreversible": {
+      "A": {
+        "value": 1.0,
+        "mode": "fixed",
+        "lower_bound": 0.0,
+        "upper_bound": 2.0
+      },
+      "B": {
+        "value": 0.0,
+        "mode": "fixed",
+        "lower_bound": 0.0,
+        "upper_bound": 2.0
+      }
+    },
+    "reversible": {
+      "A": {
+        "value": 1.0,
+        "mode": "fixed",
+        "lower_bound": 0.0,
+        "upper_bound": 2.0
+      },
+      "B": {
+        "value": 0.0,
+        "mode": "fixed",
+        "lower_bound": 0.0,
+        "upper_bound": 2.0
+      }
+    }
+  },
+  "fit_scale": true,
+  "fit_offset": true,
+  "scale_initial_guess": 1.0,
+  "scale_lower_bound": 0.0,
+  "scale_upper_bound": 1000000.0,
+  "offset_initial_guess": 0.0,
+  "offset_lower_bound": -1000000.0,
+  "offset_upper_bound": 1000000.0,
+  "method": "trf",
+  "loss": "linear",
+  "rtol": 1e-8,
+  "atol": 1e-10,
+  "max_nfev": 5000,
+  "sort_by": "aic",
+  "multistart_sort_by": "aic",
+  "n_starts": 8,
+  "n_workers": 1,
+  "random_seed": 1,
+  "log_uniform": true,
+  "randomize_observable_scales": true,
+  "randomize_observable_offsets": true,
+  "log_uniform_observable_scales": false,
+  "max_missing_fraction": 0.25,
+  "min_initial_intensity": null,
+  "initial_points": 1,
+  "min_dynamic_range": null,
+  "interpolate_missing": true,
+  "output_dir": "examples/configs/outputs/global_hsqc_multistart_model_comparison",
+  "no_plots": true
+}
