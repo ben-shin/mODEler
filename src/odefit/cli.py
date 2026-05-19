@@ -11,6 +11,11 @@ from odefit.data.dataset import Dataset
 from odefit.data.peak_filtering import build_peak_filtering_table
 from odefit.export.bundle_export import export_fit_bundle
 from odefit.fitting.fit_settings import FitSettings
+from odefit.fitting.global_observable_model_comparison import (
+    build_model_specs_from_texts,
+    export_global_observable_model_comparison,
+    fit_global_observable_model_comparison,
+)
 from odefit.fitting.global_observables import (
     build_shared_species_observable_specs,
     fit_global_observable_model,
@@ -862,6 +867,171 @@ def write_peak_filtering_table(
     table.to_csv(path, index=False)
 
     return path
+
+
+def build_model_specs_from_comparison_config(
+    config: dict,
+) -> dict[str, ModelSpec]:
+    """
+    Build named ModelSpec objects from a comparison config.
+
+    Supported config formats:
+
+    Inline model text:
+
+        "model_texts": {
+            "irreversible": "A>B",
+            "reversible": "A-B"
+        }
+
+    or:
+
+        "models": {
+            "irreversible": "A>B",
+            "reversible": "A-B"
+        }
+
+    Model files:
+
+        "model_files": {
+            "irreversible": "models/irreversible.txt",
+            "reversible": "models/reversible.txt"
+        }
+    """
+
+    model_texts = config.get("model_texts")
+
+    if model_texts is None:
+        model_texts = config.get("models")
+
+    if model_texts is not None:
+        if not isinstance(model_texts, dict):
+            raise ValueError("model_texts/models must be a dictionary")
+
+        return build_model_specs_from_texts(model_texts)
+
+    model_files = config.get("model_files")
+
+    if model_files is not None:
+        if not isinstance(model_files, dict):
+            raise ValueError("model_files must be a dictionary")
+
+        models: dict[str, ModelSpec] = {}
+
+        for model_name, model_file in model_files.items():
+            path = Path(model_file)
+
+            if not path.exists():
+                raise FileNotFoundError(f"Model file does not exist: {path}")
+
+            models[str(model_name)] = build_model_spec(
+                text=path.read_text(),
+                name=str(model_name),
+            )
+
+        return models
+
+    raise ValueError(
+        "Global observable model comparison requires one of: "
+        "model_texts, models, or model_files"
+    )
+
+
+def build_parameter_specs_by_model_from_config(
+    models: dict[str, ModelSpec],
+    config: dict,
+    default_guess: float = 0.1,
+    default_lower: float = 0.0,
+    default_upper: float = 100.0,
+) -> dict[str, list[ParameterSpec]]:
+    """
+    Build parameter specs for each comparison model.
+
+    Preferred config format:
+
+        "parameters_by_model": {
+            "irreversible": {
+                "k1f": {
+                    "initial_guess": 0.1,
+                    "lower_bound": 0.001,
+                    "upper_bound": 10.0
+                }
+            },
+            "reversible": {
+                "k1f": {...},
+                "k1r": {...}
+            }
+        }
+
+    Missing model entries fall back to default guesses/bounds.
+    """
+
+    parameters_by_model = config.get("parameters_by_model", {})
+
+    if parameters_by_model is None:
+        parameters_by_model = {}
+
+    if not isinstance(parameters_by_model, dict):
+        raise ValueError("parameters_by_model must be a dictionary")
+
+    specs_by_model: dict[str, list[ParameterSpec]] = {}
+
+    for model_name, model in models.items():
+        parameter_entries = parameters_by_model.get(model_name)
+
+        specs_by_model[model_name] = build_parameter_specs(
+            model=model,
+            parameter_entries=parameter_entries,
+            default_guess=default_guess,
+            default_lower=default_lower,
+            default_upper=default_upper,
+        )
+
+    return specs_by_model
+
+
+def build_initial_condition_specs_by_model_from_config(
+    models: dict[str, ModelSpec],
+    config: dict,
+) -> dict[str, list[InitialConditionSpec]]:
+    """
+    Build initial condition specs for each comparison model.
+
+    Preferred config format:
+
+        "initial_conditions_by_model": {
+            "irreversible": {
+                "A": {"value": 1.0, "mode": "fixed"},
+                "B": {"value": 0.0, "mode": "fixed"}
+            },
+            "reversible": {
+                "A": {"value": 1.0, "mode": "fixed"},
+                "B": {"value": 0.0, "mode": "fixed"}
+            }
+        }
+
+    Missing model entries use build_initial_condition_specs defaults.
+    """
+
+    initial_conditions_by_model = config.get("initial_conditions_by_model", {})
+
+    if initial_conditions_by_model is None:
+        initial_conditions_by_model = {}
+
+    if not isinstance(initial_conditions_by_model, dict):
+        raise ValueError("initial_conditions_by_model must be a dictionary")
+
+    specs_by_model: dict[str, list[InitialConditionSpec]] = {}
+
+    for model_name, model in models.items():
+        initial_entries = initial_conditions_by_model.get(model_name)
+
+        specs_by_model[model_name] = build_initial_condition_specs(
+            model=model,
+            initial_entries=initial_entries,
+        )
+
+    return specs_by_model
 
 
 def command_fit(args: argparse.Namespace) -> None:
@@ -2062,6 +2232,290 @@ def command_multistart_global_observables(args: argparse.Namespace) -> None:
         print(f"  {name}: {path}")
 
 
+def command_compare_global_observables(args: argparse.Namespace) -> None:
+    """
+    Compare several global observable mechanisms on one dataset.
+
+    Intended first use case:
+        compare mechanisms on assigned HSQC peak intensity data
+
+    Example models:
+        A>B
+        A-B
+        2A>A2
+        2A<->A2
+    """
+
+    config = load_fit_config(args.config)
+
+    data_path = get_config_value(
+        args=args,
+        config=config,
+        argument_name="data",
+        required=True,
+    )
+
+    time_column = get_config_value(
+        args=args,
+        config=config,
+        argument_name="time_column",
+        default="time",
+    )
+
+    signal_columns = get_config_value(
+        args=args,
+        config=config,
+        argument_name="signal_columns",
+        default=None,
+    )
+
+    exclude_columns = get_config_value(
+        args=args,
+        config=config,
+        argument_name="exclude_columns",
+        default=None,
+    )
+
+    output_dir = get_config_value(
+        args=args,
+        config=config,
+        argument_name="output_dir",
+        required=True,
+    )
+
+    observed_species = get_config_value(
+        args=args,
+        config=config,
+        argument_name="observed_species",
+        default="A",
+    )
+
+    observed_species_by_model = config.get(
+        "observed_species_by_model",
+        observed_species,
+    )
+
+    sort_by = get_config_value(
+        args=args,
+        config=config,
+        argument_name="sort_by",
+        default="aic",
+    )
+
+    default_parameter_guess = get_config_value(
+        args=args,
+        config=config,
+        argument_name="default_parameter_guess",
+        default=0.1,
+    )
+
+    default_parameter_lower = get_config_value(
+        args=args,
+        config=config,
+        argument_name="default_parameter_lower",
+        default=0.0,
+    )
+
+    default_parameter_upper = get_config_value(
+        args=args,
+        config=config,
+        argument_name="default_parameter_upper",
+        default=100.0,
+    )
+
+    method = get_config_value(
+        args=args,
+        config=config,
+        argument_name="method",
+        default="trf",
+    )
+
+    loss = get_config_value(
+        args=args,
+        config=config,
+        argument_name="loss",
+        default="linear",
+    )
+
+    max_nfev = get_config_value(
+        args=args,
+        config=config,
+        argument_name="max_nfev",
+        default=None,
+    )
+
+    rtol = get_config_value(
+        args=args,
+        config=config,
+        argument_name="rtol",
+        default=1e-6,
+    )
+
+    atol = get_config_value(
+        args=args,
+        config=config,
+        argument_name="atol",
+        default=1e-9,
+    )
+
+    fit_scale = bool(config.get("fit_scale", True))
+    fit_offset = bool(config.get("fit_offset", True))
+
+    scale_initial_guess = float(config.get("scale_initial_guess", 1.0))
+    scale_lower_bound = float(config.get("scale_lower_bound", 0.0))
+    scale_upper_bound = float(config.get("scale_upper_bound", float("inf")))
+
+    offset_initial_guess = float(config.get("offset_initial_guess", 0.0))
+    offset_lower_bound = float(config.get("offset_lower_bound", -float("inf")))
+    offset_upper_bound = float(config.get("offset_upper_bound", float("inf")))
+
+    no_plots = bool(config.get("no_plots", False)) or bool(args.no_plots)
+
+    models = build_model_specs_from_comparison_config(config)
+
+    peak_filtering_settings = get_peak_filtering_settings(
+        args=args,
+        config=config,
+    )
+
+    dataset, filtering_result = read_wide_observable_dataset_with_filtering(
+        file_path=data_path,
+        time_column=time_column,
+        signal_columns=signal_columns,
+        exclude_columns=exclude_columns,
+        max_missing_fraction=peak_filtering_settings["max_missing_fraction"],
+        min_initial_intensity=peak_filtering_settings["min_initial_intensity"],
+        initial_points=peak_filtering_settings["initial_points"],
+        min_dynamic_range=peak_filtering_settings["min_dynamic_range"],
+        interpolate_missing=peak_filtering_settings["interpolate_missing"],
+    )
+
+    parameter_specs_by_model = build_parameter_specs_by_model_from_config(
+        models=models,
+        config=config,
+        default_guess=default_parameter_guess,
+        default_lower=default_parameter_lower,
+        default_upper=default_parameter_upper,
+    )
+
+    initial_condition_specs_by_model = (
+        build_initial_condition_specs_by_model_from_config(
+            models=models,
+            config=config,
+        )
+    )
+
+    signal_weight_entries = get_config_list_or_dict_value(
+        args=args,
+        config=config,
+        argument_name="signal_weight",
+        alternative_config_name="signal_weights",
+    )
+
+    settings = FitSettings(
+        species_mapping={},
+        use_normalized_data=False,
+        method=method,
+        loss=loss,
+        max_nfev=max_nfev,
+        rtol=rtol,
+        atol=atol,
+        signal_weights=parse_signal_weight_entries(signal_weight_entries),
+    )
+
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    print(f"Comparing {len(models)} global observable models")
+    print("Models:", ", ".join(models))
+    print("Observable columns:", len(dataset.signal_columns))
+    print("Kept observable columns:", len(filtering_result.kept_columns))
+    print("Removed observable columns:", len(filtering_result.removed_columns))
+
+    comparison_result = fit_global_observable_model_comparison(
+        models=models,
+        dataset=dataset,
+        parameter_specs_by_model=parameter_specs_by_model,
+        initial_condition_specs_by_model=initial_condition_specs_by_model,
+        observed_species_by_model=observed_species_by_model,
+        settings_by_model=settings,
+        signal_columns=dataset.signal_columns,
+        fit_scale=fit_scale,
+        fit_offset=fit_offset,
+        scale_initial_guess=scale_initial_guess,
+        scale_lower_bound=scale_lower_bound,
+        scale_upper_bound=scale_upper_bound,
+        offset_initial_guess=offset_initial_guess,
+        offset_lower_bound=offset_lower_bound,
+        offset_upper_bound=offset_upper_bound,
+        sort_by=sort_by,
+    )
+
+    written_summary_files = export_global_observable_model_comparison(
+        result=comparison_result,
+        output_dir=output_path,
+    )
+
+    peak_filtering_path = write_peak_filtering_table(
+        filtering_result=filtering_result,
+        output_dir=output_path,
+    )
+
+    written_summary_files["peak_filtering"] = peak_filtering_path
+
+    best_model_name = comparison_result.best_model_name
+    best_fit_output = comparison_result.fit_outputs[best_model_name]
+    best_fit_result = comparison_result.best_fit_result
+    best_model = models[best_model_name]
+
+    best_fit_output_dir = output_path / "best_fit"
+
+    best_fit_files = export_fit_bundle(
+        fit_result=best_fit_result,
+        model=best_model,
+        dataset=dataset,
+        output_dir=best_fit_output_dir,
+        parameter_specs=parameter_specs_by_model[best_model_name],
+        initial_condition_specs=initial_condition_specs_by_model[best_model_name],
+        observable_specs=best_fit_output.observable_specs,
+        species_mapping={},
+        include_plots=not no_plots,
+        fit_settings=settings,
+        command="compare-global-observables-best-fit",
+        config_path=args.config,
+        extra_run_metadata={
+            "best_model_name": best_model_name,
+            "compared_models": list(models),
+            "sort_by": sort_by,
+            "n_observable_columns": len(dataset.signal_columns),
+        },
+    )
+
+    print("\nBest model:", best_model_name)
+    print("Best fit success:", best_fit_result.success)
+    print("Best fit message:", best_fit_result.message)
+    print("Best fitted kinetic parameters:", best_fit_result.fitted_parameters)
+    print("Best statistics:", best_fit_result.statistics)
+
+    if comparison_result.failures:
+        print("\nFailed models:")
+        for failure in comparison_result.failures:
+            print(
+                f"  {failure.model_name}: {failure.error_type}: {failure.error_message}"
+            )
+
+    print(f"\nWrote model comparison outputs to: {output_path}")
+    print(f"Wrote best fit bundle to: {best_fit_output_dir}")
+
+    print("\nWritten summary files:")
+    for name, path in written_summary_files.items():
+        print(f"  {name}: {path}")
+
+    print("\nWritten best-fit files:")
+    for name, path in best_fit_files.items():
+        print(f"  {name}: {path}")
+
+
 def build_parser() -> argparse.ArgumentParser:
     """
     Build CLI argument parser.
@@ -2898,6 +3352,165 @@ def build_parser() -> argparse.ArgumentParser:
 
     global_observable_multistart_parser.set_defaults(
         func=command_multistart_global_observables
+    )
+    compare_global_observable_parser = subparsers.add_parser(
+        "compare-global-observables",
+        help="Compare several global observable mechanisms on one dataset.",
+    )
+
+    compare_global_observable_parser.add_argument(
+        "--config",
+        default=None,
+        help="Path to JSON global observable model comparison config.",
+    )
+
+    compare_global_observable_parser.add_argument(
+        "--data",
+        default=None,
+        help="Path to wide-format observable CSV file.",
+    )
+
+    compare_global_observable_parser.add_argument(
+        "--time-column",
+        default=None,
+        help="Name of the time column.",
+    )
+
+    compare_global_observable_parser.add_argument(
+        "--signal-columns",
+        nargs="+",
+        default=None,
+        help="Observable/signal columns. If omitted, numeric columns are inferred.",
+    )
+
+    compare_global_observable_parser.add_argument(
+        "--exclude-columns",
+        nargs="+",
+        default=None,
+        help="Columns to exclude when inferring signal columns.",
+    )
+
+    compare_global_observable_parser.add_argument(
+        "--observed-species",
+        default=None,
+        help="Default observed model species for all models. Default: A.",
+    )
+
+    compare_global_observable_parser.add_argument(
+        "--sort-by",
+        default=None,
+        help="Metric used to rank models. Usually aic, bic, rmse, rss, or cost.",
+    )
+
+    compare_global_observable_parser.add_argument(
+        "--default-parameter-guess",
+        type=float,
+        default=None,
+        help="Default initial guess for model parameters.",
+    )
+
+    compare_global_observable_parser.add_argument(
+        "--default-parameter-lower",
+        type=float,
+        default=None,
+        help="Default lower bound for model parameters.",
+    )
+
+    compare_global_observable_parser.add_argument(
+        "--default-parameter-upper",
+        type=float,
+        default=None,
+        help="Default upper bound for model parameters.",
+    )
+
+    compare_global_observable_parser.add_argument(
+        "--method",
+        default=None,
+        help="scipy.optimize.least_squares method.",
+    )
+
+    compare_global_observable_parser.add_argument(
+        "--loss",
+        default=None,
+        help="scipy.optimize.least_squares loss.",
+    )
+
+    compare_global_observable_parser.add_argument(
+        "--max-nfev",
+        type=int,
+        default=None,
+        help="Maximum number of function evaluations.",
+    )
+
+    compare_global_observable_parser.add_argument(
+        "--rtol",
+        type=float,
+        default=None,
+        help="ODE solver relative tolerance.",
+    )
+
+    compare_global_observable_parser.add_argument(
+        "--atol",
+        type=float,
+        default=None,
+        help="ODE solver absolute tolerance.",
+    )
+
+    compare_global_observable_parser.add_argument(
+        "--output-dir",
+        default=None,
+        help="Output directory for model comparison outputs.",
+    )
+
+    compare_global_observable_parser.add_argument(
+        "--max-missing-fraction",
+        type=float,
+        default=None,
+        help="Remove signal columns with missing fraction above this value.",
+    )
+
+    compare_global_observable_parser.add_argument(
+        "--min-initial-intensity",
+        type=float,
+        default=None,
+        help="Remove signal columns with initial intensity below this value.",
+    )
+
+    compare_global_observable_parser.add_argument(
+        "--initial-points",
+        type=int,
+        default=None,
+        help="Number of initial timepoints used to estimate initial intensity.",
+    )
+
+    compare_global_observable_parser.add_argument(
+        "--min-dynamic-range",
+        type=float,
+        default=None,
+        help="Remove signal columns with dynamic range below this value.",
+    )
+
+    compare_global_observable_parser.add_argument(
+        "--no-interpolate-missing",
+        action="store_true",
+        help="Do not interpolate missing values in kept signal columns.",
+    )
+
+    compare_global_observable_parser.add_argument(
+        "--signal-weight",
+        action="append",
+        default=None,
+        help="Signal residual weight: data_column:weight. Can be repeated.",
+    )
+
+    compare_global_observable_parser.add_argument(
+        "--no-plots",
+        action="store_true",
+        help="Skip plot generation for best fit bundle.",
+    )
+
+    compare_global_observable_parser.set_defaults(
+        func=command_compare_global_observables
     )
 
     return parser
