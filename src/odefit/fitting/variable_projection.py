@@ -181,8 +181,8 @@ def project_observables_onto_species(
             )
 
             observable_rows = []
-            predicted_dataframe = pd.DataFrame({"time": timepoints})
-            residuals_dataframe = pd.DataFrame({"time": timepoints})
+            predicted_columns = {"time": np.asarray(timepoints, dtype=float)}
+            residual_columns = {"time": np.asarray(timepoints, dtype=float)}
             residual_parts = []
 
             for column_index, signal_column in enumerate(signal_columns):
@@ -217,8 +217,8 @@ def project_observables_onto_species(
                     }
                 )
 
-                predicted_dataframe[signal_column] = predicted
-                residuals_dataframe[signal_column] = residual
+                predicted_columns[signal_column] = predicted
+                residual_columns[signal_column] = residual
 
             residual_vector = np.concatenate(residual_parts)
 
@@ -226,8 +226,8 @@ def project_observables_onto_species(
 
             return LinearObservableProjectionResult(
                 observable_table=observable_table,
-                predicted_dataframe=predicted_dataframe,
-                residuals_dataframe=residuals_dataframe,
+                predicted_dataframe=pd.DataFrame(predicted_columns, copy=False),
+                residuals_dataframe=pd.DataFrame(residual_columns, copy=False),
                 residual_vector=residual_vector,
                 rss=float(np.sum(residual_vector**2)),
                 n_observations=int(len(residual_vector)),
@@ -242,8 +242,8 @@ def project_observables_onto_species(
             pass
 
     observable_rows = []
-    predicted_dataframe = pd.DataFrame({"time": timepoints})
-    residuals_dataframe = pd.DataFrame({"time": timepoints})
+    predicted_columns = {"time": np.asarray(timepoints, dtype=float)}
+    residual_columns = {"time": np.asarray(timepoints, dtype=float)}
     residual_parts = []
 
     for signal_column in signal_columns:
@@ -296,8 +296,8 @@ def project_observables_onto_species(
             }
         )
 
-        predicted_dataframe[signal_column] = predicted
-        residuals_dataframe[signal_column] = residual
+        predicted_columns[signal_column] = predicted
+        residual_columns[signal_column] = residual
 
     residual_vector = np.concatenate(residual_parts)
 
@@ -305,8 +305,8 @@ def project_observables_onto_species(
 
     return LinearObservableProjectionResult(
         observable_table=observable_table,
-        predicted_dataframe=predicted_dataframe,
-        residuals_dataframe=residuals_dataframe,
+        predicted_dataframe=pd.DataFrame(predicted_columns, copy=False),
+        residuals_dataframe=pd.DataFrame(residual_columns, copy=False),
         residual_vector=residual_vector,
         rss=float(np.sum(residual_vector**2)),
         n_observations=int(len(residual_vector)),

@@ -1,0 +1,2 @@
+benchmark,engine_name,n_timepoints,n_observables,n_repeats,min_seconds,mean_seconds,median_seconds,max_seconds,performance_warning_count,rss
+variable_projection_dataframe_assembly,reference,50,1000,20,0.008721384998352733,0.013198220850244979,0.00928161100091529,0.03763203199923737,0,1.2782781504663233e-27

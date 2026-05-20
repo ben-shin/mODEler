@@ -1,0 +1,37 @@
+[
+  {
+    "category": "engine_coverage",
+    "severity": "info",
+    "title": "Available benchmarked engines",
+    "evidence": "jax_projection, numba_projection, numpy_loop, numpy_vectorized, reference",
+    "recommendation": "Keep reference as the baseline. Treat optional engines as experimental until workflow-level benchmarks show stable gains."
+  },
+  {
+    "category": "projection_kernel",
+    "severity": "info",
+    "title": "Projection kernel speedup measured",
+    "evidence": "Best non-reference projection-kernel speedup: 2.64x.",
+    "recommendation": "Kernel speedup is useful, but do not overinterpret it. Projection may be only a small fraction of full fitting time."
+  },
+  {
+    "category": "batched_projection",
+    "severity": "medium",
+    "title": "Production batch projection speedup measured",
+    "evidence": "Best non-reference batch-method speedup: 1.32x.",
+    "recommendation": "Batched projection appears worth productionizing further. Next targets: reduce residual DataFrame construction and avoid per-evaluation pandas overhead in variable projection."
+  },
+  {
+    "category": "workflow",
+    "severity": "medium",
+    "title": "Workflow speedup is marginal",
+    "evidence": "Best non-reference workflow speedup: 1.06x.",
+    "recommendation": "Projection acceleration is not yet dominating end-to-end time. Next target should be profiling residual assembly, ODE solving, and optimizer callback overhead."
+  },
+  {
+    "category": "bottleneck_inference",
+    "severity": "high",
+    "title": "Kernel speedup does not translate to workflow speedup",
+    "evidence": "Kernel speedup is 2.64x, but workflow speedup is only 1.06x.",
+    "recommendation": "The bottleneck is likely outside the scalar projection kernel. Prioritize timing residual assembly, ODE simulation calls, DataFrame construction, and scipy least_squares callback overhead."
+  }
+]
