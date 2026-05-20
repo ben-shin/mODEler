@@ -17,9 +17,21 @@ def create_reference_engine_bundle() -> BackendEngineBundle:
     )
 
 
+def create_numba_projection_engine_bundle() -> BackendEngineBundle:
+    from odefit.engines.numba_projection import NumbaProjectionEngine
+
+    return BackendEngineBundle(
+        name="numba_projection",
+        solver=ReferenceScipySolverEngine(),
+        projection=NumbaProjectionEngine(),
+        least_squares=ReferenceScipyLeastSquaresEngine(),
+    )
+
+
 _ENGINE_FACTORIES = {
     "reference": create_reference_engine_bundle,
     "numpy_scipy": create_reference_engine_bundle,
+    "numba_projection": create_numba_projection_engine_bundle,
 }
 
 
@@ -43,16 +55,28 @@ def describe_available_engines() -> list[dict]:
     descriptions = []
 
     for name in available_engine_names():
-        bundle = get_engine_bundle(name)
+        try:
+            bundle = get_engine_bundle(name)
 
-        descriptions.append(
-            {
-                "name": name,
-                "capabilities": {
-                    key: capability.__dict__
-                    for key, capability in bundle.capabilities().items()
-                },
-            }
-        )
+            descriptions.append(
+                {
+                    "name": name,
+                    "available": True,
+                    "capabilities": {
+                        key: capability.__dict__
+                        for key, capability in bundle.capabilities().items()
+                    },
+                }
+            )
+        except Exception as exc:
+            descriptions.append(
+                {
+                    "name": name,
+                    "available": False,
+                    "error_type": type(exc).__name__,
+                    "error_message": str(exc),
+                    "capabilities": {},
+                }
+            )
 
     return descriptions

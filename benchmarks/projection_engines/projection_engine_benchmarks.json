@@ -1,0 +1,22 @@
+[
+  {
+    "engine_name": "reference",
+    "benchmark": "single_species_projection",
+    "n_timepoints": 100,
+    "n_repeats": 1000,
+    "min_seconds": 1.2395998055581003e-05,
+    "mean_seconds": 1.4768226988962852e-05,
+    "median_seconds": 1.272900408366695e-05,
+    "max_seconds": 0.00015207999967969954
+  },
+  {
+    "engine_name": "numba_projection",
+    "benchmark": "single_species_projection",
+    "n_timepoints": 100,
+    "n_repeats": 1000,
+    "min_seconds": 4.793000698555261e-06,
+    "mean_seconds": 5.88941310707014e-06,
+    "median_seconds": 4.903995431959629e-06,
+    "max_seconds": 0.00018909299978986382
+  }
+]

@@ -20,3 +20,8 @@ from odefit.engines.registry import (
     describe_available_engines,
     get_engine_bundle,
 )
+from odefit.engines.numba_projection import (
+    NUMBA_AVAILABLE,
+    NumbaProjectionEngine,
+    is_numba_available,
+)
