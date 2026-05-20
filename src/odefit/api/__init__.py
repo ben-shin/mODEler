@@ -5,6 +5,8 @@ from odefit.api.backend import (
     parse_model_text,
     profile_likelihood_global_observables_from_config,
     simulate_from_text,
+    get_backend_engine_capabilities,
+    validate_backend_engine_name,
 )
 from odefit.api.serialization import (
     backend_output_payload,

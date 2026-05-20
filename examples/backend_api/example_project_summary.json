@@ -1,11 +1,11 @@
 {
-  "project_id": "0c7c9ab7-2356-4fa0-b33d-b277032f3781",
+  "project_id": "0b1d6461-4d18-4348-bc4a-2da7da18aeb4",
   "schema_version": "0.2",
   "name": "Example GUI Project",
   "description": "Example saved mODEler GUI project.",
   "workflow": "fit",
-  "created_at": "2026-05-20T13:47:03.633687+00:00",
-  "updated_at": "2026-05-20T13:47:03.649035+00:00",
+  "created_at": "2026-05-20T13:52:17.371471+00:00",
+  "updated_at": "2026-05-20T13:52:17.385906+00:00",
   "has_result_payload": true,
   "n_notes": 1,
   "tags": [

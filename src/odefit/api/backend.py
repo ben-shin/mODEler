@@ -44,7 +44,11 @@ from odefit.fitting.variable_projection_profile_likelihood import (
 from odefit.model.model_spec import build_model_spec
 from odefit.model.ode_generator import generate_ode_lines
 from odefit.simulation.solver import simulate_model
-
+from odefit.engines.registry import (
+    available_engine_names,
+    describe_available_engines,
+    get_engine_bundle,
+)
 
 def parse_model_text(
     model_text: str,
@@ -388,6 +392,102 @@ def bootstrap_global_observables_from_config(
         "filtering_result": filtering_result,
     }
 
+def get_backend_engine_capabilities() -> dict:
+    """
+    Return a GUI-friendly description of available backend engines.
+
+    This function is intentionally JSON-serializable and stable enough for GUI
+    contract tests. Optional engines that cannot be constructed are reported
+    with available=False rather than raising.
+    """
+
+    raw_descriptions = describe_available_engines()
+
+    engines = []
+
+    for entry in raw_descriptions:
+        name = str(entry.get("name", "unknown"))
+        available = bool(entry.get("available", False))
+
+        raw_capabilities = entry.get("capabilities", {})
+        normalized_capabilities = {}
+
+        if isinstance(raw_capabilities, dict):
+            for component_name, capability in raw_capabilities.items():
+                if isinstance(capability, dict):
+                    normalized_capabilities[component_name] = {
+                        "name": capability.get("name", component_name),
+                        "single_species_projection": bool(
+                            capability.get("single_species_projection", False)
+                        ),
+                        "multispecies_projection": bool(
+                            capability.get("multispecies_projection", False)
+                        ),
+                        "supports_parallel": bool(
+                            capability.get("supports_parallel", False)
+                        ),
+                        "supports_jit": bool(
+                            capability.get("supports_jit", False)
+                        ),
+                        "supports_gpu": bool(
+                            capability.get("supports_gpu", False)
+                        ),
+                        "supports_autodiff": bool(
+                            capability.get("supports_autodiff", False)
+                        ),
+                        "notes": str(capability.get("notes", "")),
+                    }
+                else:
+                    normalized_capabilities[component_name] = capability
+
+        engine_payload = {
+            "name": name,
+            "available": available,
+            "is_default": name == "reference",
+            "capabilities": normalized_capabilities,
+            "error_type": entry.get("error_type"),
+            "error_message": entry.get("error_message"),
+        }
+
+        engines.append(engine_payload)
+
+    return {
+        "default_engine": "reference",
+        "available_engine_names": available_engine_names(),
+        "engines": engines,
+    }
+
+
+def validate_backend_engine_name(engine_name: str) -> dict:
+    """
+    Validate one backend engine name and return a GUI-friendly payload.
+
+    This is useful for forms/config validation before launching a fit.
+    """
+
+    try:
+        bundle = get_engine_bundle(engine_name)
+    except Exception as exc:
+        return {
+            "engine_name": engine_name,
+            "valid": False,
+            "available": False,
+            "error_type": type(exc).__name__,
+            "error_message": str(exc),
+        }
+
+    capabilities = {
+        component_name: capability.__dict__
+        for component_name, capability in bundle.capabilities().items()
+    }
+
+    return {
+        "engine_name": engine_name,
+        "valid": True,
+        "available": True,
+        "resolved_name": bundle.name,
+        "capabilities": capabilities,
+    }
 
 def profile_likelihood_global_observables_from_config(
     config_or_path: dict | str | Path,
