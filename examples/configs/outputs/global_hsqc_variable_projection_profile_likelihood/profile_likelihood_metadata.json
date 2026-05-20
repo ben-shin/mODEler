@@ -1,0 +1,19 @@
+{
+  "n_profile_points": 9,
+  "n_failures": 9,
+  "original_statistics": {
+    "rss": 1.368135877807956e-07,
+    "mse": 5.067169917807244e-09,
+    "rmse": 6.164720138299413e-05,
+    "n_observations": 36.0,
+    "n_nonlinear_parameters": 1.0,
+    "n_linear_parameters": 8.0,
+    "n_total_parameters": 9.0,
+    "degrees_of_freedom": 27.0,
+    "aic": -679.9739561734877,
+    "bic": -665.7222857273828
+  },
+  "original_fitted_parameters": {
+    "k1f": 0.40005931922310917
+  }
+}

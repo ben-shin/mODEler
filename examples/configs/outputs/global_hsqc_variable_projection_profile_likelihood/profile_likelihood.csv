@@ -1,0 +1,10 @@
+parameter,fixed_value,rss,delta_rss,rmse,aic,bic,success,message
+k1f,0.04000593192231092,inf,inf,inf,inf,inf,False,Each lower bound must be strictly less than each upper bound.
+k1f,0.07114172501686436,inf,inf,inf,inf,inf,False,Each lower bound must be strictly less than each upper bound.
+k1f,0.12650986479214082,inf,inf,inf,inf,inf,False,Each lower bound must be strictly less than each upper bound.
+k1f,0.2249698877266721,inf,inf,inf,inf,inf,False,Each lower bound must be strictly less than each upper bound.
+k1f,0.40005931922310917,inf,inf,inf,inf,inf,False,Each lower bound must be strictly less than each upper bound.
+k1f,0.7114172501686437,inf,inf,inf,inf,inf,False,Each lower bound must be strictly less than each upper bound.
+k1f,1.2650986479214084,inf,inf,inf,inf,inf,False,Each lower bound must be strictly less than each upper bound.
+k1f,2.249698877266721,inf,inf,inf,inf,inf,False,Each lower bound must be strictly less than each upper bound.
+k1f,4.000593192231092,inf,inf,inf,inf,inf,False,Each lower bound must be strictly less than each upper bound.
