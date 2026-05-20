@@ -4,26 +4,19 @@
     "benchmark": "single_species_projection",
     "n_timepoints": 100,
     "n_repeats": 100,
-    "min_seconds": 1.2636002793442458e-05,
-    "mean_seconds": 1.5790049656061455e-05,
-    "median_seconds": 1.3051998394075781e-05,
-    "max_seconds": 5.4865995480213314e-05
-  },
-  {
-    "engine_name": "numba_projection",
-    "benchmark": "single_species_projection",
-    "n_timepoints": 100,
-    "n_repeats": 100,
-    "min_seconds": 4.902001819573343e-06,
-    "mean_seconds": 5.255899886833504e-06,
-    "median_seconds": 5.0439994083717465e-06,
-    "max_seconds": 1.4238998119253665e-05
+    "min_seconds": 1.2294993211980909e-05,
+    "mean_seconds": 1.4351700228871777e-05,
+    "median_seconds": 1.2552500265883282e-05,
+    "max_seconds": 4.6020999434404075e-05
   },
   {
     "engine_name": "jax_projection",
     "benchmark": "single_species_projection",
-    "available": false,
-    "error_type": "ImportError",
-    "error_message": "The jax_projection engine requires jax. Install jax or use engine_name='reference'."
+    "n_timepoints": 100,
+    "n_repeats": 100,
+    "min_seconds": 0.00017144999583251774,
+    "mean_seconds": 0.00020789578011317644,
+    "median_seconds": 0.0002030234973062761,
+    "max_seconds": 0.00036426400038180873
   }
 ]
