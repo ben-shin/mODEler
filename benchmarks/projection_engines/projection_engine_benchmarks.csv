@@ -1,4 +1,4 @@
 engine_name,benchmark,n_timepoints,n_repeats,min_seconds,mean_seconds,median_seconds,max_seconds,available,error_type,error_message
-reference,single_species_projection,100.0,100.0,1.235299714608118e-05,1.5095529815880582e-05,1.2743999832309783e-05,4.467499820748344e-05,,,
-numba_projection,single_species_projection,100.0,100.0,4.798996087629348e-06,5.193229735596106e-06,4.949994035996497e-06,1.4246994396671653e-05,,,
+reference,single_species_projection,100.0,100.0,1.2636002793442458e-05,1.5790049656061455e-05,1.3051998394075781e-05,5.4865995480213314e-05,,,
+numba_projection,single_species_projection,100.0,100.0,4.902001819573343e-06,5.255899886833504e-06,5.0439994083717465e-06,1.4238998119253665e-05,,,
 jax_projection,single_species_projection,,,,,,,False,ImportError,The jax_projection engine requires jax. Install jax or use engine_name='reference'.

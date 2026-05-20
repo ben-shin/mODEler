@@ -4,20 +4,20 @@
     "benchmark": "single_species_projection",
     "n_timepoints": 100,
     "n_repeats": 100,
-    "min_seconds": 1.235299714608118e-05,
-    "mean_seconds": 1.5095529815880582e-05,
-    "median_seconds": 1.2743999832309783e-05,
-    "max_seconds": 4.467499820748344e-05
+    "min_seconds": 1.2636002793442458e-05,
+    "mean_seconds": 1.5790049656061455e-05,
+    "median_seconds": 1.3051998394075781e-05,
+    "max_seconds": 5.4865995480213314e-05
   },
   {
     "engine_name": "numba_projection",
     "benchmark": "single_species_projection",
     "n_timepoints": 100,
     "n_repeats": 100,
-    "min_seconds": 4.798996087629348e-06,
-    "mean_seconds": 5.193229735596106e-06,
-    "median_seconds": 4.949994035996497e-06,
-    "max_seconds": 1.4246994396671653e-05
+    "min_seconds": 4.902001819573343e-06,
+    "mean_seconds": 5.255899886833504e-06,
+    "median_seconds": 5.0439994083717465e-06,
+    "max_seconds": 1.4238998119253665e-05
   },
   {
     "engine_name": "jax_projection",
