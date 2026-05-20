@@ -13,3 +13,14 @@ from odefit.benchmarking.acceleration_targets import (
     make_synthetic_multispecies_dataset,
     run_acceleration_target_benchmarks,
 )
+from odefit.benchmarking.batched_projection import (
+    BatchedProjectionBenchmarkResult,
+    JAX_AVAILABLE,
+    assert_projection_outputs_close,
+    export_batched_projection_benchmarks,
+    jax_vectorized_batched_single_species_projection,
+    make_batched_single_species_projection_data,
+    numpy_loop_batched_single_species_projection,
+    numpy_vectorized_batched_single_species_projection,
+    run_batched_projection_benchmarks,
+)
