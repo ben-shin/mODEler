@@ -32,6 +32,15 @@ def build_optional_engine_workflows() -> list[OptionalEngineWorkflow]:
                     ],
                 ),
                 OptionalEngineWorkflow(
+                    name="numba_batched_projection_engine",
+                    command=[
+                        sys.executable,
+                        "-m",
+                        "pytest",
+                        "tests/test_numba_batched_projection_engine.py",
+                    ],
+                ),
+                OptionalEngineWorkflow(
                     name="numba_projection_api_workflow",
                     command=[
                         sys.executable,
