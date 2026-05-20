@@ -42,3 +42,13 @@ from odefit.api.fcs import (
     compare_fcs_models_from_config,
     fit_fcs_model_from_config,
 )
+from odefit.api.project_config import (
+    ProjectConfigError,
+    collect_engine_names,
+    ensure_engine_name,
+    load_project_payload,
+    normalize_project_payload,
+    save_project_payload,
+    validate_project_engine_name,
+    validate_project_engines,
+)

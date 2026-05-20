@@ -1,0 +1,40 @@
+FCS surface fit figures
+=======================
+
+Top models: linear_combo, order2_step, order3_combo, order2_homo, linear_step, order2_combo, order3_step, linear_homo
+
+- linear_combo/predicted_surface_heatmap.png
+- linear_combo/profiles_observed_vs_fitted.png
+- linear_combo/residual_surface_heatmap.png
+- linear_combo/timecourses_at_selected_tau.png
+- linear_homo/predicted_surface_heatmap.png
+- linear_homo/profiles_observed_vs_fitted.png
+- linear_homo/residual_surface_heatmap.png
+- linear_homo/timecourses_at_selected_tau.png
+- linear_step/predicted_surface_heatmap.png
+- linear_step/profiles_observed_vs_fitted.png
+- linear_step/residual_surface_heatmap.png
+- linear_step/timecourses_at_selected_tau.png
+- observed_surface_heatmap.png
+- order2_combo/predicted_surface_heatmap.png
+- order2_combo/profiles_observed_vs_fitted.png
+- order2_combo/residual_surface_heatmap.png
+- order2_combo/timecourses_at_selected_tau.png
+- order2_homo/predicted_surface_heatmap.png
+- order2_homo/profiles_observed_vs_fitted.png
+- order2_homo/residual_surface_heatmap.png
+- order2_homo/timecourses_at_selected_tau.png
+- order2_step/predicted_surface_heatmap.png
+- order2_step/profiles_observed_vs_fitted.png
+- order2_step/residual_surface_heatmap.png
+- order2_step/timecourses_at_selected_tau.png
+- order3_combo/predicted_surface_heatmap.png
+- order3_combo/profiles_observed_vs_fitted.png
+- order3_combo/residual_surface_heatmap.png
+- order3_combo/timecourses_at_selected_tau.png
+- order3_step/predicted_surface_heatmap.png
+- order3_step/profiles_observed_vs_fitted.png
+- order3_step/residual_surface_heatmap.png
+- order3_step/timecourses_at_selected_tau.png
+- surface_model_aic_weight_percent.png
+- surface_model_bic_weight_percent.png

@@ -1,0 +1,30 @@
+{
+  "project_name": "engine_persistence_example",
+  "project_type": "fitting_project",
+  "fit_config": {
+    "engine_name": "numba_projection",
+    "data": "examples/data/example.csv",
+    "time_column": "time",
+    "model_text": "A -> B",
+    "observed_species": "A",
+    "use_variable_projection": true
+  },
+  "workflow_configs": {
+    "reference_check": {
+      "engine_name": "reference",
+      "data": "examples/data/example.csv",
+      "time_column": "time",
+      "model_text": "A -> B",
+      "observed_species": "A",
+      "use_variable_projection": true
+    },
+    "numba_fit": {
+      "engine_name": "numba_projection",
+      "data": "examples/data/example.csv",
+      "time_column": "time",
+      "model_text": "A -> B",
+      "observed_species": "A",
+      "use_variable_projection": true
+    }
+  }
+}
