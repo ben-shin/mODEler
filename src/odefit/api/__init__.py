@@ -38,3 +38,7 @@ from odefit.api.project_state_bridge import (
     project_state_to_gui_metadata,
     project_state_to_gui_project_payload,
 )
+from odefit.api.fcs import (
+    compare_fcs_models_from_config,
+    fit_fcs_model_from_config,
+)
