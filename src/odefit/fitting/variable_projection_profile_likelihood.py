@@ -10,6 +10,10 @@ import pandas as pd
 
 from odefit.data.dataset import Dataset
 from odefit.fitting.fit_settings import FitSettings
+from odefit.fitting.identifiability import (
+    build_identifiability_report,
+    export_identifiability_report,
+)
 from odefit.fitting.initial_condition_spec import InitialConditionSpec
 from odefit.fitting.parameter_spec import ParameterSpec
 from odefit.fitting.variable_projection import (
@@ -273,5 +277,19 @@ def export_profile_likelihood_result(
 
     for name, path in plot_files.items():
         written_files[f"plot_{name}"] = path
+
+        identifiability_report = build_identifiability_report(
+            profile_likelihood_table=result.profile_table,
+            fitted_parameters=result.original_result.fitted_parameters,
+            parameter_bounds=None,
+        )
+
+        identifiability_files = export_identifiability_report(
+            report=identifiability_report,
+            output_dir=output_path,
+        )
+
+        for name, path in identifiability_files.items():
+            written_files[name] = path
 
     return written_files

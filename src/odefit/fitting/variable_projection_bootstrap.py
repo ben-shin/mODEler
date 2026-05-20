@@ -11,6 +11,10 @@ import pandas as pd
 
 from odefit.data.dataset import Dataset
 from odefit.fitting.fit_settings import FitSettings
+from odefit.fitting.identifiability import (
+    build_identifiability_report,
+    export_identifiability_report,
+)
 from odefit.fitting.initial_condition_spec import InitialConditionSpec
 from odefit.fitting.parameter_spec import ParameterSpec
 from odefit.fitting.variable_projection import (
@@ -283,6 +287,22 @@ def export_variable_projection_bootstrap_result(
         "n_successful_bootstrap": len(result.bootstrap_results),
         "n_failed_bootstrap": len(result.failures),
     }
+
+    identifiability_report = build_identifiability_report(
+        bootstrap_summary_table=result.summary_table,
+        fitted_parameters=result.original_result.fitted_parameters,
+        parameter_bounds=None,
+        n_bootstrap_requested=(len(result.bootstrap_results) + len(result.failures)),
+        n_bootstrap_failed=len(result.failures),
+    )
+
+    identifiability_files = export_identifiability_report(
+        report=identifiability_report,
+        output_dir=output_path,
+    )
+
+    for name, path in identifiability_files.items():
+        written_files[name] = path
 
     metadata_path = output_path / "bootstrap_metadata.json"
     with metadata_path.open("w") as handle:

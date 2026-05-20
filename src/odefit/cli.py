@@ -4031,6 +4031,16 @@ def command_profile_likelihood_global_observables(args: argparse.Namespace) -> N
 
     print("\nProfile likelihood complete")
     print(result.profile_table.to_string(index=False))
+
+    identifiability_path = output_path / "identifiability_warnings.csv"
+
+    if identifiability_path.exists():
+        warnings_table = pd.read_csv(identifiability_path)
+
+        if not warnings_table.empty:
+            print("\nIdentifiability warnings:")
+            print(warnings_table.to_string(index=False))
+
     print(f"\nWrote outputs to: {output_path}")
 
     for name, path in written_files.items():
@@ -4209,6 +4219,15 @@ def command_bootstrap_global_observables(args: argparse.Namespace) -> None:
     print("Bootstrap failed fits:", len(result.failures))
     print("\nParameter uncertainty summary:")
     print(result.summary_table.to_string(index=False))
+
+    identifiability_path = output_path / "identifiability_warnings.csv"
+
+    if identifiability_path.exists():
+        warnings_table = pd.read_csv(identifiability_path)
+
+        if not warnings_table.empty:
+            print("\nIdentifiability warnings:")
+            print(warnings_table.to_string(index=False))
 
     print(f"\nWrote bootstrap outputs to: {output_path}")
 
