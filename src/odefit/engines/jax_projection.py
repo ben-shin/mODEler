@@ -8,6 +8,7 @@ from odefit.engines.base import (
     EngineCapabilities,
     MultispeciesProjectionResult,
     SingleSpeciesProjectionResult,
+    BatchedSingleSpeciesProjectionResult,
 )
 from odefit.engines.reference import ReferenceNumpyProjectionEngine
 
@@ -92,6 +93,71 @@ if JAX_AVAILABLE:
 
         return n >= 1.0, 1.0, 0.0
 
+    @jax.jit
+    def _jax_batch_scale_offset(x, Y):
+        n_timepoints = x.shape[0]
+
+        sx = jnp.sum(x)
+        sxx = jnp.sum(x * x)
+        sy = jnp.sum(Y, axis=0)
+        sxy = x @ Y
+
+        denominator = n_timepoints * sxx - sx * sx
+
+        scales = (n_timepoints * sxy - sx * sy) / denominator
+        offsets = (sy - scales * sx) / n_timepoints
+
+        predicted = x[:, None] * scales[None, :] + offsets[None, :]
+        residuals = Y - predicted
+        rss_by_observable = jnp.sum(residuals * residuals, axis=0)
+        rss = jnp.sum(rss_by_observable)
+
+        ok = jnp.isfinite(denominator) & (denominator != 0.0)
+
+        return ok, scales, offsets, predicted, residuals, rss_by_observable, rss
+
+
+    @jax.jit
+    def _jax_batch_scale_only(x, Y):
+        denominator = jnp.dot(x, x)
+
+        scales = (x @ Y) / denominator
+        offsets = jnp.zeros(Y.shape[1], dtype=Y.dtype)
+
+        predicted = x[:, None] * scales[None, :]
+        residuals = Y - predicted
+        rss_by_observable = jnp.sum(residuals * residuals, axis=0)
+        rss = jnp.sum(rss_by_observable)
+
+        ok = jnp.isfinite(denominator) & (denominator != 0.0)
+
+        return ok, scales, offsets, predicted, residuals, rss_by_observable, rss
+
+
+    @jax.jit
+    def _jax_batch_offset_only(x, Y):
+        scales = jnp.ones(Y.shape[1], dtype=Y.dtype)
+        offsets = jnp.mean(Y - x[:, None], axis=0)
+
+        predicted = x[:, None] + offsets[None, :]
+        residuals = Y - predicted
+        rss_by_observable = jnp.sum(residuals * residuals, axis=0)
+        rss = jnp.sum(rss_by_observable)
+
+        return True, scales, offsets, predicted, residuals, rss_by_observable, rss
+
+
+    @jax.jit
+    def _jax_batch_fixed(x, Y):
+        scales = jnp.ones(Y.shape[1], dtype=Y.dtype)
+        offsets = jnp.zeros(Y.shape[1], dtype=Y.dtype)
+
+        predicted = jnp.broadcast_to(x[:, None], Y.shape)
+        residuals = Y - predicted
+        rss_by_observable = jnp.sum(residuals * residuals, axis=0)
+        rss = jnp.sum(rss_by_observable)
+
+        return True, scales, offsets, predicted, residuals, rss_by_observable, rss
 
 class JaxProjectionEngine:
     name = "jax_projection"
@@ -183,12 +249,57 @@ class JaxProjectionEngine:
         species_values: np.ndarray,
         fit_scale: bool = True,
         fit_offset: bool = True,
-    ):
-        return self._fallback.project_single_species_batch(
-            observed_matrix=observed_matrix,
-            species_values=species_values,
-            fit_scale=fit_scale,
-            fit_offset=fit_offset,
+    ) -> BatchedSingleSpeciesProjectionResult:
+        Y_np = np.asarray(observed_matrix, dtype=float)
+        x_np = np.asarray(species_values, dtype=float)
+
+        if Y_np.ndim != 2:
+            raise ValueError("observed_matrix must be a 2D array.")
+
+        if Y_np.shape[0] != x_np.shape[0]:
+            raise ValueError(
+                "observed_matrix row count must match species_values length."
+            )
+
+        # Missing values are still handled by the reference implementation.
+        # The JAX fast path assumes dense finite arrays.
+        if (not np.isfinite(x_np).all()) or (not np.isfinite(Y_np).all()):
+            return self._fallback.project_single_species_batch(
+                observed_matrix=Y_np,
+                species_values=x_np,
+                fit_scale=fit_scale,
+                fit_offset=fit_offset,
+            )
+
+        x = jnp.asarray(x_np, dtype=jnp.float64)
+        Y = jnp.asarray(Y_np, dtype=jnp.float64)
+
+        if fit_scale and fit_offset:
+            outputs = _jax_batch_scale_offset(x, Y)
+        elif fit_scale and not fit_offset:
+            outputs = _jax_batch_scale_only(x, Y)
+        elif (not fit_scale) and fit_offset:
+            outputs = _jax_batch_offset_only(x, Y)
+        else:
+            outputs = _jax_batch_fixed(x, Y)
+
+        ok, scales, offsets, predicted, residuals, rss_by_observable, rss = outputs
+
+        if not bool(np.asarray(ok)):
+            return self._fallback.project_single_species_batch(
+                observed_matrix=Y_np,
+                species_values=x_np,
+                fit_scale=fit_scale,
+                fit_offset=fit_offset,
+            )
+
+        return BatchedSingleSpeciesProjectionResult(
+            scales=np.asarray(scales, dtype=float),
+            offsets=np.asarray(offsets, dtype=float),
+            predicted=np.asarray(predicted, dtype=float),
+            residuals=np.asarray(residuals, dtype=float),
+            rss_by_observable=np.asarray(rss_by_observable, dtype=float),
+            rss=float(np.asarray(rss)),
         )
 
     def project_multispecies(

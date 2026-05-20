@@ -1,8 +1,8 @@
 {
-  "project_id": "8fbdc10c-09f4-47ae-83ae-76a1fd1c83c5",
+  "project_id": "07531898-d22f-4492-9522-26bf26448b6c",
   "schema_version": "0.2",
-  "created_at": "2026-05-20T13:11:57.676496+00:00",
-  "updated_at": "2026-05-20T13:11:57.676535+00:00",
+  "created_at": "2026-05-20T13:18:15.870390+00:00",
+  "updated_at": "2026-05-20T13:18:15.870441+00:00",
   "name": "GUI Contract Fit Example",
   "description": "Example GUI project containing config and fit payload.",
   "workflow": "fit",

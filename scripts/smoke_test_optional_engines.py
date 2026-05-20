@@ -85,6 +85,15 @@ def build_optional_engine_workflows() -> list[OptionalEngineWorkflow]:
                         "100",
                     ],
                 ),
+                OptionalEngineWorkflow(
+                    name="jax_batched_projection_engine",
+                    command=[
+                        sys.executable,
+                        "-m",
+                        "pytest",
+                        "tests/test_jax_batched_projection_engine.py",
+                    ],
+                ),
             ]
         )
 
