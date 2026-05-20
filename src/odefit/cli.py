@@ -30,6 +30,10 @@ from odefit.fitting.multispecies_variable_projection import (
     export_multispecies_variable_projection_fit,
     fit_global_observable_model_multispecies_variable_projection,
 )
+from odefit.fitting.multispecies_variable_projection_multistart import (
+    export_multispecies_variable_projection_multistart_summary,
+    fit_global_observable_model_multispecies_variable_projection_multistart,
+)
 from odefit.fitting.multistart import (
     export_multistart_comparison,
     fit_multistart,
@@ -1865,6 +1869,8 @@ def command_fit_global_observables(args: argparse.Namespace) -> None:
         config.get("use_multispecies_variable_projection", False)
     )
 
+    use_multistart = bool(config.get("use_multistart", False))
+
     variable_projection_backend = str(
         config.get("variable_projection_backend", "numpy")
     )
@@ -1886,6 +1892,68 @@ def command_fit_global_observables(args: argparse.Namespace) -> None:
         print(f"Observable columns: {len(dataset.signal_columns)}")
         print(f"Backend: {variable_projection_backend}")
         print(f"ODE method: {variable_projection_method}")
+
+        if use_multistart:
+            n_starts = int(config.get("n_starts", 10))
+            random_seed = config.get("random_seed")
+
+            if random_seed is not None:
+                random_seed = int(random_seed)
+
+            sort_by = config.get("sort_by", "bic")
+            log_uniform = bool(config.get("log_uniform", True))
+
+            result = (
+                fit_global_observable_model_multispecies_variable_projection_multistart(
+                    model=model,
+                    dataset=dataset,
+                    parameter_specs=parameter_specs,
+                    initial_condition_specs=initial_condition_specs,
+                    observed_species=observed_species,
+                    settings=settings,
+                    signal_columns=dataset.signal_columns,
+                    fit_offset=fit_offset,
+                    backend=variable_projection_backend,
+                    method=variable_projection_method,
+                    n_starts=n_starts,
+                    random_seed=random_seed,
+                    sort_by=sort_by,
+                    log_uniform=log_uniform,
+                    show_progress=True,
+                )
+            )
+
+            written_files = export_multispecies_variable_projection_multistart_summary(
+                result=result,
+                output_dir=output_path,
+                export_best_fit=True,
+            )
+
+            peak_filtering_path = write_peak_filtering_table(
+                filtering_result=filtering_result,
+                output_dir=output_path,
+            )
+
+            written_files["peak_filtering"] = peak_filtering_path
+
+            print("\nBest start:", result.best_index)
+            print("Best fit success:", result.best_result.success)
+            print("Best fit message:", result.best_result.message)
+            print(
+                "Best fitted kinetic parameters:", result.best_result.fitted_parameters
+            )
+            print("Best statistics:", result.best_result.statistics)
+
+            print(
+                "\nWrote multispecies variable projection multistart outputs "
+                f"to: {output_path}"
+            )
+
+            print("\nWritten files:")
+            for name, path in written_files.items():
+                print(f"  {name}: {path}")
+
+            return
 
         result = fit_global_observable_model_multispecies_variable_projection(
             model=model,

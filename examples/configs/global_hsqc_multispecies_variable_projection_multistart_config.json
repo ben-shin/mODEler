@@ -1,0 +1,52 @@
+{
+  "use_multispecies_variable_projection": true,
+  "use_multistart": true,
+  "model": "examples/configs/model_first_order.txt",
+  "data": "examples/configs/example_hsqc_peaks.csv",
+  "time_column": "time",
+  "signal_columns": null,
+  "exclude_columns": null,
+  "observed_species": ["A", "B"],
+  "output_dir": "examples/configs/outputs/global_hsqc_multispecies_variable_projection_multistart",
+
+  "parameters": {
+    "k1f": {
+      "initial_guess": 0.1,
+      "lower_bound": 0.000001,
+      "upper_bound": 10.0
+    }
+  },
+
+  "initial_conditions": {
+    "A": {
+      "value": 1.0,
+      "mode": "fixed"
+    },
+    "B": {
+      "value": 0.0,
+      "mode": "fixed"
+    }
+  },
+
+  "n_starts": 10,
+  "random_seed": 123,
+  "sort_by": "bic",
+  "log_uniform": true,
+
+  "fit_offset": true,
+
+  "method": "trf",
+  "loss": "linear",
+  "max_nfev": null,
+  "rtol": 0.000001,
+  "atol": 0.000000001,
+
+  "variable_projection_backend": "numpy",
+  "variable_projection_method": "LSODA",
+
+  "max_missing_fraction": 0.0,
+  "min_initial_intensity": null,
+  "initial_points": 1,
+  "min_dynamic_range": null,
+  "interpolate_missing": true
+}

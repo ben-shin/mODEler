@@ -1,0 +1,18 @@
+{
+  "best_index": 9,
+  "n_successful_starts": 10,
+  "n_failed_starts": 0,
+  "best_statistics": {
+    "rss": 1.3681358777086982e-07,
+    "rmse": 6.16472013807579e-05,
+    "aic": -695.9739561760996,
+    "bic": -694.3904372376435,
+    "n_points": 36,
+    "n_kinetic_parameters": 1,
+    "n_observable_columns": 4,
+    "n_projected_species": 2
+  },
+  "best_fitted_parameters": {
+    "k1f": 0.40005931912633647
+  }
+}
