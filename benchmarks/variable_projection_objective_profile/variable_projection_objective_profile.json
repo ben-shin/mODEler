@@ -1,0 +1,53 @@
+[
+  {
+    "engine_name": "reference",
+    "n_timepoints": 30,
+    "n_observables": 50,
+    "n_repeats": 10,
+    "solve_median_seconds": 0.0006254520048969425,
+    "solve_mean_seconds": 0.0006567229014763143,
+    "projection_batch_median_seconds": 1.8945000192616135e-05,
+    "projection_batch_mean_seconds": 2.4103399482555687e-05,
+    "full_projection_assembly_median_seconds": 0.0007511469993914943,
+    "full_projection_assembly_mean_seconds": 0.0007626870996318757,
+    "residual_vector_length": 1500,
+    "rss": 0.005884857500528808,
+    "projection_plus_assembly_over_solve_median": 1.2009666505350205,
+    "assembly_over_batch_projection_median": 39.64882511240385,
+    "batch_projection_fraction_of_full_projection_assembly": 0.02522142830626165
+  },
+  {
+    "engine_name": "numba_projection",
+    "n_timepoints": 30,
+    "n_observables": 50,
+    "n_repeats": 10,
+    "solve_median_seconds": 0.0005996965010126587,
+    "solve_mean_seconds": 0.0005985162002616562,
+    "projection_batch_median_seconds": 6.571499397978187e-06,
+    "projection_batch_mean_seconds": 0.004981699799827766,
+    "full_projection_assembly_median_seconds": 0.0007273359988175798,
+    "full_projection_assembly_mean_seconds": 0.0007306708001124206,
+    "residual_vector_length": 1500,
+    "rss": 0.005884857500528811,
+    "projection_plus_assembly_over_solve_median": 1.2128401576287116,
+    "assembly_over_batch_projection_median": 110.68037212958657,
+    "batch_projection_fraction_of_full_projection_assembly": 0.00903502563967875
+  },
+  {
+    "engine_name": "jax_projection",
+    "n_timepoints": 30,
+    "n_observables": 50,
+    "n_repeats": 10,
+    "solve_median_seconds": 0.0005759250016126316,
+    "solve_mean_seconds": 0.000594581200130051,
+    "projection_batch_median_seconds": 0.00022968899793340825,
+    "projection_batch_mean_seconds": 0.009850996500608744,
+    "full_projection_assembly_median_seconds": 0.00097186350467382,
+    "full_projection_assembly_mean_seconds": 0.001023423501465004,
+    "residual_vector_length": 1500,
+    "rss": 0.005884857500528813,
+    "projection_plus_assembly_over_solve_median": 1.6874827485393618,
+    "assembly_over_batch_projection_median": 4.231214874974482,
+    "batch_projection_fraction_of_full_projection_assembly": 0.2363387418385437
+  }
+]
