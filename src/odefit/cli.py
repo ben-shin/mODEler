@@ -30,6 +30,10 @@ from odefit.fitting.multispecies_variable_projection import (
     export_multispecies_variable_projection_fit,
     fit_global_observable_model_multispecies_variable_projection,
 )
+from odefit.fitting.multispecies_variable_projection_model_comparison import (
+    export_multispecies_variable_projection_model_comparison,
+    fit_global_observable_multispecies_variable_projection_model_comparison,
+)
 from odefit.fitting.multispecies_variable_projection_multistart import (
     export_multispecies_variable_projection_multistart_summary,
     fit_global_observable_model_multispecies_variable_projection_multistart,
@@ -1869,6 +1873,13 @@ def command_fit_global_observables(args: argparse.Namespace) -> None:
         config.get("use_multispecies_variable_projection", False)
     )
 
+    if use_multispecies_variable_projection:
+        command_compare_global_observables_multispecies_variable_projection(
+            args=args,
+            config=config,
+        )
+        return
+
     use_multistart = bool(config.get("use_multistart", False))
 
     variable_projection_backend = str(
@@ -2829,6 +2840,18 @@ def command_compare_global_observables(args: argparse.Namespace) -> None:
     """
 
     config = load_fit_config(args.config)
+
+    use_multispecies_variable_projection = bool(
+        config.get("use_multispecies_variable_projection", False)
+    )
+
+    if use_multispecies_variable_projection:
+        command_compare_global_observables_multispecies_variable_projection(
+            args=args,
+            config=config,
+        )
+        return
+
     use_variable_projection = bool(
         config.get("use_variable_projection", False)
     ) or bool(getattr(args, "variable_projection", False))
@@ -4189,6 +4212,17 @@ def command_bootstrap_global_observables(args: argparse.Namespace) -> None:
 
     config = load_fit_config(args.config)
 
+    use_multispecies_variable_projection = bool(
+        config.get("use_multispecies_variable_projection", False)
+    )
+
+    if use_multispecies_variable_projection:
+        command_compare_global_observables_multispecies_variable_projection(
+            args=args,
+            config=config,
+        )
+        return
+
     use_variable_projection = bool(
         config.get("use_variable_projection", False)
     ) or bool(getattr(args, "variable_projection", False))
@@ -4369,6 +4403,166 @@ def command_bootstrap_global_observables(args: argparse.Namespace) -> None:
             print(warnings_table.to_string(index=False))
 
     print(f"\nWrote bootstrap outputs to: {output_path}")
+
+    print("\nWritten files:")
+    for name, path in written_files.items():
+        print(f"  {name}: {path}")
+
+
+def command_compare_global_observables_multispecies_variable_projection(
+    args: argparse.Namespace,
+    config: dict,
+) -> None:
+    data_path = config["data"]
+    time_column = config.get("time_column", "time")
+    signal_columns = config.get("signal_columns")
+    exclude_columns = config.get("exclude_columns")
+    output_dir = config["output_dir"]
+
+    observed_species = config.get("observed_species")
+    observed_species_by_model = config.get(
+        "observed_species_by_model",
+        observed_species,
+    )
+
+    if observed_species_by_model is None:
+        raise ValueError(
+            "Multispecies model comparison requires observed_species "
+            "or observed_species_by_model."
+        )
+
+    sort_by = config.get("sort_by", "bic")
+
+    method = config.get("method", "trf")
+    loss = config.get("loss", "linear")
+    max_nfev = config.get("max_nfev")
+    rtol = config.get("rtol", 1e-6)
+    atol = config.get("atol", 1e-9)
+
+    fit_offset = bool(config.get("fit_offset", True))
+
+    variable_projection_backend = str(
+        config.get("variable_projection_backend", "numpy")
+    )
+    variable_projection_method = str(config.get("variable_projection_method", "LSODA"))
+
+    models = build_model_specs_from_comparison_config(config)
+
+    peak_filtering_settings = {
+        "max_missing_fraction": float(config.get("max_missing_fraction", 0.0)),
+        "min_initial_intensity": (
+            None
+            if config.get("min_initial_intensity") is None
+            else float(config.get("min_initial_intensity"))
+        ),
+        "initial_points": int(config.get("initial_points", 1)),
+        "min_dynamic_range": (
+            None
+            if config.get("min_dynamic_range") is None
+            else float(config.get("min_dynamic_range"))
+        ),
+        "interpolate_missing": bool(config.get("interpolate_missing", True)),
+    }
+
+    dataset, filtering_result = read_wide_observable_dataset_with_filtering(
+        file_path=data_path,
+        time_column=time_column,
+        signal_columns=signal_columns,
+        exclude_columns=exclude_columns,
+        max_missing_fraction=peak_filtering_settings["max_missing_fraction"],
+        min_initial_intensity=peak_filtering_settings["min_initial_intensity"],
+        initial_points=peak_filtering_settings["initial_points"],
+        min_dynamic_range=peak_filtering_settings["min_dynamic_range"],
+        interpolate_missing=peak_filtering_settings["interpolate_missing"],
+    )
+
+    parameter_specs_by_model = build_parameter_specs_by_model_from_config(
+        models=models,
+        config=config,
+        default_guess=float(config.get("default_parameter_guess", 0.1)),
+        default_lower=float(config.get("default_parameter_lower", 0.0)),
+        default_upper=float(config.get("default_parameter_upper", 100.0)),
+    )
+
+    initial_condition_specs_by_model = (
+        build_initial_condition_specs_by_model_from_config(
+            models=models,
+            config=config,
+        )
+    )
+
+    signal_weight_entries = config.get("signal_weight")
+    if signal_weight_entries is None:
+        signal_weight_entries = config.get("signal_weights")
+
+    settings = FitSettings(
+        species_mapping={},
+        use_normalized_data=False,
+        method=method,
+        loss=loss,
+        max_nfev=max_nfev,
+        rtol=rtol,
+        atol=atol,
+        signal_weights=parse_signal_weight_entries(signal_weight_entries),
+    )
+
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    print("Running multispecies variable projection model comparison")
+    print("Models:", ", ".join(models))
+    print("Observable columns:", len(dataset.signal_columns))
+    print("Kept observable columns:", len(filtering_result.kept_columns))
+    print("Removed observable columns:", len(filtering_result.removed_columns))
+    print("Sort by:", sort_by)
+    print("Backend:", variable_projection_backend)
+    print("ODE method:", variable_projection_method)
+
+    result = fit_global_observable_multispecies_variable_projection_model_comparison(
+        models=models,
+        dataset=dataset,
+        parameter_specs_by_model=parameter_specs_by_model,
+        initial_condition_specs_by_model=initial_condition_specs_by_model,
+        observed_species_by_model=observed_species_by_model,
+        settings=settings,
+        signal_columns=dataset.signal_columns,
+        fit_offset=fit_offset,
+        backend=variable_projection_backend,
+        method=variable_projection_method,
+        sort_by=sort_by,
+    )
+
+    written_files = export_multispecies_variable_projection_model_comparison(
+        result=result,
+        output_dir=output_path,
+        export_best_fit=True,
+        export_per_model_fits=False,
+    )
+
+    peak_filtering_path = write_peak_filtering_table(
+        filtering_result=filtering_result,
+        output_dir=output_path,
+    )
+
+    written_files["peak_filtering"] = peak_filtering_path
+
+    print("\nBest model:", result.best_model_name)
+    print("Best fit success:", result.best_result.success)
+    print("Best fit message:", result.best_result.message)
+    print("Best fitted kinetic parameters:", result.best_result.fitted_parameters)
+    print("Best statistics:", result.best_result.statistics)
+
+    if result.failures:
+        print("\nFailed models:")
+        for failure in result.failures:
+            print(
+                f"  {failure.model_name}: {failure.error_type}: {failure.error_message}"
+            )
+
+    print(
+        "\nWrote multispecies variable projection model comparison outputs "
+        f"to: {output_path}"
+    )
 
     print("\nWritten files:")
     for name, path in written_files.items():

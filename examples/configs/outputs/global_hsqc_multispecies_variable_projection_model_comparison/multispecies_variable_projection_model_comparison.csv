@@ -1,0 +1,3 @@
+model_name,rank,success,observed_species,rss,rmse,aic,bic,n_points,n_kinetic_parameters,n_observable_columns,n_projected_species,message
+single_step,1,True,"A,B",1.3681359808148975e-07,6.164720370370278e-05,-695.9739534630481,-694.390434524592,36,1,4,2,Both `ftol` and `xtol` termination conditions are satisfied.
+two_step,2,True,"A,B",1.3544883472365113e-07,6.133895688070129e-05,-694.3348691567029,-691.1678312797907,36,2,4,2,`gtol` termination condition is satisfied.
