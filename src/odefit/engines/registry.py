@@ -28,10 +28,22 @@ def create_numba_projection_engine_bundle() -> BackendEngineBundle:
     )
 
 
+def create_jax_projection_engine_bundle() -> BackendEngineBundle:
+    from odefit.engines.jax_projection import JaxProjectionEngine
+
+    return BackendEngineBundle(
+        name="jax_projection",
+        solver=ReferenceScipySolverEngine(),
+        projection=JaxProjectionEngine(),
+        least_squares=ReferenceScipyLeastSquaresEngine(),
+    )
+
+
 _ENGINE_FACTORIES = {
     "reference": create_reference_engine_bundle,
     "numpy_scipy": create_reference_engine_bundle,
     "numba_projection": create_numba_projection_engine_bundle,
+    "jax_projection": create_jax_projection_engine_bundle,
 }
 
 

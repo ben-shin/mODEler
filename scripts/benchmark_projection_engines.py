@@ -68,7 +68,7 @@ def main() -> None:
     parser.add_argument(
         "--engines",
         nargs="+",
-        default=["reference", "numba_projection"],
+        default=["reference", "numba_projection", "jax_projection"],
         help="Engine names to benchmark.",
     )
 

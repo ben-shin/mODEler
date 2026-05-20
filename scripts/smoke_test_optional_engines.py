@@ -5,7 +5,7 @@ import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-
+from odefit.engines.jax_projection import is_jax_available
 from odefit.engines.numba_projection import is_numba_available
 
 
@@ -45,6 +45,42 @@ def build_optional_engine_workflows() -> list[OptionalEngineWorkflow]:
                     command=[
                         sys.executable,
                         "scripts/benchmark_projection_engines.py",
+                        "--n-repeats",
+                        "100",
+                    ],
+                ),
+            ]
+        )
+
+    if is_jax_available():
+        workflows.extend(
+            [
+                OptionalEngineWorkflow(
+                    name="jax_projection_unit_tests",
+                    command=[
+                        sys.executable,
+                        "-m",
+                        "pytest",
+                        "tests/test_jax_projection_engine.py",
+                    ],
+                ),
+                OptionalEngineWorkflow(
+                    name="jax_projection_api_workflow",
+                    command=[
+                        sys.executable,
+                        "-m",
+                        "pytest",
+                        "tests/test_jax_projection_workflow.py",
+                    ],
+                ),
+                OptionalEngineWorkflow(
+                    name="jax_projection_benchmark",
+                    command=[
+                        sys.executable,
+                        "scripts/benchmark_projection_engines.py",
+                        "--engines",
+                        "reference",
+                        "jax_projection",
                         "--n-repeats",
                         "100",
                     ],

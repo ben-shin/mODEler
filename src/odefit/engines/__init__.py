@@ -25,3 +25,8 @@ from odefit.engines.numba_projection import (
     NumbaProjectionEngine,
     is_numba_available,
 )
+from odefit.engines.jax_projection import (
+    JAX_AVAILABLE,
+    JaxProjectionEngine,
+    is_jax_available,
+)
