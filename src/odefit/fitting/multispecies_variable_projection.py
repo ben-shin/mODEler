@@ -3,17 +3,23 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+import json
 
 import numpy as np
 import pandas as pd
-from scipy.optimize import least_squares
 
 from odefit.data.dataset import Dataset
+from odefit.engines.base import BackendEngineBundle
+from odefit.fitting.engine_helpers import (
+    engine_least_squares,
+    engine_project_multispecies,
+    engine_solve_to_dataframe,
+    resolve_engine_bundle,
+)
 from odefit.fitting.fit_settings import FitSettings
 from odefit.fitting.initial_condition_spec import InitialConditionSpec
 from odefit.fitting.parameter_spec import ParameterSpec
 from odefit.model.model_spec import ModelSpec
-from odefit.simulation.solver import simulate_model
 
 
 @dataclass
@@ -74,17 +80,6 @@ def _initial_conditions_from_specs(
             initial_conditions[spec.species] = float(spec.initial_guess)
 
     return initial_conditions
-
-
-def _build_simulation_dataframe(simulation_result) -> pd.DataFrame:
-    data = {
-        "time": simulation_result.timepoints,
-    }
-
-    for species in simulation_result.species:
-        data[species] = simulation_result.get_species_values(species)
-
-    return pd.DataFrame(data)
 
 
 def solve_multispecies_observable_projection(
@@ -148,9 +143,7 @@ def solve_multispecies_observable_projection(
         for species, value in zip(species_names, coefficient_values)
     }
 
-    full_design = X
-
-    predicted = full_design @ coefficient_values + offset
+    predicted = X @ coefficient_values + offset
     residuals = y - predicted
 
     rss = float(
@@ -174,13 +167,15 @@ def fit_global_observable_model_multispecies_variable_projection(
     fit_offset: bool = True,
     backend: str = "numpy",
     method: str = "LSODA",
+    engine_name: str = "reference",
+    engine_bundle: BackendEngineBundle | None = None,
 ) -> MultispeciesVariableProjectionResult:
     """
     Multi-species variable projection.
 
     Nonlinear optimizer fits kinetic parameters.
     For each observable column, linear coefficients for selected species
-    are solved analytically.
+    are solved analytically using the configured projection engine.
 
     Model:
         signal_i(t) = c_i1*S1(t) + c_i2*S2(t) + ... + offset_i
@@ -188,6 +183,11 @@ def fit_global_observable_model_multispecies_variable_projection(
 
     if backend != "numpy":
         raise ValueError("Only backend='numpy' is currently supported.")
+
+    engine_bundle = resolve_engine_bundle(
+        engine_name=engine_name,
+        engine_bundle=engine_bundle,
+    )
 
     if signal_columns is None:
         signal_columns = dataset.signal_columns
@@ -219,7 +219,7 @@ def fit_global_observable_model_multispecies_variable_projection(
         dtype=float,
     )
 
-    last_context = {}
+    last_context: dict[str, Any] = {}
 
     def residual_function(parameter_vector: np.ndarray) -> np.ndarray:
         parameters = {
@@ -227,20 +227,18 @@ def fit_global_observable_model_multispecies_variable_projection(
             for name, value in zip(parameter_names, parameter_vector)
         }
 
-        simulation_result = simulate_model(
+        simulation_dataframe = engine_solve_to_dataframe(
+            engine_bundle=engine_bundle,
             model=model,
             parameters=parameters,
             initial_conditions=initial_conditions,
             timepoints=timepoints,
-            settings=settings.to_simulation_settings()
-            if hasattr(settings, "to_simulation_settings")
-            else None,
+            settings=(
+                settings.to_simulation_settings()
+                if hasattr(settings, "to_simulation_settings")
+                else None
+            ),
         )
-
-        if not simulation_result.success:
-            raise RuntimeError(simulation_result.message)
-
-        simulation_dataframe = _build_simulation_dataframe(simulation_result)
 
         species_matrix = simulation_dataframe[observed_species].to_numpy(
             dtype=float,
@@ -254,14 +252,19 @@ def fit_global_observable_model_multispecies_variable_projection(
         for column_index, signal_column in enumerate(signal_columns):
             signal = observed_matrix[:, column_index]
 
-            coefficients, offset, predicted, residuals, rss = (
-                solve_multispecies_observable_projection(
-                    signal=signal,
-                    species_matrix=species_matrix,
-                    species_names=observed_species,
-                    fit_offset=fit_offset,
-                )
+            projection = engine_project_multispecies(
+                engine_bundle=engine_bundle,
+                observed_values=signal,
+                species_matrix=species_matrix,
+                species_names=observed_species,
+                fit_offset=fit_offset,
             )
+
+            coefficients = projection.coefficients
+            offset = projection.offset
+            predicted = projection.predicted
+            residuals = projection.residuals
+            rss = projection.rss
 
             finite = np.isfinite(residuals)
 
@@ -287,7 +290,6 @@ def fit_global_observable_model_multispecies_variable_projection(
         last_context.update(
             {
                 "parameters": parameters,
-                "simulation_result": simulation_result,
                 "simulation_dataframe": simulation_dataframe,
                 "observable_table": pd.DataFrame(observable_rows),
                 "predicted_dataframe": predicted_dataframe,
@@ -298,8 +300,9 @@ def fit_global_observable_model_multispecies_variable_projection(
 
         return residual_vector
 
-    optimizer_result = least_squares(
-        residual_function,
+    optimizer_result = engine_least_squares(
+        engine_bundle=engine_bundle,
+        residual_function=residual_function,
         x0=x0,
         bounds=(lower, upper),
         method=settings.method,
@@ -387,8 +390,6 @@ def export_multispecies_variable_projection_fit(
         "fitted_initial_conditions": result.fitted_initial_conditions,
         "statistics": result.statistics,
     }
-
-    import json
 
     with summary_path.open("w") as handle:
         json.dump(summary, handle, indent=2)
