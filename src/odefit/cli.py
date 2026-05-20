@@ -26,6 +26,10 @@ from odefit.fitting.global_observables import (
     read_wide_observable_dataset_with_filtering,
 )
 from odefit.fitting.initial_condition_spec import InitialConditionSpec
+from odefit.fitting.multispecies_variable_projection import (
+    export_multispecies_variable_projection_fit,
+    fit_global_observable_model_multispecies_variable_projection,
+)
 from odefit.fitting.multistart import (
     export_multistart_comparison,
     fit_multistart,
@@ -1857,11 +1861,69 @@ def command_fit_global_observables(args: argparse.Namespace) -> None:
         config.get("use_variable_projection", False)
     ) or bool(getattr(args, "variable_projection", False))
 
+    use_multispecies_variable_projection = bool(
+        config.get("use_multispecies_variable_projection", False)
+    )
+
     variable_projection_backend = str(
         config.get("variable_projection_backend", "numpy")
     )
 
     variable_projection_method = str(config.get("variable_projection_method", "LSODA"))
+
+    if use_multispecies_variable_projection:
+        output_path = Path(output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
+
+        if not isinstance(observed_species, list):
+            raise ValueError(
+                "Multispecies variable projection requires "
+                "observed_species to be a list, e.g. ['A', 'B']."
+            )
+
+        print("Running global observable fit with multispecies variable projection")
+        print(f"Observed species: {observed_species}")
+        print(f"Observable columns: {len(dataset.signal_columns)}")
+        print(f"Backend: {variable_projection_backend}")
+        print(f"ODE method: {variable_projection_method}")
+
+        result = fit_global_observable_model_multispecies_variable_projection(
+            model=model,
+            dataset=dataset,
+            parameter_specs=parameter_specs,
+            initial_condition_specs=initial_condition_specs,
+            observed_species=observed_species,
+            settings=settings,
+            signal_columns=dataset.signal_columns,
+            fit_offset=fit_offset,
+            backend=variable_projection_backend,
+            method=variable_projection_method,
+        )
+
+        written_files = export_multispecies_variable_projection_fit(
+            result=result,
+            output_dir=output_path,
+        )
+
+        peak_filtering_path = write_peak_filtering_table(
+            filtering_result=filtering_result,
+            output_dir=output_path,
+        )
+
+        written_files["peak_filtering"] = peak_filtering_path
+
+        print("\nMultispecies variable projection fit success:", result.success)
+        print("Message:", result.message)
+        print("Fitted kinetic parameters:", result.fitted_parameters)
+        print("Statistics:", result.statistics)
+
+        print(f"\nWrote multispecies variable projection outputs to: {output_path}")
+        print("\nWritten files:")
+
+        for name, path in written_files.items():
+            print(f"  {name}: {path}")
+
+        return
 
     if use_variable_projection:
         output_path = Path(output_dir)

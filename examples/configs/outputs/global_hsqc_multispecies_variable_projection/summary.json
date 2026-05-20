@@ -1,0 +1,21 @@
+{
+  "success": true,
+  "message": "Both `ftol` and `xtol` termination conditions are satisfied.",
+  "fitted_parameters": {
+    "k1f": 0.4000593302664111
+  },
+  "fitted_initial_conditions": {
+    "A": 1.0,
+    "B": 0.0
+  },
+  "statistics": {
+    "rss": 1.3681359808148975e-07,
+    "rmse": 6.164720370370278e-05,
+    "aic": -695.9739534630481,
+    "bic": -694.390434524592,
+    "n_points": 36,
+    "n_kinetic_parameters": 1,
+    "n_observable_columns": 4,
+    "n_projected_species": 2
+  }
+}
