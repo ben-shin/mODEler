@@ -29,7 +29,7 @@
 
   "fit_scale": true,
   "fit_offset": true,
-
+  "n_workers": 1,
   "n_bootstrap": 20,
   "random_seed": 123,
   "confidence_level": 0.95,

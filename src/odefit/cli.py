@@ -4034,8 +4034,11 @@ def command_profile_likelihood_global_observables(args: argparse.Namespace) -> N
 
     identifiability_path = output_path / "identifiability_warnings.csv"
 
-    if identifiability_path.exists():
-        warnings_table = pd.read_csv(identifiability_path)
+    if identifiability_path.exists() and identifiability_path.stat().st_size > 0:
+        try:
+            warnings_table = pd.read_csv(identifiability_path)
+        except pd.errors.EmptyDataError:
+            warnings_table = pd.DataFrame()
 
         if not warnings_table.empty:
             print("\nIdentifiability warnings:")
@@ -4075,6 +4078,7 @@ def command_bootstrap_global_observables(args: argparse.Namespace) -> None:
     observed_species = config.get("observed_species", "A")
     output_dir = config["output_dir"]
     n_bootstrap = int(config.get("n_bootstrap", 100))
+    n_workers = int(config.get("n_workers", 1))
 
     random_seed = config.get("random_seed")
 
@@ -4179,6 +4183,7 @@ def command_bootstrap_global_observables(args: argparse.Namespace) -> None:
     print(f"Observed species: {observed_species}")
     print(f"Observable columns: {len(dataset.signal_columns)}")
     print(f"Bootstrap replicates: {n_bootstrap}")
+    print(f"Workers: {n_workers}")
     print(f"Confidence level: {confidence_level}")
     print(f"Backend: {variable_projection_backend}")
     print(f"ODE method: {variable_projection_method}")
@@ -4196,6 +4201,7 @@ def command_bootstrap_global_observables(args: argparse.Namespace) -> None:
         backend=variable_projection_backend,
         method=variable_projection_method,
         n_bootstrap=n_bootstrap,
+        n_workers=n_workers,
         random_seed=random_seed,
         confidence_level=confidence_level,
         show_progress=show_progress,
@@ -4222,8 +4228,11 @@ def command_bootstrap_global_observables(args: argparse.Namespace) -> None:
 
     identifiability_path = output_path / "identifiability_warnings.csv"
 
-    if identifiability_path.exists():
-        warnings_table = pd.read_csv(identifiability_path)
+    if identifiability_path.exists() and identifiability_path.stat().st_size > 0:
+        try:
+            warnings_table = pd.read_csv(identifiability_path)
+        except pd.errors.EmptyDataError:
+            warnings_table = pd.DataFrame()
 
         if not warnings_table.empty:
             print("\nIdentifiability warnings:")

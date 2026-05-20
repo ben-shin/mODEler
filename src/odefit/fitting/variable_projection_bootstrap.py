@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import traceback
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -53,15 +54,6 @@ def _build_resampled_dataset(
     signal_columns: list[str],
     rng: np.random.Generator,
 ) -> Dataset:
-    """
-    Residual bootstrap dataset.
-
-    Uses:
-        bootstrapped_y = fitted_y + resampled_residuals
-
-    Residuals are resampled independently within each observable column.
-    """
-
     raw = original_dataset.raw_dataframe.copy()
 
     fitted = original_result.predicted_dataframe
@@ -79,6 +71,7 @@ def _build_resampled_dataset(
             residuals[column],
             dtype=float,
         )
+
         finite = np.isfinite(residual_values)
 
         if not finite.any():
@@ -99,6 +92,37 @@ def _build_resampled_dataset(
         time_column=original_dataset.time_column,
         signal_columns=signal_columns,
     )
+
+
+def _fit_one_bootstrap_replicate_worker(payload: dict):
+    bootstrap_index = payload["bootstrap_index"]
+    rng = np.random.default_rng(payload["random_seed"])
+
+    bootstrap_dataset = _build_resampled_dataset(
+        original_dataset=payload["dataset"],
+        original_result=payload["original_result"],
+        signal_columns=payload["signal_columns"],
+        rng=rng,
+    )
+
+    fit_result = fit_global_observable_model_variable_projection(
+        model=payload["model"],
+        dataset=bootstrap_dataset,
+        parameter_specs=payload["parameter_specs"],
+        initial_condition_specs=payload["initial_condition_specs"],
+        observed_species=payload["observed_species"],
+        settings=payload["settings"],
+        signal_columns=payload["signal_columns"],
+        fit_scale=payload["fit_scale"],
+        fit_offset=payload["fit_offset"],
+        backend=payload["backend"],
+        method=payload["method"],
+    )
+
+    row = {"bootstrap_index": bootstrap_index}
+    row.update(fit_result.fitted_parameters)
+
+    return bootstrap_index, fit_result, row
 
 
 def _summarize_parameter_samples(
@@ -148,24 +172,13 @@ def bootstrap_global_observable_variable_projection_fit(
     backend: str = "numpy",
     method: str = "LSODA",
     n_bootstrap: int = 100,
+    n_workers: int = 1,
     random_seed: int | None = None,
     confidence_level: float = 0.95,
     refit_original: bool = True,
     original_result: Any | None = None,
     show_progress: bool = True,
 ) -> VariableProjectionBootstrapResult:
-    """
-    Residual bootstrap for variable-projection global observable fitting.
-
-    Procedure:
-        1. Fit original dataset unless original_result is provided.
-        2. Build bootstrap datasets by resampling residuals.
-        3. Refit each bootstrapped dataset.
-        4. Summarize kinetic parameter uncertainty.
-
-    This estimates uncertainty in the nonlinear kinetic parameters.
-    """
-
     if n_bootstrap < 1:
         raise ValueError("n_bootstrap must be at least 1.")
 
@@ -201,49 +214,121 @@ def bootstrap_global_observable_variable_projection_fit(
     failures: list[VariableProjectionBootstrapFailure] = []
     parameter_rows = []
 
-    for bootstrap_index in range(n_bootstrap):
-        if show_progress:
-            print(f"Variable projection bootstrap: {bootstrap_index + 1}/{n_bootstrap}")
+    seeds = rng.integers(
+        low=0,
+        high=np.iinfo(np.int32).max,
+        size=n_bootstrap,
+    )
 
-        try:
-            bootstrap_dataset = _build_resampled_dataset(
-                original_dataset=dataset,
-                original_result=original_result,
-                signal_columns=signal_columns,
-                rng=rng,
-            )
-
-            fit_result = fit_global_observable_model_variable_projection(
-                model=model,
-                dataset=bootstrap_dataset,
-                parameter_specs=parameter_specs,
-                initial_condition_specs=initial_condition_specs,
-                observed_species=observed_species,
-                settings=settings,
-                signal_columns=signal_columns,
-                fit_scale=fit_scale,
-                fit_offset=fit_offset,
-                backend=backend,
-                method=method,
-            )
-
-            bootstrap_results.append(fit_result)
-
-            row = {"bootstrap_index": bootstrap_index}
-            row.update(fit_result.fitted_parameters)
-            parameter_rows.append(row)
-
-        except Exception as exc:
-            failures.append(
-                VariableProjectionBootstrapFailure(
-                    bootstrap_index=bootstrap_index,
-                    error_type=type(exc).__name__,
-                    error_message=str(exc),
-                    traceback=traceback.format_exc(),
+    if n_workers is None or int(n_workers) <= 1:
+        for bootstrap_index in range(n_bootstrap):
+            if show_progress:
+                print(
+                    f"Variable projection bootstrap: "
+                    f"{bootstrap_index + 1}/{n_bootstrap}"
                 )
-            )
+
+            try:
+                bootstrap_dataset = _build_resampled_dataset(
+                    original_dataset=dataset,
+                    original_result=original_result,
+                    signal_columns=signal_columns,
+                    rng=np.random.default_rng(int(seeds[bootstrap_index])),
+                )
+
+                fit_result = fit_global_observable_model_variable_projection(
+                    model=model,
+                    dataset=bootstrap_dataset,
+                    parameter_specs=parameter_specs,
+                    initial_condition_specs=initial_condition_specs,
+                    observed_species=observed_species,
+                    settings=settings,
+                    signal_columns=signal_columns,
+                    fit_scale=fit_scale,
+                    fit_offset=fit_offset,
+                    backend=backend,
+                    method=method,
+                )
+
+                bootstrap_results.append(fit_result)
+
+                row = {"bootstrap_index": bootstrap_index}
+                row.update(fit_result.fitted_parameters)
+                parameter_rows.append(row)
+
+            except Exception as exc:
+                failures.append(
+                    VariableProjectionBootstrapFailure(
+                        bootstrap_index=bootstrap_index,
+                        error_type=type(exc).__name__,
+                        error_message=str(exc),
+                        traceback=traceback.format_exc(),
+                    )
+                )
+
+    else:
+        n_workers = int(n_workers)
+
+        payloads = [
+            {
+                "bootstrap_index": bootstrap_index,
+                "random_seed": int(seeds[bootstrap_index]),
+                "model": model,
+                "dataset": dataset,
+                "original_result": original_result,
+                "parameter_specs": parameter_specs,
+                "initial_condition_specs": initial_condition_specs,
+                "observed_species": observed_species,
+                "settings": settings,
+                "signal_columns": signal_columns,
+                "fit_scale": fit_scale,
+                "fit_offset": fit_offset,
+                "backend": backend,
+                "method": method,
+            }
+            for bootstrap_index in range(n_bootstrap)
+        ]
+
+        completed = 0
+
+        with ProcessPoolExecutor(max_workers=n_workers) as executor:
+            futures = {
+                executor.submit(
+                    _fit_one_bootstrap_replicate_worker,
+                    payload,
+                ): payload["bootstrap_index"]
+                for payload in payloads
+            }
+
+            for future in as_completed(futures):
+                bootstrap_index = futures[future]
+                completed += 1
+
+                if show_progress:
+                    print(f"Variable projection bootstrap: {completed}/{n_bootstrap}")
+
+                try:
+                    _, fit_result, row = future.result()
+
+                    bootstrap_results.append(fit_result)
+                    parameter_rows.append(row)
+
+                except Exception as exc:
+                    failures.append(
+                        VariableProjectionBootstrapFailure(
+                            bootstrap_index=bootstrap_index,
+                            error_type=type(exc).__name__,
+                            error_message=str(exc),
+                            traceback=traceback.format_exc(),
+                        )
+                    )
 
     parameter_samples = pd.DataFrame(parameter_rows)
+
+    if not parameter_samples.empty:
+        parameter_samples = parameter_samples.sort_values(
+            "bootstrap_index"
+        ).reset_index(drop=True)
 
     if parameter_samples.empty:
         raise RuntimeError("All bootstrap fits failed.")
@@ -287,22 +372,6 @@ def export_variable_projection_bootstrap_result(
         "n_successful_bootstrap": len(result.bootstrap_results),
         "n_failed_bootstrap": len(result.failures),
     }
-
-    identifiability_report = build_identifiability_report(
-        bootstrap_summary_table=result.summary_table,
-        fitted_parameters=result.original_result.fitted_parameters,
-        parameter_bounds=None,
-        n_bootstrap_requested=(len(result.bootstrap_results) + len(result.failures)),
-        n_bootstrap_failed=len(result.failures),
-    )
-
-    identifiability_files = export_identifiability_report(
-        report=identifiability_report,
-        output_dir=output_path,
-    )
-
-    for name, path in identifiability_files.items():
-        written_files[name] = path
 
     metadata_path = output_path / "bootstrap_metadata.json"
     with metadata_path.open("w") as handle:
@@ -361,7 +430,7 @@ def export_variable_projection_bootstrap_result(
         ]
 
         if bootstrap_prediction_dataframes:
-            signal_columns = [
+            prediction_columns = [
                 column
                 for column in result.original_result.predicted_dataframe.columns
                 if column != result.original_result.predicted_dataframe.columns[0]
@@ -371,11 +440,27 @@ def export_variable_projection_bootstrap_result(
                 original_dataframe=result.original_result.predicted_dataframe,
                 bootstrap_prediction_dataframes=bootstrap_prediction_dataframes,
                 time_column=result.original_result.predicted_dataframe.columns[0],
-                signal_columns=signal_columns,
+                signal_columns=prediction_columns,
                 output_dir=plots_dir,
             )
 
             for name, path in prediction_files.items():
                 written_files[f"plot_{name}"] = path
+
+    identifiability_report = build_identifiability_report(
+        bootstrap_summary_table=result.summary_table,
+        fitted_parameters=result.original_result.fitted_parameters,
+        parameter_bounds=None,
+        n_bootstrap_requested=(len(result.bootstrap_results) + len(result.failures)),
+        n_bootstrap_failed=len(result.failures),
+    )
+
+    identifiability_files = export_identifiability_report(
+        report=identifiability_report,
+        output_dir=output_path,
+    )
+
+    for name, path in identifiability_files.items():
+        written_files[name] = path
 
     return written_files
