@@ -1,0 +1,40 @@
+[
+  {
+    "engine_name": "reference",
+    "available": true,
+    "benchmark": "project_single_species_batch",
+    "n_timepoints": 50,
+    "n_observables": 1000,
+    "n_repeats": 20,
+    "min_seconds": 7.353999535553157e-05,
+    "mean_seconds": 0.0001410188004228985,
+    "median_seconds": 7.973850370035507e-05,
+    "max_seconds": 0.0007265530002769083,
+    "rss": 0.19122004269464415,
+    "warmup_rss": 0.19122004269464415
+  },
+  {
+    "engine_name": "numba_projection",
+    "available": true,
+    "benchmark": "project_single_species_batch",
+    "n_timepoints": 50,
+    "n_observables": 1000,
+    "n_repeats": 20,
+    "min_seconds": 7.524800457758829e-05,
+    "mean_seconds": 9.364005090901628e-05,
+    "median_seconds": 7.818200174369849e-05,
+    "max_seconds": 0.00020539500110317022,
+    "rss": 0.19122004269464415,
+    "warmup_rss": 0.19122004269464415
+  },
+  {
+    "engine_name": "jax_projection",
+    "available": false,
+    "benchmark": "project_single_species_batch",
+    "n_timepoints": 50,
+    "n_observables": 1000,
+    "n_repeats": 20,
+    "error_type": "ImportError",
+    "error_message": "The jax_projection engine requires jax. Install jax or use engine_name='reference'."
+  }
+]

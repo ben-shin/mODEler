@@ -1,0 +1,4 @@
+engine_name,available,benchmark,n_timepoints,n_observables,n_repeats,min_seconds,mean_seconds,median_seconds,max_seconds,rss,warmup_rss,error_type,error_message
+reference,True,project_single_species_batch,50,1000,20,7.353999535553157e-05,0.0001410188004228985,7.973850370035507e-05,0.0007265530002769083,0.19122004269464415,0.19122004269464415,,
+numba_projection,True,project_single_species_batch,50,1000,20,7.524800457758829e-05,9.364005090901628e-05,7.818200174369849e-05,0.00020539500110317022,0.19122004269464415,0.19122004269464415,,
+jax_projection,False,project_single_species_batch,50,1000,20,,,,,,,ImportError,The jax_projection engine requires jax. Install jax or use engine_name='reference'.
