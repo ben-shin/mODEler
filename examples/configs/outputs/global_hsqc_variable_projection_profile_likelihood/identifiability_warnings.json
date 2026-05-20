@@ -1,0 +1,12 @@
+{
+  "has_warnings": true,
+  "n_warnings": 1,
+  "warnings": [
+    {
+      "warning_type": "nonfinite_profile_likelihood",
+      "severity": "error",
+      "target": "k1f",
+      "message": "Profile likelihood for k1f contains no finite profile points."
+    }
+  ]
+}

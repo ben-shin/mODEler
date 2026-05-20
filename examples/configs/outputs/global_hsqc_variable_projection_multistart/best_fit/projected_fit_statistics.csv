@@ -1,0 +1,2 @@
+rss,mse,rmse,n_observations,n_nonlinear_parameters,n_linear_parameters,n_total_parameters,degrees_of_freedom,aic,bic
+1.3680748095933626e-07,5.066943739234676e-09,6.164582552311232e-05,36.0,1.0,8.0,9.0,27.0,-679.9755631080238,-665.7238926619189

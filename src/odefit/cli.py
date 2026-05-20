@@ -1885,13 +1885,6 @@ def command_fit_global_observables(args: argparse.Namespace) -> None:
         config.get("use_multispecies_variable_projection", False)
     )
 
-    if use_multispecies_variable_projection:
-        command_compare_global_observables_multispecies_variable_projection(
-            args=args,
-            config=config,
-        )
-        return
-
     use_multistart = bool(config.get("use_multistart", False))
 
     variable_projection_backend = str(

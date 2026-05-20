@@ -1,0 +1,2 @@
+warning_type,severity,target,message
+nonfinite_profile_likelihood,error,k1f,Profile likelihood for k1f contains no finite profile points.
