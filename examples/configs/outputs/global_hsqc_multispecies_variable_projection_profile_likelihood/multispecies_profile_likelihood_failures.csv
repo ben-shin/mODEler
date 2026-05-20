@@ -1,0 +1,127 @@
+parameter,fixed_value,error_type,error_message,traceback
+k1f,0.04000593302664111,ValueError,Each lower bound must be strictly less than each upper bound.,"Traceback (most recent call last):
+  File ""/home/benshin/mODEler/src/odefit/fitting/multispecies_variable_projection_profile_likelihood.py"", line 167, in fit_multispecies_variable_projection_profile_likelihood
+    result = fit_global_observable_model_multispecies_variable_projection(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/home/benshin/mODEler/src/odefit/fitting/multispecies_variable_projection.py"", line 301, in fit_global_observable_model_multispecies_variable_projection
+    optimizer_result = least_squares(
+                       ^^^^^^^^^^^^^^
+  File ""/home/benshin/miniconda3/envs/modeler/lib/python3.11/site-packages/scipy/_lib/_util.py"", line 717, in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/home/benshin/miniconda3/envs/modeler/lib/python3.11/site-packages/scipy/optimize/_lsq/least_squares.py"", line 897, in least_squares
+    raise ValueError(""Each lower bound must be strictly less than each ""
+ValueError: Each lower bound must be strictly less than each upper bound.
+"
+k1f,0.07114172698067202,ValueError,Each lower bound must be strictly less than each upper bound.,"Traceback (most recent call last):
+  File ""/home/benshin/mODEler/src/odefit/fitting/multispecies_variable_projection_profile_likelihood.py"", line 167, in fit_multispecies_variable_projection_profile_likelihood
+    result = fit_global_observable_model_multispecies_variable_projection(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/home/benshin/mODEler/src/odefit/fitting/multispecies_variable_projection.py"", line 301, in fit_global_observable_model_multispecies_variable_projection
+    optimizer_result = least_squares(
+                       ^^^^^^^^^^^^^^
+  File ""/home/benshin/miniconda3/envs/modeler/lib/python3.11/site-packages/scipy/_lib/_util.py"", line 717, in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/home/benshin/miniconda3/envs/modeler/lib/python3.11/site-packages/scipy/optimize/_lsq/least_squares.py"", line 897, in least_squares
+    raise ValueError(""Each lower bound must be strictly less than each ""
+ValueError: Each lower bound must be strictly less than each upper bound.
+"
+k1f,0.12650986828433955,ValueError,Each lower bound must be strictly less than each upper bound.,"Traceback (most recent call last):
+  File ""/home/benshin/mODEler/src/odefit/fitting/multispecies_variable_projection_profile_likelihood.py"", line 167, in fit_multispecies_variable_projection_profile_likelihood
+    result = fit_global_observable_model_multispecies_variable_projection(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/home/benshin/mODEler/src/odefit/fitting/multispecies_variable_projection.py"", line 301, in fit_global_observable_model_multispecies_variable_projection
+    optimizer_result = least_squares(
+                       ^^^^^^^^^^^^^^
+  File ""/home/benshin/miniconda3/envs/modeler/lib/python3.11/site-packages/scipy/_lib/_util.py"", line 717, in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/home/benshin/miniconda3/envs/modeler/lib/python3.11/site-packages/scipy/optimize/_lsq/least_squares.py"", line 897, in least_squares
+    raise ValueError(""Each lower bound must be strictly less than each ""
+ValueError: Each lower bound must be strictly less than each upper bound.
+"
+k1f,0.22496989393677716,ValueError,Each lower bound must be strictly less than each upper bound.,"Traceback (most recent call last):
+  File ""/home/benshin/mODEler/src/odefit/fitting/multispecies_variable_projection_profile_likelihood.py"", line 167, in fit_multispecies_variable_projection_profile_likelihood
+    result = fit_global_observable_model_multispecies_variable_projection(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/home/benshin/mODEler/src/odefit/fitting/multispecies_variable_projection.py"", line 301, in fit_global_observable_model_multispecies_variable_projection
+    optimizer_result = least_squares(
+                       ^^^^^^^^^^^^^^
+  File ""/home/benshin/miniconda3/envs/modeler/lib/python3.11/site-packages/scipy/_lib/_util.py"", line 717, in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/home/benshin/miniconda3/envs/modeler/lib/python3.11/site-packages/scipy/optimize/_lsq/least_squares.py"", line 897, in least_squares
+    raise ValueError(""Each lower bound must be strictly less than each ""
+ValueError: Each lower bound must be strictly less than each upper bound.
+"
+k1f,0.40005933026641116,ValueError,Each lower bound must be strictly less than each upper bound.,"Traceback (most recent call last):
+  File ""/home/benshin/mODEler/src/odefit/fitting/multispecies_variable_projection_profile_likelihood.py"", line 167, in fit_multispecies_variable_projection_profile_likelihood
+    result = fit_global_observable_model_multispecies_variable_projection(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/home/benshin/mODEler/src/odefit/fitting/multispecies_variable_projection.py"", line 301, in fit_global_observable_model_multispecies_variable_projection
+    optimizer_result = least_squares(
+                       ^^^^^^^^^^^^^^
+  File ""/home/benshin/miniconda3/envs/modeler/lib/python3.11/site-packages/scipy/_lib/_util.py"", line 717, in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/home/benshin/miniconda3/envs/modeler/lib/python3.11/site-packages/scipy/optimize/_lsq/least_squares.py"", line 897, in least_squares
+    raise ValueError(""Each lower bound must be strictly less than each ""
+ValueError: Each lower bound must be strictly less than each upper bound.
+"
+k1f,0.7114172698067202,ValueError,Each lower bound must be strictly less than each upper bound.,"Traceback (most recent call last):
+  File ""/home/benshin/mODEler/src/odefit/fitting/multispecies_variable_projection_profile_likelihood.py"", line 167, in fit_multispecies_variable_projection_profile_likelihood
+    result = fit_global_observable_model_multispecies_variable_projection(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/home/benshin/mODEler/src/odefit/fitting/multispecies_variable_projection.py"", line 301, in fit_global_observable_model_multispecies_variable_projection
+    optimizer_result = least_squares(
+                       ^^^^^^^^^^^^^^
+  File ""/home/benshin/miniconda3/envs/modeler/lib/python3.11/site-packages/scipy/_lib/_util.py"", line 717, in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/home/benshin/miniconda3/envs/modeler/lib/python3.11/site-packages/scipy/optimize/_lsq/least_squares.py"", line 897, in least_squares
+    raise ValueError(""Each lower bound must be strictly less than each ""
+ValueError: Each lower bound must be strictly less than each upper bound.
+"
+k1f,1.2650986828433954,ValueError,Each lower bound must be strictly less than each upper bound.,"Traceback (most recent call last):
+  File ""/home/benshin/mODEler/src/odefit/fitting/multispecies_variable_projection_profile_likelihood.py"", line 167, in fit_multispecies_variable_projection_profile_likelihood
+    result = fit_global_observable_model_multispecies_variable_projection(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/home/benshin/mODEler/src/odefit/fitting/multispecies_variable_projection.py"", line 301, in fit_global_observable_model_multispecies_variable_projection
+    optimizer_result = least_squares(
+                       ^^^^^^^^^^^^^^
+  File ""/home/benshin/miniconda3/envs/modeler/lib/python3.11/site-packages/scipy/_lib/_util.py"", line 717, in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/home/benshin/miniconda3/envs/modeler/lib/python3.11/site-packages/scipy/optimize/_lsq/least_squares.py"", line 897, in least_squares
+    raise ValueError(""Each lower bound must be strictly less than each ""
+ValueError: Each lower bound must be strictly less than each upper bound.
+"
+k1f,2.2496989393677715,ValueError,Each lower bound must be strictly less than each upper bound.,"Traceback (most recent call last):
+  File ""/home/benshin/mODEler/src/odefit/fitting/multispecies_variable_projection_profile_likelihood.py"", line 167, in fit_multispecies_variable_projection_profile_likelihood
+    result = fit_global_observable_model_multispecies_variable_projection(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/home/benshin/mODEler/src/odefit/fitting/multispecies_variable_projection.py"", line 301, in fit_global_observable_model_multispecies_variable_projection
+    optimizer_result = least_squares(
+                       ^^^^^^^^^^^^^^
+  File ""/home/benshin/miniconda3/envs/modeler/lib/python3.11/site-packages/scipy/_lib/_util.py"", line 717, in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/home/benshin/miniconda3/envs/modeler/lib/python3.11/site-packages/scipy/optimize/_lsq/least_squares.py"", line 897, in least_squares
+    raise ValueError(""Each lower bound must be strictly less than each ""
+ValueError: Each lower bound must be strictly less than each upper bound.
+"
+k1f,4.000593302664111,ValueError,Each lower bound must be strictly less than each upper bound.,"Traceback (most recent call last):
+  File ""/home/benshin/mODEler/src/odefit/fitting/multispecies_variable_projection_profile_likelihood.py"", line 167, in fit_multispecies_variable_projection_profile_likelihood
+    result = fit_global_observable_model_multispecies_variable_projection(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/home/benshin/mODEler/src/odefit/fitting/multispecies_variable_projection.py"", line 301, in fit_global_observable_model_multispecies_variable_projection
+    optimizer_result = least_squares(
+                       ^^^^^^^^^^^^^^
+  File ""/home/benshin/miniconda3/envs/modeler/lib/python3.11/site-packages/scipy/_lib/_util.py"", line 717, in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/home/benshin/miniconda3/envs/modeler/lib/python3.11/site-packages/scipy/optimize/_lsq/least_squares.py"", line 897, in least_squares
+    raise ValueError(""Each lower bound must be strictly less than each ""
+ValueError: Each lower bound must be strictly less than each upper bound.
+"

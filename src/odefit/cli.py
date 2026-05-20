@@ -30,6 +30,10 @@ from odefit.fitting.multispecies_variable_projection import (
     export_multispecies_variable_projection_fit,
     fit_global_observable_model_multispecies_variable_projection,
 )
+from odefit.fitting.multispecies_variable_projection_bootstrap import (
+    bootstrap_global_observable_multispecies_variable_projection_fit,
+    export_multispecies_variable_projection_bootstrap_result,
+)
 from odefit.fitting.multispecies_variable_projection_model_comparison import (
     export_multispecies_variable_projection_model_comparison,
     fit_global_observable_multispecies_variable_projection_model_comparison,
@@ -41,6 +45,10 @@ from odefit.fitting.multispecies_variable_projection_multistart import (
 from odefit.fitting.multispecies_variable_projection_multistart_model_comparison import (
     export_multispecies_variable_projection_multistart_model_comparison,
     fit_global_observable_multispecies_variable_projection_multistart_model_comparison,
+)
+from odefit.fitting.multispecies_variable_projection_profile_likelihood import (
+    export_multispecies_profile_likelihood_result,
+    fit_multispecies_variable_projection_profile_likelihood,
 )
 from odefit.fitting.multistart import (
     export_multistart_comparison,
@@ -4091,6 +4099,13 @@ def command_multistart_compare_global_observables_variable_projection(
 def command_profile_likelihood_global_observables(args: argparse.Namespace) -> None:
     config = load_fit_config(args.config)
 
+    if bool(config.get("use_multispecies_variable_projection", False)):
+        command_profile_likelihood_global_observables_multispecies_variable_projection(
+            args=args,
+            config=config,
+        )
+        return
+
     model_path = config["model"]
     data_path = config["data"]
     time_column = config.get("time_column", "time")
@@ -4226,6 +4241,13 @@ def command_bootstrap_global_observables(args: argparse.Namespace) -> None:
     """
 
     config = load_fit_config(args.config)
+
+    if bool(config.get("use_multispecies_variable_projection", False)):
+        command_bootstrap_global_observables_multispecies_variable_projection(
+            args=args,
+            config=config,
+        )
+        return
 
     use_multispecies_variable_projection = bool(
         config.get("use_multispecies_variable_projection", False)
@@ -4759,6 +4781,267 @@ def command_multistart_compare_global_observables_multispecies_variable_projecti
         "\nWrote multispecies variable projection multistart "
         f"model comparison outputs to: {output_path}"
     )
+
+    print("\nWritten files:")
+    for name, path in written_files.items():
+        print(f"  {name}: {path}")
+
+
+def command_bootstrap_global_observables_multispecies_variable_projection(
+    args: argparse.Namespace,
+    config: dict,
+) -> None:
+    model_path = config["model"]
+    data_path = config["data"]
+    time_column = config.get("time_column", "time")
+    signal_columns = config.get("signal_columns")
+    exclude_columns = config.get("exclude_columns")
+    observed_species = config["observed_species"]
+    output_dir = config["output_dir"]
+
+    model = read_model_file(model_path)
+
+    peak_filtering_settings = {
+        "max_missing_fraction": float(config.get("max_missing_fraction", 0.0)),
+        "min_initial_intensity": (
+            None
+            if config.get("min_initial_intensity") is None
+            else float(config.get("min_initial_intensity"))
+        ),
+        "initial_points": int(config.get("initial_points", 1)),
+        "min_dynamic_range": (
+            None
+            if config.get("min_dynamic_range") is None
+            else float(config.get("min_dynamic_range"))
+        ),
+        "interpolate_missing": bool(config.get("interpolate_missing", True)),
+    }
+
+    dataset, filtering_result = read_wide_observable_dataset_with_filtering(
+        file_path=data_path,
+        time_column=time_column,
+        signal_columns=signal_columns,
+        exclude_columns=exclude_columns,
+        max_missing_fraction=peak_filtering_settings["max_missing_fraction"],
+        min_initial_intensity=peak_filtering_settings["min_initial_intensity"],
+        initial_points=peak_filtering_settings["initial_points"],
+        min_dynamic_range=peak_filtering_settings["min_dynamic_range"],
+        interpolate_missing=peak_filtering_settings["interpolate_missing"],
+    )
+
+    parameter_entries = config.get("parameter")
+    if parameter_entries is None:
+        parameter_entries = config.get("parameters")
+
+    initial_entries = config.get("initial")
+    if initial_entries is None:
+        initial_entries = config.get("initial_conditions")
+
+    signal_weight_entries = config.get("signal_weight")
+    if signal_weight_entries is None:
+        signal_weight_entries = config.get("signal_weights")
+
+    parameter_specs = build_parameter_specs(
+        model=model,
+        parameter_entries=parameter_entries,
+        default_guess=float(config.get("default_parameter_guess", 0.1)),
+        default_lower=float(config.get("default_parameter_lower", 0.0)),
+        default_upper=float(config.get("default_parameter_upper", 100.0)),
+    )
+
+    initial_condition_specs = build_initial_condition_specs(
+        model=model,
+        initial_entries=initial_entries,
+    )
+
+    settings = FitSettings(
+        species_mapping={},
+        use_normalized_data=False,
+        method=config.get("method", "trf"),
+        loss=config.get("loss", "linear"),
+        max_nfev=config.get("max_nfev"),
+        rtol=config.get("rtol", 1e-6),
+        atol=config.get("atol", 1e-9),
+        signal_weights=parse_signal_weight_entries(signal_weight_entries),
+    )
+
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    print("Running multispecies variable projection bootstrap")
+    print(f"Model: {model_path}")
+    print(f"Data: {data_path}")
+    print(f"Observed species: {observed_species}")
+    print(f"Observable columns: {len(dataset.signal_columns)}")
+    print(f"Bootstrap replicates: {int(config.get('n_bootstrap', 100))}")
+    print(f"Workers: {int(config.get('n_workers', 1))}")
+
+    result = bootstrap_global_observable_multispecies_variable_projection_fit(
+        model=model,
+        dataset=dataset,
+        parameter_specs=parameter_specs,
+        initial_condition_specs=initial_condition_specs,
+        observed_species=observed_species,
+        settings=settings,
+        signal_columns=dataset.signal_columns,
+        fit_offset=bool(config.get("fit_offset", True)),
+        backend=str(config.get("variable_projection_backend", "numpy")),
+        method=str(config.get("variable_projection_method", "LSODA")),
+        n_bootstrap=int(config.get("n_bootstrap", 100)),
+        n_workers=int(config.get("n_workers", 1)),
+        random_seed=config.get("random_seed"),
+        confidence_level=float(config.get("confidence_level", 0.95)),
+        show_progress=bool(config.get("show_progress", True))
+        and not bool(getattr(args, "no_progress", False)),
+    )
+
+    written_files = export_multispecies_variable_projection_bootstrap_result(
+        result=result,
+        output_dir=output_path,
+        export_original_fit=True,
+        include_plots=not bool(config.get("no_plots", False)),
+    )
+
+    peak_filtering_path = write_peak_filtering_table(
+        filtering_result=filtering_result,
+        output_dir=output_path,
+    )
+
+    written_files["peak_filtering"] = peak_filtering_path
+
+    print("\nBootstrap successful fits:", len(result.bootstrap_results))
+    print("Bootstrap failed fits:", len(result.failures))
+    print("\nParameter uncertainty summary:")
+    print(result.summary_table.to_string(index=False))
+
+    print(f"\nWrote multispecies bootstrap outputs to: {output_path}")
+
+    print("\nWritten files:")
+    for name, path in written_files.items():
+        print(f"  {name}: {path}")
+
+
+def command_profile_likelihood_global_observables_multispecies_variable_projection(
+    args: argparse.Namespace,
+    config: dict,
+) -> None:
+    model_path = config["model"]
+    data_path = config["data"]
+    time_column = config.get("time_column", "time")
+    signal_columns = config.get("signal_columns")
+    exclude_columns = config.get("exclude_columns")
+    observed_species = config["observed_species"]
+    output_dir = config["output_dir"]
+
+    model = read_model_file(model_path)
+
+    peak_filtering_settings = {
+        "max_missing_fraction": float(config.get("max_missing_fraction", 0.0)),
+        "min_initial_intensity": (
+            None
+            if config.get("min_initial_intensity") is None
+            else float(config.get("min_initial_intensity"))
+        ),
+        "initial_points": int(config.get("initial_points", 1)),
+        "min_dynamic_range": (
+            None
+            if config.get("min_dynamic_range") is None
+            else float(config.get("min_dynamic_range"))
+        ),
+        "interpolate_missing": bool(config.get("interpolate_missing", True)),
+    }
+
+    dataset, filtering_result = read_wide_observable_dataset_with_filtering(
+        file_path=data_path,
+        time_column=time_column,
+        signal_columns=signal_columns,
+        exclude_columns=exclude_columns,
+        max_missing_fraction=peak_filtering_settings["max_missing_fraction"],
+        min_initial_intensity=peak_filtering_settings["min_initial_intensity"],
+        initial_points=peak_filtering_settings["initial_points"],
+        min_dynamic_range=peak_filtering_settings["min_dynamic_range"],
+        interpolate_missing=peak_filtering_settings["interpolate_missing"],
+    )
+
+    parameter_entries = config.get("parameter")
+    if parameter_entries is None:
+        parameter_entries = config.get("parameters")
+
+    initial_entries = config.get("initial")
+    if initial_entries is None:
+        initial_entries = config.get("initial_conditions")
+
+    signal_weight_entries = config.get("signal_weight")
+    if signal_weight_entries is None:
+        signal_weight_entries = config.get("signal_weights")
+
+    parameter_specs = build_parameter_specs(
+        model=model,
+        parameter_entries=parameter_entries,
+        default_guess=float(config.get("default_parameter_guess", 0.1)),
+        default_lower=float(config.get("default_parameter_lower", 0.0)),
+        default_upper=float(config.get("default_parameter_upper", 100.0)),
+    )
+
+    initial_condition_specs = build_initial_condition_specs(
+        model=model,
+        initial_entries=initial_entries,
+    )
+
+    settings = FitSettings(
+        species_mapping={},
+        use_normalized_data=False,
+        method=config.get("method", "trf"),
+        loss=config.get("loss", "linear"),
+        max_nfev=config.get("max_nfev"),
+        rtol=config.get("rtol", 1e-6),
+        atol=config.get("atol", 1e-9),
+        signal_weights=parse_signal_weight_entries(signal_weight_entries),
+    )
+
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    print("Running multispecies variable projection profile likelihood")
+    print(f"Model: {model_path}")
+    print(f"Data: {data_path}")
+    print(f"Observed species: {observed_species}")
+    print(f"Observable columns: {len(dataset.signal_columns)}")
+
+    result = fit_multispecies_variable_projection_profile_likelihood(
+        model=model,
+        dataset=dataset,
+        parameter_specs=parameter_specs,
+        initial_condition_specs=initial_condition_specs,
+        observed_species=observed_species,
+        settings=settings,
+        signal_columns=dataset.signal_columns,
+        fit_offset=bool(config.get("fit_offset", True)),
+        backend=str(config.get("variable_projection_backend", "numpy")),
+        method=str(config.get("variable_projection_method", "LSODA")),
+        profile_parameters=config.get("profile_parameters"),
+        n_points=int(config.get("profile_n_points", 15)),
+        span_factor=float(config.get("profile_span_factor", 10.0)),
+        log_space=bool(config.get("profile_log_space", True)),
+        show_progress=not bool(getattr(args, "no_progress", False)),
+    )
+
+    written_files = export_multispecies_profile_likelihood_result(
+        result=result,
+        output_dir=output_path,
+        include_plots=not bool(config.get("no_plots", False)),
+    )
+
+    peak_filtering_path = write_peak_filtering_table(
+        filtering_result=filtering_result,
+        output_dir=output_path,
+    )
+
+    written_files["peak_filtering"] = peak_filtering_path
+
+    print("\nMultispecies profile likelihood complete")
+    print(result.profile_table.to_string(index=False))
+    print(f"\nWrote multispecies profile likelihood outputs to: {output_path}")
 
     print("\nWritten files:")
     for name, path in written_files.items():
