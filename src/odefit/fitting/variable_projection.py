@@ -8,11 +8,21 @@ import pandas as pd
 from scipy.optimize import least_squares
 
 from odefit.data.dataset import Dataset
+from odefit.engines.base import BackendEngineBundle
+from odefit.fitting.engine_helpers import (
+    engine_least_squares,
+    engine_project_single_species,
+    engine_solve_to_dataframe,
+    resolve_engine_bundle,
+)
 from odefit.fitting.fit_settings import FitSettings
 from odefit.fitting.initial_condition_spec import InitialConditionSpec
 from odefit.fitting.parameter_spec import ParameterSpec
 from odefit.model.model_spec import ModelSpec
-from odefit.performance.array_solve_ivp import ArraySolveResult, solve_array_mass_action_model
+from odefit.performance.array_solve_ivp import (
+    ArraySolveResult,
+    solve_array_mass_action_model,
+)
 
 
 @dataclass
@@ -89,12 +99,16 @@ def solve_scale_offset(
     y = np.asarray(y_values, dtype=float)
 
     if x.shape != y.shape:
-        raise ValueError(f"x_values and y_values must have the same shape: {x.shape} vs {y.shape}")
+        raise ValueError(
+            f"x_values and y_values must have the same shape: {x.shape} vs {y.shape}"
+        )
 
     valid = np.isfinite(x) & np.isfinite(y)
 
     if valid.sum() < 2 and fit_scale and fit_offset:
-        raise ValueError("At least two finite points are required to fit scale and offset")
+        raise ValueError(
+            "At least two finite points are required to fit scale and offset"
+        )
 
     if valid.sum() < 1:
         raise ValueError("At least one finite point is required")
@@ -104,7 +118,11 @@ def solve_scale_offset(
 
     if fit_scale and fit_offset:
         design = np.column_stack([x_valid, np.ones_like(x_valid)])
-        coefficients, *_ = np.linalg.lstsq(design, y_valid, rcond=None)
+        coefficients, *_ = np.linalg.lstsq(
+            design,
+            y_valid,
+            rcond=None,
+        )
         scale = float(coefficients[0])
         offset = float(coefficients[1])
         return scale, offset
@@ -184,7 +202,9 @@ def project_observables_onto_species(
         residual_blocks.append(weighted_residual[np.isfinite(weighted_residual)])
 
         n_finite = int(np.isfinite(y).sum())
-        column_rss = float(np.sum(weighted_residual[np.isfinite(weighted_residual)] ** 2))
+        column_rss = float(
+            np.sum(weighted_residual[np.isfinite(weighted_residual)] ** 2)
+        )
 
         if fit_scale:
             n_linear_parameters += 1
@@ -257,11 +277,7 @@ def _free_parameter_specs(
     Return free nonlinear parameter specs.
     """
 
-    return [
-        spec
-        for spec in parameter_specs
-        if not spec.fixed
-    ]
+    return [spec for spec in parameter_specs if not spec.fixed]
 
 
 def _parameter_vector_to_dict(
@@ -330,8 +346,7 @@ def _build_fit_statistics(
 
     aic = float(safe_n * np.log(safe_rss / safe_n) + 2 * n_total_parameters)
     bic = float(
-        safe_n * np.log(safe_rss / safe_n)
-        + n_total_parameters * np.log(safe_n)
+        safe_n * np.log(safe_rss / safe_n) + n_total_parameters * np.log(safe_n)
     )
 
     return {
@@ -366,6 +381,7 @@ def _simulation_to_dataframe(
 
 
 def fit_global_observable_model_variable_projection(
+    *,
     model: ModelSpec,
     dataset: Dataset,
     parameter_specs: list[ParameterSpec],
@@ -377,6 +393,8 @@ def fit_global_observable_model_variable_projection(
     fit_offset: bool = True,
     backend: str = "numpy",
     method: str = "LSODA",
+    engine_name: str = "reference",
+    engine_bundle: BackendEngineBundle | None = None,
 ) -> VariableProjectionGlobalObservableFitResult:
     """
     Fit a global observable model using variable projection.
@@ -391,6 +409,10 @@ def fit_global_observable_model_variable_projection(
     - one observed species shared by all columns
     - unconstrained linear scale/offset projection
     """
+    engine_bundle = resolve_engine_bundle(
+        engine_name=engine_name,
+        engine_bundle=engine_bundle,
+    )
 
     if settings is None:
         settings = FitSettings(
@@ -401,7 +423,9 @@ def fit_global_observable_model_variable_projection(
         signal_columns = dataset.signal_columns
 
     if observed_species not in model.species:
-        raise ValueError(f"Observed species is not present in model: {observed_species}")
+        raise ValueError(
+            f"Observed species is not present in model: {observed_species}"
+        )
 
     timepoints = dataset.raw_dataframe[dataset.time_column].to_numpy(dtype=float)
     observed_dataframe = dataset.raw_dataframe
@@ -412,26 +436,17 @@ def fit_global_observable_model_variable_projection(
     free_specs = _free_parameter_specs(parameter_specs)
 
     x0 = np.asarray(
-        [
-            spec.initial_guess
-            for spec in free_specs
-        ],
+        [spec.initial_guess for spec in free_specs],
         dtype=float,
     )
 
     lower_bounds = np.asarray(
-        [
-            spec.lower_bound
-            for spec in free_specs
-        ],
+        [spec.lower_bound for spec in free_specs],
         dtype=float,
     )
 
     upper_bounds = np.asarray(
-        [
-            spec.upper_bound
-            for spec in free_specs
-        ],
+        [spec.upper_bound for spec in free_specs],
         dtype=float,
     )
 
