@@ -1,0 +1,17 @@
+{
+  "name": "single_step",
+  "species": [
+    "A",
+    "B"
+  ],
+  "parameters": [
+    "k1f"
+  ],
+  "reactions": [
+    "Reaction(reactants={'A': 1}, products={'B': 1}, reversible=False, forward_rate='k1f', reverse_rate=None, label=None, source_line=1)"
+  ],
+  "ode_lines": [
+    "dA/dt = -k1f*A",
+    "dB/dt = k1f*A"
+  ]
+}
