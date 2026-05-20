@@ -99,6 +99,7 @@ def fit_multispecies_variable_projection_profile_likelihood(
     span_factor: float = 10.0,
     log_space: bool = True,
     show_progress: bool = True,
+    engine_name: str = "reference",
 ) -> MultispeciesProfileLikelihoodResult:
     if signal_columns is None:
         signal_columns = dataset.signal_columns
@@ -114,6 +115,7 @@ def fit_multispecies_variable_projection_profile_likelihood(
         fit_offset=fit_offset,
         backend=backend,
         method=method,
+        engine_name=engine_name,
     )
 
     fitted = original_result.fitted_parameters
@@ -175,6 +177,7 @@ def fit_multispecies_variable_projection_profile_likelihood(
                     fit_offset=fit_offset,
                     backend=backend,
                     method=method,
+                    engine_name=engine_name,
                 )
 
                 rss = float(result.statistics["rss"])

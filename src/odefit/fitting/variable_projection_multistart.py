@@ -236,6 +236,7 @@ def fit_global_observable_variable_projection_multistart(
     raise_on_failure: bool = False,
     show_progress: bool = False,
     progress_label: str = "Variable projection multistart",
+    engine_name: str = "reference",
 ) -> VariableProjectionMultistartResult:
     """
     Run variable-projection global observable multistart fitting.
@@ -276,6 +277,7 @@ def fit_global_observable_variable_projection_multistart(
                 fit_offset=fit_offset,
                 backend=backend,
                 method=method,
+                engine_name=engine_name,
             )
 
             completed_results[start_index] = result

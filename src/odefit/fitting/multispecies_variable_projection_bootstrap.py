@@ -142,6 +142,7 @@ def _fit_one_bootstrap_worker(payload: dict):
         fit_offset=payload["fit_offset"],
         backend=payload["backend"],
         method=payload["method"],
+        engine_name=payload.get("engine_name", "reference"),
     )
 
     row = {"bootstrap_index": bootstrap_index}
@@ -168,6 +169,7 @@ def bootstrap_global_observable_multispecies_variable_projection_fit(
     confidence_level: float = 0.95,
     original_result: MultispeciesVariableProjectionResult | None = None,
     show_progress: bool = True,
+    engine_name: str = "reference",
 ) -> MultispeciesVariableProjectionBootstrapResult:
     if n_bootstrap < 1:
         raise ValueError("n_bootstrap must be at least 1.")
@@ -192,6 +194,7 @@ def bootstrap_global_observable_multispecies_variable_projection_fit(
             fit_offset=fit_offset,
             backend=backend,
             method=method,
+            engine_name=engine_name,
         )
 
     bootstrap_results: list[MultispeciesVariableProjectionResult] = []
@@ -231,6 +234,7 @@ def bootstrap_global_observable_multispecies_variable_projection_fit(
                     fit_offset=fit_offset,
                     backend=backend,
                     method=method,
+                    engine_name=engine_name,
                 )
 
                 bootstrap_results.append(fit_result)
@@ -265,6 +269,7 @@ def bootstrap_global_observable_multispecies_variable_projection_fit(
                 "fit_offset": fit_offset,
                 "backend": backend,
                 "method": method,
+                "engine_name": engine_name,
             }
             for bootstrap_index in range(n_bootstrap)
         ]

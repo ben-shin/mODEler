@@ -94,6 +94,7 @@ def fit_global_observable_model_multispecies_variable_projection_multistart(
     sort_by: str = "bic",
     log_uniform: bool = True,
     show_progress: bool = True,
+    engine_name: str = "reference",
 ) -> MultispeciesVariableProjectionMultistartResult:
     if n_starts < 1:
         raise ValueError("n_starts must be at least 1.")
@@ -138,6 +139,7 @@ def fit_global_observable_model_multispecies_variable_projection_multistart(
                 fit_offset=fit_offset,
                 backend=backend,
                 method=method,
+                engine_name=engine_name,
             )
 
             successful_results.append(result)

@@ -1,4 +1,3 @@
-
 {
   "model_texts": {
     "irreversible": "A>B",
@@ -11,19 +10,19 @@
     "irreversible": {
       "k1f": {
         "initial_guess": 0.1,
-        "lower_bound": 0.000001,
+        "lower_bound": 1e-06,
         "upper_bound": 10.0
       }
     },
     "reversible": {
       "k1f": {
         "initial_guess": 0.1,
-        "lower_bound": 0.000001,
+        "lower_bound": 1e-06,
         "upper_bound": 10.0
       },
       "k1r": {
         "initial_guess": 0.01,
-        "lower_bound": 0.000001,
+        "lower_bound": 1e-06,
         "upper_bound": 10.0
       }
     }
@@ -62,7 +61,7 @@
   "fit_offset": true,
   "method": "trf",
   "loss": "linear",
-  "rtol": 1e-8,
+  "rtol": 1e-08,
   "atol": 1e-10,
   "max_nfev": 5000,
   "sort_by": "aic",
@@ -75,5 +74,6 @@
   "variable_projection_backend": "numpy",
   "variable_projection_method": "LSODA",
   "output_dir": "examples/configs/outputs/global_hsqc_variable_projection_model_comparison",
-  "no_plots": true
+  "no_plots": true,
+  "engine_name": "reference"
 }

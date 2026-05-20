@@ -139,6 +139,7 @@ def fit_global_observable_variable_projection_model_comparison(
     method: str = "LSODA",
     sort_by: str = "aic",
     raise_on_failure: bool = False,
+    engine_name: str = "reference",
 ) -> VariableProjectionModelComparisonResult:
     """
     Fit multiple candidate mechanisms using variable projection and rank them.
@@ -201,6 +202,7 @@ def fit_global_observable_variable_projection_model_comparison(
                 fit_offset=fit_offset,
                 backend=backend,
                 method=method,
+                engine_name=engine_name,
             )
 
             fit_results[model_name] = result

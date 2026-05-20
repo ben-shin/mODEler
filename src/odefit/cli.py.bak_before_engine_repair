@@ -2562,7 +2562,6 @@ def command_multistart_global_observables_variable_projection(
     Per-column scale/offset values are solved analytically.
     """
 
-    engine_name = str(config.get("engine_name", "reference"))
     model_path = get_config_value(
         args=args,
         config=config,
@@ -2799,7 +2798,6 @@ def command_multistart_global_observables_variable_projection(
         log_uniform=log_uniform,
         show_progress=show_progress,
         progress_label="Variable projection multistart",
-        engine_name=engine_name,
     )
 
     written_files = export_variable_projection_multistart_summary(
@@ -3167,7 +3165,6 @@ def command_compare_global_observables_variable_projection(
     Per-column scale/offset values are solved analytically.
     """
 
-    engine_name = str(config.get("engine_name", "reference"))
     data_path = get_config_value(
         args=args,
         config=config,
@@ -3793,6 +3790,7 @@ def command_multistart_compare_global_observables(args: argparse.Namespace) -> N
 
 def command_multistart_compare_global_observables_variable_projection(
     args: argparse.Namespace,
+    engine_name = str(config.get("engine_name", "reference"))
     config: dict,
 ) -> None:
     """
@@ -3808,7 +3806,6 @@ def command_multistart_compare_global_observables_variable_projection(
             rank models by AIC/BIC/RMSE/RSS.
     """
 
-    engine_name = str(config.get("engine_name", "reference"))
     data_path = get_config_value(
         args=args,
         config=config,
@@ -4455,9 +4452,9 @@ def command_bootstrap_global_observables(args: argparse.Namespace) -> None:
 
 def command_compare_global_observables_multispecies_variable_projection(
     args: argparse.Namespace,
+    engine_name = str(config.get("engine_name", "reference"))
     config: dict,
 ) -> None:
-    engine_name = str(config.get("engine_name", "reference"))
     data_path = config["data"]
     time_column = config.get("time_column", "time")
     signal_columns = config.get("signal_columns")
@@ -4617,9 +4614,9 @@ def command_compare_global_observables_multispecies_variable_projection(
 
 def command_multistart_compare_global_observables_multispecies_variable_projection(
     args: argparse.Namespace,
+    engine_name = str(config.get("engine_name", "reference"))
     config: dict,
 ) -> None:
-    engine_name = str(config.get("engine_name", "reference"))
     data_path = config["data"]
     time_column = config.get("time_column", "time")
     signal_columns = config.get("signal_columns")
@@ -4800,9 +4797,9 @@ def command_multistart_compare_global_observables_multispecies_variable_projecti
 
 def command_bootstrap_global_observables_multispecies_variable_projection(
     args: argparse.Namespace,
+    engine_name = str(config.get("engine_name", "reference"))
     config: dict,
 ) -> None:
-    engine_name = str(config.get("engine_name", "reference"))
     model_path = config["model"]
     data_path = config["data"]
     time_column = config.get("time_column", "time")
@@ -4936,9 +4933,9 @@ def command_bootstrap_global_observables_multispecies_variable_projection(
 
 def command_profile_likelihood_global_observables_multispecies_variable_projection(
     args: argparse.Namespace,
+    engine_name = str(config.get("engine_name", "reference"))
     config: dict,
 ) -> None:
-    engine_name = str(config.get("engine_name", "reference"))
     model_path = config["model"]
     data_path = config["data"]
     time_column = config.get("time_column", "time")

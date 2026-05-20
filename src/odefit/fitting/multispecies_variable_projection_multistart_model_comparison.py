@@ -66,6 +66,7 @@ def fit_global_observable_multispecies_variable_projection_multistart_model_comp
     multistart_sort_by: str | None = None,
     log_uniform: bool = True,
     show_progress: bool = True,
+    engine_name: str = "reference",
 ) -> MultispeciesVariableProjectionMultistartModelComparisonResult:
     """
     Compare candidate mechanisms using multispecies variable projection
@@ -149,6 +150,7 @@ def fit_global_observable_multispecies_variable_projection_multistart_model_comp
                     sort_by=multistart_sort_by,
                     log_uniform=log_uniform,
                     show_progress=show_progress,
+                    engine_name=engine_name,
                 )
             )
 

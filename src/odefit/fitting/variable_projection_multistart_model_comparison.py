@@ -51,6 +51,36 @@ def _resolve_observed_species(
 
     return observed_species_by_model
 
+def _count_successful_starts(result, n_starts) -> int:
+    if hasattr(result, "results"):
+        return len(result.results)
+
+    if hasattr(result, "successful_results"):
+        return len(result.successful_results)
+
+    if hasattr(result, "completed_results"):
+        return len(result.completed_results)
+
+    if hasattr(result, "fit_results"):
+        return len(result.fit_results)
+
+    if hasattr(result, "n_successful_starts"):
+        return int(result.n_successful_starts)
+
+    return int(n_starts) - _count_failed_starts(result)
+
+
+def _count_failed_starts(result) -> int:
+    if hasattr(result, "failures"):
+        return len(result.failures)
+
+    if hasattr(result, "failed_results"):
+        return len(result.failed_results)
+
+    if hasattr(result, "n_failed_starts"):
+        return int(result.n_failed_starts)
+
+    return 0
 
 def _get_statistic(result: Any, name: str) -> float:
     if hasattr(result, "statistics") and name in result.statistics:
@@ -81,6 +111,7 @@ def fit_global_observable_variable_projection_multistart_model_comparison(
     multistart_sort_by: str = "bic",
     log_uniform: bool = True,
     show_progress: bool = True,
+    engine_name: str = "reference",
 ) -> VariableProjectionMultistartModelComparisonResult:
     """
     Compare candidate global observable mechanisms using variable projection
@@ -154,6 +185,7 @@ def fit_global_observable_variable_projection_multistart_model_comparison(
                 progress_label=(
                     f"Variable projection multistart model comparison: {model_name}"
                 ),
+                engine_name=engine_name,
             )
 
             model_results[model_name] = result
@@ -167,8 +199,8 @@ def fit_global_observable_variable_projection_multistart_model_comparison(
                     "success": bool(best_fit.success),
                     "best_start_index": result.best_index,
                     "n_starts": n_starts,
-                    "n_successful_starts": len(result.results),
-                    "n_failed_starts": len(result.failures),
+                    "n_successful_starts": _count_successful_starts(result, n_starts),
+                    "n_failed_starts": _count_failed_starts(result),
                     "observed_species": observed_species,
                     "rss": _get_statistic(best_fit, "rss"),
                     "rmse": _get_statistic(best_fit, "rmse"),
@@ -192,25 +224,17 @@ def fit_global_observable_variable_projection_multistart_model_comparison(
                 {
                     "model_name": model_name,
                     "rank": None,
-                    "success": bool(best_fit.success),
-                    "best_start_index": getattr(result, "best_index", None),
+                    "success": False,
+                    "best_start_index": None,
                     "n_starts": n_starts,
-                    "n_successful_starts": getattr(
-                        result,
-                        "n_successful_starts",
-                        None,
-                    ),
-                    "n_failed_starts": getattr(
-                        result,
-                        "n_failed_starts",
-                        None,
-                    ),
+                    "n_successful_starts": 0,
+                    "n_failed_starts": n_starts,
                     "observed_species": observed_species,
-                    "rss": _get_statistic(best_fit, "rss"),
-                    "rmse": _get_statistic(best_fit, "rmse"),
-                    "aic": _get_statistic(best_fit, "aic"),
-                    "bic": _get_statistic(best_fit, "bic"),
-                    "message": best_fit.message,
+                    "rss": None,
+                    "rmse": None,
+                    "aic": None,
+                    "bic": None,
+                    "message": str(exc),
                 }
             )
         
@@ -228,9 +252,19 @@ def fit_global_observable_variable_projection_multistart_model_comparison(
             print("MESSAGE:", failure.error_message)
             print("TRACEBACK:")
             print(failure.traceback)
-        
+
+        failure_details = "; ".join(
+                (
+                    f"{failure.model_name}: "
+                    f"{failure.error_type}: "
+                    f"{failure.error_message}: "
+                )
+                for failure in failures
+            )
+
         raise RuntimeError(
-            "All variable projection multistart model comparison fits failed."
+            "All variable projection multistart model comparison fits failed. "
+            f"Failures: {failure_details}"
         )
 
     comparison_table = comparison_table.sort_values(

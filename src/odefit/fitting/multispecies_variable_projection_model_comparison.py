@@ -60,6 +60,7 @@ def fit_global_observable_multispecies_variable_projection_model_comparison(
     backend: str = "numpy",
     method: str = "LSODA",
     sort_by: str = "bic",
+    engine_name: str = "reference",
 ) -> MultispeciesVariableProjectionModelComparisonResult:
     if not models:
         raise ValueError("At least one model is required.")
@@ -100,6 +101,7 @@ def fit_global_observable_multispecies_variable_projection_model_comparison(
                 fit_offset=fit_offset,
                 backend=backend,
                 method=method,
+                engine_name=engine_name,
             )
 
             model_results[model_name] = result

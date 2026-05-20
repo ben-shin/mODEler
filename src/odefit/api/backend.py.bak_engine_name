@@ -100,10 +100,6 @@ def _load_config(config_or_path: dict | str | Path) -> dict:
     return load_fit_config(config_or_path)
 
 
-
-
-def _engine_name_from_config(config: dict) -> str:
-    return str(config.get("engine_name", "reference"))
 def _read_dataset_from_config(config: dict):
     peak_filtering_settings = {
         "max_missing_fraction": float(config.get("max_missing_fraction", 0.0)),
@@ -193,7 +189,6 @@ def fit_global_observables_from_config(
     config_or_path: dict | str | Path,
 ):
     config = _load_config(config_or_path)
-    engine_name = _engine_name_from_config(config)
     model = _single_model_from_config(config)
     dataset, filtering_result = _read_dataset_from_config(config)
 
@@ -224,7 +219,6 @@ def fit_global_observables_from_config(
             fit_offset=bool(config.get("fit_offset", True)),
             backend=str(config.get("variable_projection_backend", "numpy")),
             method=str(config.get("variable_projection_method", "LSODA")),
-            engine_name=engine_name,
         )
     else:
         result = fit_global_observable_model_variable_projection(
@@ -239,7 +233,6 @@ def fit_global_observables_from_config(
             fit_offset=bool(config.get("fit_offset", True)),
             backend=str(config.get("variable_projection_backend", "numpy")),
             method=str(config.get("variable_projection_method", "LSODA")),
-            engine_name=engine_name,
         )
 
     return {
@@ -253,7 +246,6 @@ def compare_global_observables_from_config(
     config_or_path: dict | str | Path,
 ):
     config = _load_config(config_or_path)
-    engine_name = _engine_name_from_config(config)
     dataset, filtering_result = _read_dataset_from_config(config)
     models = build_model_specs_from_comparison_config(config)
     settings = _settings_from_config(config)
@@ -290,7 +282,6 @@ def compare_global_observables_from_config(
                 backend=str(config.get("variable_projection_backend", "numpy")),
                 method=str(config.get("variable_projection_method", "LSODA")),
                 sort_by=config.get("sort_by", "bic"),
-                engine_name=engine_name,
             )
         )
     else:
@@ -309,7 +300,6 @@ def compare_global_observables_from_config(
             backend=str(config.get("variable_projection_backend", "numpy")),
             method=str(config.get("variable_projection_method", "LSODA")),
             sort_by=config.get("sort_by", "bic"),
-            engine_name=engine_name,
         )
 
     return {
@@ -324,7 +314,6 @@ def bootstrap_global_observables_from_config(
     config_or_path: dict | str | Path,
 ):
     config = _load_config(config_or_path)
-    engine_name = _engine_name_from_config(config)
     model = _single_model_from_config(config)
     dataset, filtering_result = _read_dataset_from_config(config)
     settings = _settings_from_config(config)
@@ -359,7 +348,6 @@ def bootstrap_global_observables_from_config(
             random_seed=config.get("random_seed"),
             confidence_level=float(config.get("confidence_level", 0.95)),
             show_progress=bool(config.get("show_progress", True)),
-            engine_name=engine_name,
         )
     else:
         result = bootstrap_global_observable_variable_projection_fit(
@@ -379,7 +367,6 @@ def bootstrap_global_observables_from_config(
             random_seed=config.get("random_seed"),
             confidence_level=float(config.get("confidence_level", 0.95)),
             show_progress=bool(config.get("show_progress", True)),
-            engine_name=engine_name,
         )
 
     return {
@@ -393,7 +380,6 @@ def profile_likelihood_global_observables_from_config(
     config_or_path: dict | str | Path,
 ):
     config = _load_config(config_or_path)
-    engine_name = _engine_name_from_config(config)
     model = _single_model_from_config(config)
     dataset, filtering_result = _read_dataset_from_config(config)
     settings = _settings_from_config(config)
@@ -428,7 +414,6 @@ def profile_likelihood_global_observables_from_config(
             span_factor=float(config.get("profile_span_factor", 10.0)),
             log_space=bool(config.get("profile_log_space", True)),
             show_progress=bool(config.get("show_progress", True)),
-            engine_name=engine_name,
         )
     else:
         result = fit_variable_projection_profile_likelihood(
@@ -448,7 +433,6 @@ def profile_likelihood_global_observables_from_config(
             span_factor=float(config.get("profile_span_factor", 10.0)),
             log_space=bool(config.get("profile_log_space", True)),
             show_progress=bool(config.get("show_progress", True)),
-            engine_name=engine_name,
         )
 
     return {
