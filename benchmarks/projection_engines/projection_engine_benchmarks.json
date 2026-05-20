@@ -3,20 +3,20 @@
     "engine_name": "reference",
     "benchmark": "single_species_projection",
     "n_timepoints": 100,
-    "n_repeats": 1000,
-    "min_seconds": 1.2395998055581003e-05,
-    "mean_seconds": 1.4768226988962852e-05,
-    "median_seconds": 1.272900408366695e-05,
-    "max_seconds": 0.00015207999967969954
+    "n_repeats": 100,
+    "min_seconds": 1.3313998351804912e-05,
+    "mean_seconds": 1.7064720013877375e-05,
+    "median_seconds": 1.3696997484657913e-05,
+    "max_seconds": 6.886899791425094e-05
   },
   {
     "engine_name": "numba_projection",
     "benchmark": "single_species_projection",
     "n_timepoints": 100,
-    "n_repeats": 1000,
-    "min_seconds": 4.793000698555261e-06,
-    "mean_seconds": 5.88941310707014e-06,
-    "median_seconds": 4.903995431959629e-06,
-    "max_seconds": 0.00018909299978986382
+    "n_repeats": 100,
+    "min_seconds": 5.0340022426098585e-06,
+    "mean_seconds": 5.883000048925169e-06,
+    "median_seconds": 5.192996468394995e-06,
+    "max_seconds": 2.9426999390125275e-05
   }
 ]
