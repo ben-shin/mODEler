@@ -151,6 +151,7 @@ def project_observables_onto_species(
     fit_scale: bool = True,
     fit_offset: bool = True,
     signal_weights: dict[str, float] | None = None,
+    engine_bundle: BackendEngineBundle | None = None,
 ) -> LinearObservableProjectionResult:
     """
     Project each observed signal column onto one simulated species curve.
@@ -184,14 +185,28 @@ def project_observables_onto_species(
     for column in signal_columns:
         y = observed_dataframe[column].to_numpy(dtype=float)
 
-        scale, offset = solve_scale_offset(
-            x_values=x,
-            y_values=y,
-            fit_scale=fit_scale,
-            fit_offset=fit_offset,
-        )
+        if engine_bundle is None:
+            scale, offset = solve_scale_offset(
+                x_values=x,
+                y_values=y,
+                fit_scale=fit_scale,
+                fit_offset=fit_offset,
+            )
 
-        predicted = scale * x + offset
+            predicted = scale * x + offset
+        else:
+            projection = engine_project_single_species(
+                engine_bundle=engine_bundle,
+                observed_values=y,
+                species_values=x,
+                fit_scale=fit_scale,
+                fit_offset=fit_offset,
+            )
+
+            scale = projection.scale
+            offset = projection.offset
+            predicted = projection.predicted
+
         residual = predicted - y
 
         weight = float(signal_weights.get(column, 1.0))
@@ -490,6 +505,7 @@ def fit_global_observable_model_variable_projection(
             fit_scale=fit_scale,
             fit_offset=fit_offset,
             signal_weights=settings.signal_weights,
+            engine_bundle=engine_bundle,
         )
 
         last_simulation_result = simulation_result
@@ -497,8 +513,9 @@ def fit_global_observable_model_variable_projection(
 
         return projection_result.residual_vector
 
-    optimizer_result = least_squares(
-        fun=residual_function,
+    optimizer_result = engine_least_squares(
+        engine_bundle=engine_bundle,
+        residual_function=residual_function,
         x0=x0,
         bounds=(lower_bounds, upper_bounds),
         method=settings.method,
@@ -532,6 +549,7 @@ def fit_global_observable_model_variable_projection(
         fit_scale=fit_scale,
         fit_offset=fit_offset,
         signal_weights=settings.signal_weights,
+        engine_bundle=engine_bundle,
     )
 
     statistics = _build_fit_statistics(

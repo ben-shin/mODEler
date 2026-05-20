@@ -63,6 +63,10 @@ class LeastSquaresEngineResult:
     x: np.ndarray
     cost: float
     fun: np.ndarray
+    nfev: int
+    status: int
+    optimality: float
+    active_mask: np.ndarray
     raw_result: Any
 
 

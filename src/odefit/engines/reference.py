@@ -237,5 +237,9 @@ class ReferenceScipyLeastSquaresEngine:
             x=np.asarray(result.x, dtype=float),
             cost=float(result.cost),
             fun=np.asarray(result.fun, dtype=float),
+            nfev=int(result.nfev),
+            status=int(result.status),
+            optimality=float(result.optimality),
+            active_mask=np.asarray(result.active_mask),
             raw_result=result,
         )
