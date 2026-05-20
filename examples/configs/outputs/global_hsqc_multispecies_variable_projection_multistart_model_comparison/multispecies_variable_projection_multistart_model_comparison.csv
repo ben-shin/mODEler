@@ -1,0 +1,3 @@
+model_name,rank,success,best_start_index,n_starts,n_successful_starts,n_failed_starts,observed_species,rss,rmse,aic,bic,n_points,n_kinetic_parameters,n_observable_columns,n_projected_species,message
+single_step,1,True,9,10,10,0,"A,B",1.3681358777086982e-07,6.16472013807579e-05,-695.9739561760996,-694.3904372376435,36,1,4,2,`gtol` termination condition is satisfied.
+two_step,2,True,7,10,10,0,"A,B",1.3330697469253684e-07,6.085204613845893e-05,-694.9086881472258,-691.7416502703136,36,2,4,2,`xtol` termination condition is satisfied.
