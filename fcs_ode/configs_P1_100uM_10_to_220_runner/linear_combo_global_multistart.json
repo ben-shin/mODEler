@@ -1,8 +1,11 @@
 {
-  "model": "fcs_ode/order2_combo.txt",
-  "data": "fcs_ode/modeler_by_time_10_to_220.csv",
+  "model": "/home/benshin/mODEler/fcs_ode/linear_combo.txt",
+  "data": "/home/benshin/mODEler/fcs_ode/modeler_by_time_10_to_220.csv",
   "time_column": "time_min",
   "observed_species": "P1",
+  "use_variable_projection": true,
+  "variable_projection_backend": "numpy",
+  "variable_projection_method": "LSODA",
   "parameters": {
     "k1f": {
       "initial_guess": 1e-07,
@@ -173,6 +176,196 @@
       "initial_guess": 1e-07,
       "lower_bound": 1e-15,
       "upper_bound": 0.1
+    },
+    "k18f": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k18r": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k19f": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k19r": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k20f": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k20r": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k21f": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k21r": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k22f": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k22r": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k23f": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k23r": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k24f": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k24r": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k25f": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k25r": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k26f": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k26r": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k27f": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k27r": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k28f": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k28r": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k29f": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k29r": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k30f": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k30r": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k31f": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k31r": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k32f": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k32r": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k33f": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k33r": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k34f": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k34r": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k35f": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k35r": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k36f": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
+    },
+    "k36r": {
+      "initial_guess": 1e-07,
+      "lower_bound": 1e-15,
+      "upper_bound": 0.1
     }
   },
   "initial_conditions": {
@@ -188,7 +381,19 @@
       "lower_bound": 0.0,
       "upper_bound": 100.0
     },
+    "P3": {
+      "value": 0.0,
+      "mode": "fixed",
+      "lower_bound": 0.0,
+      "upper_bound": 100.0
+    },
     "P4": {
+      "value": 0.0,
+      "mode": "fixed",
+      "lower_bound": 0.0,
+      "upper_bound": 100.0
+    },
+    "P5": {
       "value": 0.0,
       "mode": "fixed",
       "lower_bound": 0.0,
@@ -200,7 +405,19 @@
       "lower_bound": 0.0,
       "upper_bound": 100.0
     },
+    "P7": {
+      "value": 0.0,
+      "mode": "fixed",
+      "lower_bound": 0.0,
+      "upper_bound": 100.0
+    },
     "P8": {
+      "value": 0.0,
+      "mode": "fixed",
+      "lower_bound": 0.0,
+      "upper_bound": 100.0
+    },
+    "P9": {
       "value": 0.0,
       "mode": "fixed",
       "lower_bound": 0.0,
@@ -212,19 +429,13 @@
       "lower_bound": 0.0,
       "upper_bound": 100.0
     },
+    "P11": {
+      "value": 0.0,
+      "mode": "fixed",
+      "lower_bound": 0.0,
+      "upper_bound": 100.0
+    },
     "P12": {
-      "value": 0.0,
-      "mode": "fixed",
-      "lower_bound": 0.0,
-      "upper_bound": 100.0
-    },
-    "P14": {
-      "value": 0.0,
-      "mode": "fixed",
-      "lower_bound": 0.0,
-      "upper_bound": 100.0
-    },
-    "P16": {
       "value": 0.0,
       "mode": "fixed",
       "lower_bound": 0.0,
@@ -244,6 +455,6 @@
   "rtol": 1e-08,
   "atol": 1e-10,
   "max_nfev": 10000,
-  "output_dir": "fcs_ode/fits_P1_100uM/order2_combo",
+  "output_dir": "/home/benshin/mODEler/fcs_ode/fits_P1_100uM_10_to_220_runner/linear_combo",
   "no_plots": true
 }

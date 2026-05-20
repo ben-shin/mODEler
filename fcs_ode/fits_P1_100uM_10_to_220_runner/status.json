@@ -1,0 +1,12 @@
+{
+  "last_updated": "2026-05-19T23:11:14",
+  "current_model": "linear_combo",
+  "state": "running_subprocess",
+  "elapsed_seconds_current_model": 90.17510485649109,
+  "elapsed_current_model_hms": "0:01:30",
+  "n_starts": 50,
+  "n_workers": 8,
+  "log_file": "/home/benshin/mODEler/fcs_ode/fits_P1_100uM_10_to_220_runner/linear_combo/run.log",
+  "command": "/home/benshin/miniconda3/envs/modeler/bin/python -m odefit.cli multistart-global-observables --config /home/benshin/mODEler/fcs_ode/configs_P1_100uM_10_to_220_runner/linear_combo_global_multistart.json --n-workers 8 --n-starts 50 --variable-projection",
+  "note": "Heartbeat only. Per-start progress is only available if mODEler emits it."
+}

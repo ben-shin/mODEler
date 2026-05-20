@@ -4074,6 +4074,7 @@ def command_bootstrap_global_observables(args: argparse.Namespace) -> None:
         result=result,
         output_dir=output_path,
         export_original_fit=True,
+        include_plots=not bool(config.get("no_plots", False)),
     )
 
     peak_filtering_path = write_peak_filtering_table(

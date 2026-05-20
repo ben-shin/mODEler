@@ -18,6 +18,11 @@ from odefit.fitting.variable_projection import (
     fit_global_observable_model_variable_projection,
 )
 from odefit.model.model_spec import ModelSpec
+from odefit.plotting.bootstrap_plots import (
+    plot_bootstrap_parameter_histograms,
+    plot_bootstrap_parameter_pairs,
+    plot_bootstrap_prediction_bands,
+)
 
 
 @dataclass
@@ -258,6 +263,7 @@ def export_variable_projection_bootstrap_result(
     result: VariableProjectionBootstrapResult,
     output_dir: str | Path,
     export_original_fit: bool = True,
+    include_plots: bool = True,
 ) -> dict[str, Path]:
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
@@ -308,5 +314,48 @@ def export_variable_projection_bootstrap_result(
 
         for name, path in original_files.items():
             written_files[f"original_fit_{name}"] = Path(path)
+
+    if include_plots:
+        plots_dir = output_path / "plots"
+
+        histogram_files = plot_bootstrap_parameter_histograms(
+            parameter_samples=result.parameter_samples,
+            output_dir=plots_dir,
+        )
+
+        for name, path in histogram_files.items():
+            written_files[f"plot_{name}"] = path
+
+        pair_files = plot_bootstrap_parameter_pairs(
+            parameter_samples=result.parameter_samples,
+            output_dir=plots_dir,
+        )
+
+        for name, path in pair_files.items():
+            written_files[f"plot_{name}"] = path
+
+        bootstrap_prediction_dataframes = [
+            bootstrap_result.predicted_dataframe
+            for bootstrap_result in result.bootstrap_results
+            if hasattr(bootstrap_result, "predicted_dataframe")
+        ]
+
+        if bootstrap_prediction_dataframes:
+            signal_columns = [
+                column
+                for column in result.original_result.predicted_dataframe.columns
+                if column != result.original_result.predicted_dataframe.columns[0]
+            ]
+
+            prediction_files = plot_bootstrap_prediction_bands(
+                original_dataframe=result.original_result.predicted_dataframe,
+                bootstrap_prediction_dataframes=bootstrap_prediction_dataframes,
+                time_column=result.original_result.predicted_dataframe.columns[0],
+                signal_columns=signal_columns,
+                output_dir=plots_dir,
+            )
+
+            for name, path in prediction_files.items():
+                written_files[f"plot_{name}"] = path
 
     return written_files
