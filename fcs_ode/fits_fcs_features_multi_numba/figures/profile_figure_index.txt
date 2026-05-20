@@ -1,0 +1,8 @@
+FCS feature fit profile figures
+===============================
+
+- feature_fit_profiles/best_model_order3_combo_all_features_observed_vs_fitted.png
+- feature_fit_profiles/fcs_amplitude_proxy_observed_vs_fitted_models.png
+- feature_fit_profiles/fcs_auc_proxy_observed_vs_fitted_models.png
+- feature_fit_profiles/fcs_half_tau_proxy_observed_vs_fitted_models.png
+- feature_fit_profiles/feature_fit_profile_index.txt

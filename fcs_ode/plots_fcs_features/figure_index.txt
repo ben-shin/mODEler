@@ -1,0 +1,9 @@
+FCS feature figures
+===================
+
+- fcs_feature_timecourses_combined.png
+- feature_timecourses/fcs_amplitude_proxy.png
+- feature_timecourses/fcs_auc_proxy.png
+- feature_timecourses/fcs_early_mean.png
+- feature_timecourses/fcs_half_tau_proxy.png
+- feature_timecourses/fcs_late_mean.png

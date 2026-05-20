@@ -1,0 +1,32 @@
+{
+  "model_name": "order3_combo",
+  "success": true,
+  "message": "`xtol` termination condition is satisfied.",
+  "nfev": 26,
+  "statistics": {
+    "rss": 554764979381265.1,
+    "mse": 11557603737109.69,
+    "rmse": 2899229.2062934986,
+    "n_observations": 66.0,
+    "n_nonlinear_parameters": 12.0,
+    "n_linear_parameters": 6.0,
+    "n_total_parameters": 18.0,
+    "degrees_of_freedom": 48.0,
+    "aic": 2000.1541218677078,
+    "bic": 2039.5679072241835
+  },
+  "fitted_parameters": {
+    "k1f": 1.1228849144596746,
+    "k1r": 7.258982015011128e-09,
+    "k2f": 4.184573017328586,
+    "k2r": 1.1095231212393297,
+    "k3f": 3.4931882813171615,
+    "k3r": 0.06981532857013636,
+    "k4f": 4.126060927436221,
+    "k4r": 0.07258745204150674,
+    "k5f": 4.363592423272144,
+    "k5r": 0.08375514252999065,
+    "k6f": 11.030788972052292,
+    "k6r": 0.08590821300361681
+  }
+}

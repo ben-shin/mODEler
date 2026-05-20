@@ -1,0 +1,864 @@
+{
+  "engine_name": "numba_projection",
+  "data": "fcs_ode/modeler_by_time_10_to_220.csv",
+  "time_column": "time_min",
+  "signal_columns": [
+    "G_tau_1p000000e-03_ms",
+    "G_tau_1p050000e-03_ms",
+    "G_tau_1p100000e-03_ms",
+    "G_tau_1p150000e-03_ms",
+    "G_tau_1p200000e-03_ms",
+    "G_tau_1p250001e-03_ms",
+    "G_tau_1p300001e-03_ms",
+    "G_tau_1p350001e-03_ms",
+    "G_tau_1p400001e-03_ms",
+    "G_tau_1p450001e-03_ms",
+    "G_tau_1p500001e-03_ms",
+    "G_tau_1p550001e-03_ms",
+    "G_tau_1p600001e-03_ms",
+    "G_tau_1p700001e-03_ms",
+    "G_tau_1p800001e-03_ms",
+    "G_tau_1p900001e-03_ms",
+    "G_tau_2p000001e-03_ms",
+    "G_tau_2p100001e-03_ms",
+    "G_tau_2p200001e-03_ms",
+    "G_tau_2p300001e-03_ms",
+    "G_tau_2p400001e-03_ms",
+    "G_tau_2p500001e-03_ms",
+    "G_tau_2p600001e-03_ms",
+    "G_tau_2p700001e-03_ms",
+    "G_tau_2p800001e-03_ms",
+    "G_tau_2p900001e-03_ms",
+    "G_tau_3p000001e-03_ms",
+    "G_tau_3p100002e-03_ms",
+    "G_tau_3p200002e-03_ms",
+    "G_tau_3p400002e-03_ms",
+    "G_tau_3p600001e-03_ms",
+    "G_tau_3p800001e-03_ms",
+    "G_tau_4p000001e-03_ms",
+    "G_tau_4p200002e-03_ms",
+    "G_tau_4p400002e-03_ms",
+    "G_tau_4p600002e-03_ms",
+    "G_tau_4p800002e-03_ms",
+    "G_tau_5p000002e-03_ms",
+    "G_tau_5p200002e-03_ms",
+    "G_tau_5p400002e-03_ms",
+    "G_tau_5p600003e-03_ms",
+    "G_tau_5p800003e-03_ms",
+    "G_tau_6p000003e-03_ms",
+    "G_tau_6p200003e-03_ms",
+    "G_tau_6p400003e-03_ms",
+    "G_tau_6p800003e-03_ms",
+    "G_tau_7p200003e-03_ms",
+    "G_tau_7p600003e-03_ms",
+    "G_tau_8p000003e-03_ms",
+    "G_tau_8p400003e-03_ms",
+    "G_tau_8p800003e-03_ms",
+    "G_tau_9p200004e-03_ms",
+    "G_tau_9p600004e-03_ms",
+    "G_tau_1p000000e-02_ms",
+    "G_tau_1p040000e-02_ms",
+    "G_tau_1p080000e-02_ms",
+    "G_tau_1p120001e-02_ms",
+    "G_tau_1p160001e-02_ms",
+    "G_tau_1p200001e-02_ms",
+    "G_tau_1p240001e-02_ms",
+    "G_tau_1p280001e-02_ms",
+    "G_tau_1p360001e-02_ms",
+    "G_tau_1p440001e-02_ms",
+    "G_tau_1p520001e-02_ms",
+    "G_tau_1p600001e-02_ms",
+    "G_tau_1p680001e-02_ms",
+    "G_tau_1p760001e-02_ms",
+    "G_tau_1p840001e-02_ms",
+    "G_tau_1p920001e-02_ms",
+    "G_tau_2p000001e-02_ms",
+    "G_tau_2p080001e-02_ms",
+    "G_tau_2p160001e-02_ms",
+    "G_tau_2p240001e-02_ms",
+    "G_tau_2p320001e-02_ms",
+    "G_tau_2p400001e-02_ms",
+    "G_tau_2p480001e-02_ms",
+    "G_tau_2p560001e-02_ms",
+    "G_tau_2p720001e-02_ms",
+    "G_tau_2p880001e-02_ms",
+    "G_tau_3p040001e-02_ms",
+    "G_tau_3p200001e-02_ms",
+    "G_tau_3p360001e-02_ms",
+    "G_tau_3p520001e-02_ms",
+    "G_tau_3p680001e-02_ms",
+    "G_tau_3p840002e-02_ms",
+    "G_tau_4p000002e-02_ms",
+    "G_tau_4p160002e-02_ms",
+    "G_tau_4p320002e-02_ms",
+    "G_tau_4p480002e-02_ms",
+    "G_tau_4p640002e-02_ms",
+    "G_tau_4p800002e-02_ms",
+    "G_tau_4p960002e-02_ms",
+    "G_tau_5p120003e-02_ms",
+    "G_tau_5p440002e-02_ms",
+    "G_tau_5p760002e-02_ms",
+    "G_tau_6p080002e-02_ms",
+    "G_tau_6p400002e-02_ms",
+    "G_tau_6p720002e-02_ms",
+    "G_tau_7p040003e-02_ms",
+    "G_tau_7p360003e-02_ms",
+    "G_tau_7p680003e-02_ms",
+    "G_tau_8p000003e-02_ms",
+    "G_tau_8p320004e-02_ms",
+    "G_tau_8p640004e-02_ms",
+    "G_tau_8p960004e-02_ms",
+    "G_tau_9p280004e-02_ms",
+    "G_tau_9p600005e-02_ms",
+    "G_tau_9p920005e-02_ms",
+    "G_tau_1p024001e-01_ms",
+    "G_tau_1p088000e-01_ms",
+    "G_tau_1p152000e-01_ms",
+    "G_tau_1p216000e-01_ms",
+    "G_tau_1p280000e-01_ms",
+    "G_tau_1p344000e-01_ms",
+    "G_tau_1p408001e-01_ms",
+    "G_tau_1p472001e-01_ms",
+    "G_tau_1p536001e-01_ms",
+    "G_tau_1p600001e-01_ms",
+    "G_tau_1p664001e-01_ms",
+    "G_tau_1p728001e-01_ms",
+    "G_tau_1p792001e-01_ms",
+    "G_tau_1p856001e-01_ms",
+    "G_tau_1p920001e-01_ms",
+    "G_tau_1p984001e-01_ms",
+    "G_tau_2p048001e-01_ms",
+    "G_tau_2p176001e-01_ms",
+    "G_tau_2p304001e-01_ms",
+    "G_tau_2p432001e-01_ms",
+    "G_tau_2p560001e-01_ms",
+    "G_tau_2p688001e-01_ms",
+    "G_tau_2p816001e-01_ms",
+    "G_tau_2p944001e-01_ms",
+    "G_tau_3p072001e-01_ms",
+    "G_tau_3p200001e-01_ms",
+    "G_tau_3p328001e-01_ms",
+    "G_tau_3p456002e-01_ms",
+    "G_tau_3p584002e-01_ms",
+    "G_tau_3p712002e-01_ms",
+    "G_tau_3p840002e-01_ms",
+    "G_tau_3p968002e-01_ms",
+    "G_tau_4p096002e-01_ms",
+    "G_tau_4p352002e-01_ms",
+    "G_tau_4p608002e-01_ms",
+    "G_tau_4p864002e-01_ms",
+    "G_tau_5p120002e-01_ms",
+    "G_tau_5p376002e-01_ms",
+    "G_tau_5p632002e-01_ms",
+    "G_tau_5p888002e-01_ms",
+    "G_tau_6p144003e-01_ms",
+    "G_tau_6p400003e-01_ms",
+    "G_tau_6p656003e-01_ms",
+    "G_tau_6p912003e-01_ms",
+    "G_tau_7p168003e-01_ms",
+    "G_tau_7p424004e-01_ms",
+    "G_tau_7p680004e-01_ms",
+    "G_tau_7p936004e-01_ms",
+    "G_tau_8p192004e-01_ms",
+    "G_tau_8p704004e-01_ms",
+    "G_tau_9p216004e-01_ms",
+    "G_tau_9p728004e-01_ms",
+    "G_tau_1p024000e+00_ms",
+    "G_tau_1p075200e+00_ms",
+    "G_tau_1p126400e+00_ms",
+    "G_tau_1p177600e+00_ms",
+    "G_tau_1p228801e+00_ms",
+    "G_tau_1p280001e+00_ms",
+    "G_tau_1p331201e+00_ms",
+    "G_tau_1p382401e+00_ms",
+    "G_tau_1p433601e+00_ms",
+    "G_tau_1p484801e+00_ms",
+    "G_tau_1p536001e+00_ms",
+    "G_tau_1p587201e+00_ms",
+    "G_tau_1p638401e+00_ms",
+    "G_tau_1p740801e+00_ms",
+    "G_tau_1p843201e+00_ms",
+    "G_tau_1p945601e+00_ms",
+    "G_tau_2p048001e+00_ms",
+    "G_tau_2p150401e+00_ms",
+    "G_tau_2p252801e+00_ms",
+    "G_tau_2p355201e+00_ms",
+    "G_tau_2p457601e+00_ms",
+    "G_tau_2p560001e+00_ms",
+    "G_tau_2p662401e+00_ms",
+    "G_tau_2p764801e+00_ms",
+    "G_tau_2p867201e+00_ms",
+    "G_tau_2p969601e+00_ms",
+    "G_tau_3p072002e+00_ms",
+    "G_tau_3p174402e+00_ms",
+    "G_tau_3p276802e+00_ms",
+    "G_tau_3p481602e+00_ms",
+    "G_tau_3p686402e+00_ms",
+    "G_tau_3p891201e+00_ms",
+    "G_tau_4p096001e+00_ms",
+    "G_tau_4p300802e+00_ms",
+    "G_tau_4p505602e+00_ms",
+    "G_tau_4p710402e+00_ms",
+    "G_tau_4p915202e+00_ms",
+    "G_tau_5p120002e+00_ms",
+    "G_tau_5p324802e+00_ms",
+    "G_tau_5p529603e+00_ms",
+    "G_tau_5p734403e+00_ms",
+    "G_tau_5p939203e+00_ms",
+    "G_tau_6p144003e+00_ms",
+    "G_tau_6p348803e+00_ms",
+    "G_tau_6p553603e+00_ms",
+    "G_tau_6p963203e+00_ms",
+    "G_tau_7p372803e+00_ms",
+    "G_tau_7p782403e+00_ms",
+    "G_tau_8p192003e+00_ms",
+    "G_tau_8p601603e+00_ms",
+    "G_tau_9p011203e+00_ms",
+    "G_tau_9p420804e+00_ms",
+    "G_tau_9p830404e+00_ms",
+    "G_tau_1p024000e+01_ms",
+    "G_tau_1p064960e+01_ms",
+    "G_tau_1p105921e+01_ms",
+    "G_tau_1p146881e+01_ms",
+    "G_tau_1p187841e+01_ms",
+    "G_tau_1p228801e+01_ms",
+    "G_tau_1p269761e+01_ms",
+    "G_tau_1p310721e+01_ms",
+    "G_tau_1p392641e+01_ms",
+    "G_tau_1p474561e+01_ms",
+    "G_tau_1p556481e+01_ms",
+    "G_tau_1p638401e+01_ms",
+    "G_tau_1p720321e+01_ms",
+    "G_tau_1p802241e+01_ms",
+    "G_tau_1p884161e+01_ms",
+    "G_tau_1p966081e+01_ms",
+    "G_tau_2p048001e+01_ms",
+    "G_tau_2p129921e+01_ms",
+    "G_tau_2p211841e+01_ms",
+    "G_tau_2p293761e+01_ms",
+    "G_tau_2p375681e+01_ms",
+    "G_tau_2p457601e+01_ms",
+    "G_tau_2p539521e+01_ms",
+    "G_tau_2p621441e+01_ms",
+    "G_tau_2p785281e+01_ms",
+    "G_tau_2p949121e+01_ms",
+    "G_tau_3p112961e+01_ms",
+    "G_tau_3p276801e+01_ms",
+    "G_tau_3p440641e+01_ms",
+    "G_tau_3p604481e+01_ms",
+    "G_tau_3p768321e+01_ms",
+    "G_tau_3p932162e+01_ms",
+    "G_tau_4p096002e+01_ms",
+    "G_tau_4p259842e+01_ms",
+    "G_tau_4p423682e+01_ms",
+    "G_tau_4p587522e+01_ms",
+    "G_tau_4p751362e+01_ms",
+    "G_tau_4p915202e+01_ms",
+    "G_tau_5p079043e+01_ms",
+    "G_tau_5p242883e+01_ms",
+    "G_tau_5p570563e+01_ms",
+    "G_tau_5p898242e+01_ms",
+    "G_tau_6p225922e+01_ms",
+    "G_tau_6p553602e+01_ms",
+    "G_tau_6p881282e+01_ms",
+    "G_tau_7p208963e+01_ms",
+    "G_tau_7p536643e+01_ms",
+    "G_tau_7p864323e+01_ms",
+    "G_tau_8p192004e+01_ms",
+    "G_tau_8p519684e+01_ms",
+    "G_tau_8p847364e+01_ms",
+    "G_tau_9p175044e+01_ms",
+    "G_tau_9p502725e+01_ms",
+    "G_tau_9p830405e+01_ms",
+    "G_tau_1p015809e+02_ms",
+    "G_tau_1p048577e+02_ms",
+    "G_tau_1p114113e+02_ms",
+    "G_tau_1p179648e+02_ms",
+    "G_tau_1p245184e+02_ms",
+    "G_tau_1p310720e+02_ms",
+    "G_tau_1p376256e+02_ms",
+    "G_tau_1p441793e+02_ms",
+    "G_tau_1p507329e+02_ms",
+    "G_tau_1p572865e+02_ms",
+    "G_tau_1p638401e+02_ms",
+    "G_tau_1p703937e+02_ms",
+    "G_tau_1p769473e+02_ms",
+    "G_tau_1p835009e+02_ms",
+    "G_tau_1p900545e+02_ms",
+    "G_tau_1p966081e+02_ms",
+    "G_tau_2p031617e+02_ms",
+    "G_tau_2p097153e+02_ms",
+    "G_tau_2p228225e+02_ms",
+    "G_tau_2p359297e+02_ms",
+    "G_tau_2p490369e+02_ms",
+    "G_tau_2p621441e+02_ms",
+    "G_tau_2p752513e+02_ms",
+    "G_tau_2p883585e+02_ms",
+    "G_tau_3p014657e+02_ms",
+    "G_tau_3p145729e+02_ms",
+    "G_tau_3p276801e+02_ms",
+    "G_tau_3p407874e+02_ms",
+    "G_tau_3p538946e+02_ms",
+    "G_tau_3p670018e+02_ms",
+    "G_tau_3p801090e+02_ms",
+    "G_tau_3p932162e+02_ms",
+    "G_tau_4p063234e+02_ms",
+    "G_tau_4p194306e+02_ms",
+    "G_tau_4p456450e+02_ms",
+    "G_tau_4p718594e+02_ms",
+    "G_tau_4p980738e+02_ms",
+    "G_tau_5p242882e+02_ms",
+    "G_tau_5p505026e+02_ms",
+    "G_tau_5p767170e+02_ms",
+    "G_tau_6p029314e+02_ms",
+    "G_tau_6p291459e+02_ms",
+    "G_tau_6p553603e+02_ms",
+    "G_tau_6p815747e+02_ms",
+    "G_tau_7p077891e+02_ms",
+    "G_tau_7p340035e+02_ms",
+    "G_tau_7p602180e+02_ms",
+    "G_tau_7p864324e+02_ms",
+    "G_tau_8p126468e+02_ms",
+    "G_tau_8p388612e+02_ms",
+    "G_tau_8p912900e+02_ms",
+    "G_tau_9p437188e+02_ms",
+    "G_tau_9p961476e+02_ms",
+    "G_tau_1p048576e+03_ms",
+    "G_tau_1p101005e+03_ms",
+    "G_tau_1p153434e+03_ms",
+    "G_tau_1p205863e+03_ms",
+    "G_tau_1p258292e+03_ms",
+    "G_tau_1p310721e+03_ms",
+    "G_tau_1p363149e+03_ms",
+    "G_tau_1p415578e+03_ms",
+    "G_tau_1p468007e+03_ms",
+    "G_tau_1p520436e+03_ms",
+    "G_tau_1p572865e+03_ms",
+    "G_tau_1p625294e+03_ms",
+    "G_tau_1p677722e+03_ms",
+    "G_tau_1p782580e+03_ms",
+    "G_tau_1p887438e+03_ms",
+    "G_tau_1p992295e+03_ms",
+    "G_tau_2p097153e+03_ms",
+    "G_tau_2p202010e+03_ms",
+    "G_tau_2p306868e+03_ms",
+    "G_tau_2p411726e+03_ms",
+    "G_tau_2p516583e+03_ms",
+    "G_tau_2p621441e+03_ms",
+    "G_tau_2p726299e+03_ms",
+    "G_tau_2p831156e+03_ms",
+    "G_tau_2p936014e+03_ms",
+    "G_tau_3p040872e+03_ms",
+    "G_tau_3p145730e+03_ms",
+    "G_tau_3p250587e+03_ms",
+    "G_tau_3p355445e+03_ms",
+    "G_tau_3p565160e+03_ms",
+    "G_tau_3p774875e+03_ms",
+    "G_tau_3p984590e+03_ms",
+    "G_tau_4p194305e+03_ms",
+    "G_tau_4p404021e+03_ms",
+    "G_tau_4p613736e+03_ms",
+    "G_tau_4p823452e+03_ms",
+    "G_tau_5p033167e+03_ms",
+    "G_tau_5p242882e+03_ms",
+    "G_tau_5p452598e+03_ms",
+    "G_tau_5p662313e+03_ms",
+    "G_tau_5p872028e+03_ms",
+    "G_tau_6p081744e+03_ms",
+    "G_tau_6p291459e+03_ms",
+    "G_tau_6p501174e+03_ms",
+    "G_tau_6p710890e+03_ms",
+    "G_tau_7p130320e+03_ms",
+    "G_tau_7p549750e+03_ms",
+    "G_tau_7p969181e+03_ms",
+    "G_tau_8p388611e+03_ms",
+    "G_tau_8p808042e+03_ms",
+    "G_tau_9p227472e+03_ms",
+    "G_tau_9p646903e+03_ms",
+    "G_tau_1p006633e+04_ms",
+    "G_tau_1p048576e+04_ms",
+    "G_tau_1p090520e+04_ms",
+    "G_tau_1p132463e+04_ms",
+    "G_tau_1p174406e+04_ms",
+    "G_tau_1p216349e+04_ms",
+    "G_tau_1p258292e+04_ms",
+    "G_tau_1p300235e+04_ms",
+    "G_tau_1p342178e+04_ms",
+    "G_tau_1p426064e+04_ms",
+    "G_tau_1p509950e+04_ms",
+    "G_tau_1p593836e+04_ms",
+    "G_tau_1p677722e+04_ms",
+    "G_tau_1p761608e+04_ms",
+    "G_tau_1p845494e+04_ms",
+    "G_tau_1p929381e+04_ms",
+    "G_tau_2p013267e+04_ms",
+    "G_tau_2p097153e+04_ms",
+    "G_tau_2p181039e+04_ms",
+    "G_tau_2p264925e+04_ms",
+    "G_tau_2p348811e+04_ms",
+    "G_tau_2p432697e+04_ms",
+    "G_tau_2p516584e+04_ms",
+    "G_tau_2p600470e+04_ms",
+    "G_tau_2p684356e+04_ms",
+    "G_tau_2p852128e+04_ms",
+    "G_tau_3p019900e+04_ms",
+    "G_tau_3p187672e+04_ms",
+    "G_tau_3p355444e+04_ms",
+    "G_tau_3p523217e+04_ms",
+    "G_tau_3p690989e+04_ms",
+    "G_tau_3p858761e+04_ms",
+    "G_tau_4p026534e+04_ms",
+    "G_tau_4p194306e+04_ms",
+    "G_tau_4p362078e+04_ms",
+    "G_tau_4p529850e+04_ms",
+    "G_tau_4p697623e+04_ms",
+    "G_tau_4p865395e+04_ms",
+    "G_tau_5p033167e+04_ms",
+    "G_tau_5p200940e+04_ms",
+    "G_tau_5p368712e+04_ms",
+    "G_tau_5p704256e+04_ms",
+    "G_tau_6p039800e+04_ms",
+    "G_tau_6p375344e+04_ms",
+    "G_tau_6p710889e+04_ms",
+    "G_tau_7p046433e+04_ms",
+    "G_tau_7p381978e+04_ms",
+    "G_tau_7p717522e+04_ms",
+    "G_tau_8p053067e+04_ms",
+    "G_tau_8p388612e+04_ms",
+    "G_tau_8p724156e+04_ms",
+    "G_tau_9p059701e+04_ms",
+    "G_tau_9p395245e+04_ms",
+    "G_tau_9p730790e+04_ms",
+    "G_tau_1p006633e+05_ms",
+    "G_tau_1p040188e+05_ms",
+    "G_tau_1p073742e+05_ms",
+    "G_tau_1p140851e+05_ms",
+    "G_tau_1p207960e+05_ms",
+    "G_tau_1p275069e+05_ms",
+    "G_tau_1p342178e+05_ms",
+    "G_tau_1p409287e+05_ms",
+    "G_tau_1p476396e+05_ms",
+    "G_tau_1p543504e+05_ms",
+    "G_tau_1p610613e+05_ms",
+    "G_tau_1p677722e+05_ms",
+    "G_tau_1p744831e+05_ms",
+    "G_tau_1p811940e+05_ms",
+    "G_tau_1p879049e+05_ms",
+    "G_tau_1p946158e+05_ms",
+    "G_tau_2p013267e+05_ms",
+    "G_tau_2p080376e+05_ms",
+    "G_tau_2p147485e+05_ms",
+    "G_tau_2p281702e+05_ms",
+    "G_tau_2p415920e+05_ms",
+    "G_tau_2p550138e+05_ms",
+    "G_tau_2p684355e+05_ms",
+    "G_tau_2p818573e+05_ms",
+    "G_tau_2p952791e+05_ms",
+    "G_tau_3p087009e+05_ms",
+    "G_tau_3p221227e+05_ms",
+    "G_tau_3p355445e+05_ms",
+    "G_tau_3p489662e+05_ms",
+    "G_tau_3p623880e+05_ms",
+    "G_tau_3p758098e+05_ms",
+    "G_tau_3p892316e+05_ms",
+    "G_tau_4p026534e+05_ms",
+    "G_tau_4p160752e+05_ms"
+  ],
+  "observed_species_by_model": {
+    "linear_combo": "P2",
+    "linear_homo": "P2",
+    "linear_step": "P2",
+    "order2_combo": "P2",
+    "order2_homo": "P2",
+    "order2_step": "P2",
+    "order3_combo": "P2",
+    "order3_step": "P2"
+  },
+  "use_variable_projection": true,
+  "fit_scale": true,
+  "fit_offset": true,
+  "model_texts": {
+    "linear_combo": "2P1-P2\nP1+P2-P3\nP1+P3-P4\nP1+P4-P5\nP1+P5-P6\nP1+P6-P7\nP1+P7-P8\nP1+P8-P9\nP1+P9-P10\nP1+P10-P11\nP1+P11-P12\n2P2-P4\nP2+P3-P5\nP2+P4-P6\n2P3-P6\nP2+P5-P7\nP3+P4-P7\nP2+P6-P8\nP3+P5-P8\n2P4-P8\nP2+P7-P9\nP3+P6-P9\nP4+P5-P9\nP2+P8-P10\nP3+P7-P10\nP4+P6-P10\n2P5-P10\nP2+P9-P11\nP3+P8-P11\nP4+P7-P11\nP5+P6-P11\nP2+P10-P12\nP3+P9-P12\nP4+P8-P12\nP5+P7-P12\n2P6-P12",
+    "linear_homo": "2P1-P2\nP1+P2-P3\nP1+P3-P4\nP1+P4-P5\nP1+P5-P6\nP1+P6-P7\nP1+P7-P8\nP1+P8-P9\nP1+P9-P10\nP1+P10-P11\nP1+P11-P12\n2P2-P4\n2P3-P6\n2P4-P8\n2P5-P10\n2P6-P12",
+    "linear_step": "2P1-P2\nP1+P2-P3\nP1+P3-P4\nP1+P4-P5\nP1+P5-P6\nP1+P6-P7\nP1+P7-P8\nP1+P8-P9\nP1+P9-P10\nP1+P10-P11\nP1+P11-P12",
+    "order2_combo": "2P1-P2\n2P2-P4\nP2+P4-P6\nP2+P6-P8\nP2+P8-P10\nP2+P10-P12\nP2+P12-P14\nP2+P14-P16\n2P4-P8\nP4+P6-P10\nP4+P8-P12\nP4+P10-P14\nP4+P12-P16\n2P6-P12\nP6+P8-P14\nP6+P10-P16\n2P8-P16",
+    "order2_homo": "2P1-P2\n2P2-P4\nP2+P4-P6\nP2+P6-P8\nP2+P8-P10\nP2+P10-P12\nP2+P12-P14\nP2+P14-P16\n2P4-P8\n2P6-P12\n2P8-P16",
+    "order2_step": "2P1-P2\n2P2-P4\nP2+P4-P6\nP2+P6-P8\nP2+P8-P10\nP2+P10-P12\nP2+P12-P14\nP2+P14-P16",
+    "order3_combo": "2P1-P2\nP1+P2-P3\n2P3-P6\nP3+P6-P9\nP3+P9-P12\n2P6-P12",
+    "order3_step": "2P1-P2\nP1+P2-P3\n2P3-P6\nP3+P6-P9\nP3+P9-P12"
+  },
+  "parameters_by_model": {
+    "linear_combo": {
+      "k1f": {
+        "initial_guess": 0.1,
+        "lower_bound": 1e-08,
+        "upper_bound": 100.0
+      }
+    },
+    "linear_homo": {
+      "k1f": {
+        "initial_guess": 0.1,
+        "lower_bound": 1e-08,
+        "upper_bound": 100.0
+      }
+    },
+    "linear_step": {
+      "k1f": {
+        "initial_guess": 0.1,
+        "lower_bound": 1e-08,
+        "upper_bound": 100.0
+      }
+    },
+    "order2_combo": {
+      "k1f": {
+        "initial_guess": 0.1,
+        "lower_bound": 1e-08,
+        "upper_bound": 100.0
+      }
+    },
+    "order2_homo": {
+      "k1f": {
+        "initial_guess": 0.1,
+        "lower_bound": 1e-08,
+        "upper_bound": 100.0
+      }
+    },
+    "order2_step": {
+      "k1f": {
+        "initial_guess": 0.1,
+        "lower_bound": 1e-08,
+        "upper_bound": 100.0
+      }
+    },
+    "order3_combo": {
+      "k1f": {
+        "initial_guess": 0.1,
+        "lower_bound": 1e-08,
+        "upper_bound": 100.0
+      }
+    },
+    "order3_step": {
+      "k1f": {
+        "initial_guess": 0.1,
+        "lower_bound": 1e-08,
+        "upper_bound": 100.0
+      }
+    }
+  },
+  "initial_conditions_by_model": {
+    "linear_combo": {
+      "P2": {
+        "value": 1.0,
+        "mode": "fixed"
+      },
+      "P1": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P3": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P4": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P5": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P6": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P7": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P8": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P9": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P10": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P11": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P12": {
+        "value": 0.0,
+        "mode": "fixed"
+      }
+    },
+    "linear_homo": {
+      "P2": {
+        "value": 1.0,
+        "mode": "fixed"
+      },
+      "P1": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P3": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P4": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P5": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P6": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P7": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P8": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P9": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P10": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P11": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P12": {
+        "value": 0.0,
+        "mode": "fixed"
+      }
+    },
+    "linear_step": {
+      "P2": {
+        "value": 1.0,
+        "mode": "fixed"
+      },
+      "P1": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P3": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P4": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P5": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P6": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P7": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P8": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P9": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P10": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P11": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P12": {
+        "value": 0.0,
+        "mode": "fixed"
+      }
+    },
+    "order2_combo": {
+      "P2": {
+        "value": 1.0,
+        "mode": "fixed"
+      },
+      "P4": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P6": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P8": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P10": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P12": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P14": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P16": {
+        "value": 0.0,
+        "mode": "fixed"
+      }
+    },
+    "order2_homo": {
+      "P2": {
+        "value": 1.0,
+        "mode": "fixed"
+      },
+      "P4": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P6": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P8": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P10": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P12": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P14": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P16": {
+        "value": 0.0,
+        "mode": "fixed"
+      }
+    },
+    "order2_step": {
+      "P2": {
+        "value": 1.0,
+        "mode": "fixed"
+      },
+      "P4": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P6": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P8": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P10": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P12": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P14": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P16": {
+        "value": 0.0,
+        "mode": "fixed"
+      }
+    },
+    "order3_combo": {
+      "P2": {
+        "value": 1.0,
+        "mode": "fixed"
+      },
+      "P1": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P3": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P6": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P9": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P12": {
+        "value": 0.0,
+        "mode": "fixed"
+      }
+    },
+    "order3_step": {
+      "P2": {
+        "value": 1.0,
+        "mode": "fixed"
+      },
+      "P1": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P3": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P6": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P9": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P12": {
+        "value": 0.0,
+        "mode": "fixed"
+      }
+    }
+  },
+  "method": "trf",
+  "loss": "linear",
+  "max_nfev": 300,
+  "rtol": 1e-07,
+  "atol": 1e-10,
+  "variable_projection_backend": "numpy",
+  "variable_projection_method": "LSODA",
+  "show_progress": false,
+  "no_plots": true,
+  "sort_by": "bic"
+}

@@ -1,0 +1,405 @@
+{
+  "engine_name": "numba_projection",
+  "data": "fcs_ode/modeler_fcs_features_by_time_10_to_220.csv",
+  "time_column": "time_min",
+  "signal_columns": [
+    "fcs_amplitude_proxy"
+  ],
+  "observed_species_by_model": {
+    "linear_combo": "P2",
+    "linear_homo": "P2",
+    "linear_step": "P2",
+    "order2_combo": "P2",
+    "order2_homo": "P2",
+    "order2_step": "P2",
+    "order3_combo": "P2",
+    "order3_step": "P2"
+  },
+  "use_variable_projection": true,
+  "fit_scale": true,
+  "fit_offset": true,
+  "model_texts": {
+    "linear_combo": "2P1-P2\nP1+P2-P3\nP1+P3-P4\nP1+P4-P5\nP1+P5-P6\nP1+P6-P7\nP1+P7-P8\nP1+P8-P9\nP1+P9-P10\nP1+P10-P11\nP1+P11-P12\n2P2-P4\nP2+P3-P5\nP2+P4-P6\n2P3-P6\nP2+P5-P7\nP3+P4-P7\nP2+P6-P8\nP3+P5-P8\n2P4-P8\nP2+P7-P9\nP3+P6-P9\nP4+P5-P9\nP2+P8-P10\nP3+P7-P10\nP4+P6-P10\n2P5-P10\nP2+P9-P11\nP3+P8-P11\nP4+P7-P11\nP5+P6-P11\nP2+P10-P12\nP3+P9-P12\nP4+P8-P12\nP5+P7-P12\n2P6-P12",
+    "linear_homo": "2P1-P2\nP1+P2-P3\nP1+P3-P4\nP1+P4-P5\nP1+P5-P6\nP1+P6-P7\nP1+P7-P8\nP1+P8-P9\nP1+P9-P10\nP1+P10-P11\nP1+P11-P12\n2P2-P4\n2P3-P6\n2P4-P8\n2P5-P10\n2P6-P12",
+    "linear_step": "2P1-P2\nP1+P2-P3\nP1+P3-P4\nP1+P4-P5\nP1+P5-P6\nP1+P6-P7\nP1+P7-P8\nP1+P8-P9\nP1+P9-P10\nP1+P10-P11\nP1+P11-P12",
+    "order2_combo": "2P1-P2\n2P2-P4\nP2+P4-P6\nP2+P6-P8\nP2+P8-P10\nP2+P10-P12\nP2+P12-P14\nP2+P14-P16\n2P4-P8\nP4+P6-P10\nP4+P8-P12\nP4+P10-P14\nP4+P12-P16\n2P6-P12\nP6+P8-P14\nP6+P10-P16\n2P8-P16",
+    "order2_homo": "2P1-P2\n2P2-P4\nP2+P4-P6\nP2+P6-P8\nP2+P8-P10\nP2+P10-P12\nP2+P12-P14\nP2+P14-P16\n2P4-P8\n2P6-P12\n2P8-P16",
+    "order2_step": "2P1-P2\n2P2-P4\nP2+P4-P6\nP2+P6-P8\nP2+P8-P10\nP2+P10-P12\nP2+P12-P14\nP2+P14-P16",
+    "order3_combo": "2P1-P2\nP1+P2-P3\n2P3-P6\nP3+P6-P9\nP3+P9-P12\n2P6-P12",
+    "order3_step": "2P1-P2\nP1+P2-P3\n2P3-P6\nP3+P6-P9\nP3+P9-P12"
+  },
+  "parameters_by_model": {
+    "linear_combo": {
+      "k1f": {
+        "initial_guess": 0.1,
+        "lower_bound": 1e-08,
+        "upper_bound": 100.0
+      }
+    },
+    "linear_homo": {
+      "k1f": {
+        "initial_guess": 0.1,
+        "lower_bound": 1e-08,
+        "upper_bound": 100.0
+      }
+    },
+    "linear_step": {
+      "k1f": {
+        "initial_guess": 0.1,
+        "lower_bound": 1e-08,
+        "upper_bound": 100.0
+      }
+    },
+    "order2_combo": {
+      "k1f": {
+        "initial_guess": 0.1,
+        "lower_bound": 1e-08,
+        "upper_bound": 100.0
+      }
+    },
+    "order2_homo": {
+      "k1f": {
+        "initial_guess": 0.1,
+        "lower_bound": 1e-08,
+        "upper_bound": 100.0
+      }
+    },
+    "order2_step": {
+      "k1f": {
+        "initial_guess": 0.1,
+        "lower_bound": 1e-08,
+        "upper_bound": 100.0
+      }
+    },
+    "order3_combo": {
+      "k1f": {
+        "initial_guess": 0.1,
+        "lower_bound": 1e-08,
+        "upper_bound": 100.0
+      }
+    },
+    "order3_step": {
+      "k1f": {
+        "initial_guess": 0.1,
+        "lower_bound": 1e-08,
+        "upper_bound": 100.0
+      }
+    }
+  },
+  "initial_conditions_by_model": {
+    "linear_combo": {
+      "P2": {
+        "value": 1.0,
+        "mode": "fixed"
+      },
+      "P1": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P3": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P4": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P5": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P6": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P7": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P8": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P9": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P10": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P11": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P12": {
+        "value": 0.0,
+        "mode": "fixed"
+      }
+    },
+    "linear_homo": {
+      "P2": {
+        "value": 1.0,
+        "mode": "fixed"
+      },
+      "P1": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P3": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P4": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P5": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P6": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P7": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P8": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P9": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P10": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P11": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P12": {
+        "value": 0.0,
+        "mode": "fixed"
+      }
+    },
+    "linear_step": {
+      "P2": {
+        "value": 1.0,
+        "mode": "fixed"
+      },
+      "P1": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P3": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P4": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P5": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P6": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P7": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P8": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P9": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P10": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P11": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P12": {
+        "value": 0.0,
+        "mode": "fixed"
+      }
+    },
+    "order2_combo": {
+      "P2": {
+        "value": 1.0,
+        "mode": "fixed"
+      },
+      "P4": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P6": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P8": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P10": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P12": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P14": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P16": {
+        "value": 0.0,
+        "mode": "fixed"
+      }
+    },
+    "order2_homo": {
+      "P2": {
+        "value": 1.0,
+        "mode": "fixed"
+      },
+      "P4": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P6": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P8": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P10": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P12": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P14": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P16": {
+        "value": 0.0,
+        "mode": "fixed"
+      }
+    },
+    "order2_step": {
+      "P2": {
+        "value": 1.0,
+        "mode": "fixed"
+      },
+      "P4": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P6": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P8": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P10": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P12": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P14": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P16": {
+        "value": 0.0,
+        "mode": "fixed"
+      }
+    },
+    "order3_combo": {
+      "P2": {
+        "value": 1.0,
+        "mode": "fixed"
+      },
+      "P1": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P3": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P6": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P9": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P12": {
+        "value": 0.0,
+        "mode": "fixed"
+      }
+    },
+    "order3_step": {
+      "P2": {
+        "value": 1.0,
+        "mode": "fixed"
+      },
+      "P1": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P3": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P6": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P9": {
+        "value": 0.0,
+        "mode": "fixed"
+      },
+      "P12": {
+        "value": 0.0,
+        "mode": "fixed"
+      }
+    }
+  },
+  "method": "trf",
+  "loss": "linear",
+  "max_nfev": 300,
+  "rtol": 1e-07,
+  "atol": 1e-10,
+  "variable_projection_backend": "numpy",
+  "variable_projection_method": "LSODA",
+  "show_progress": false,
+  "no_plots": true,
+  "sort_by": "bic"
+}

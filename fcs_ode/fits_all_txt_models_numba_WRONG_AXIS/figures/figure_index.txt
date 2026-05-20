@@ -1,0 +1,47 @@
+FCS model comparison figures
+============================
+
+Best model: order2_step
+Top models plotted: order2_step, order3_step, order3_combo, order2_homo, linear_step, order2_combo, linear_homo, linear_combo
+
+best_model_observable_rss.png
+best_model_overlay_all_traces.png
+best_model_overlay_selected_traces.png
+best_model_parameter_values.png
+best_model_residual_heatmap.png
+linear_combo/observable_rss.png
+linear_combo/overlay_selected_traces.png
+linear_combo/parameter_values.png
+linear_combo/residual_heatmap.png
+linear_homo/observable_rss.png
+linear_homo/overlay_selected_traces.png
+linear_homo/parameter_values.png
+linear_homo/residual_heatmap.png
+linear_step/observable_rss.png
+linear_step/overlay_selected_traces.png
+linear_step/parameter_values.png
+linear_step/residual_heatmap.png
+model_ranking_aic.png
+model_ranking_bic.png
+model_ranking_rss.png
+order2_combo/observable_rss.png
+order2_combo/overlay_selected_traces.png
+order2_combo/parameter_values.png
+order2_combo/residual_heatmap.png
+order2_homo/observable_rss.png
+order2_homo/overlay_selected_traces.png
+order2_homo/parameter_values.png
+order2_homo/residual_heatmap.png
+order2_step/observable_rss.png
+order2_step/overlay_selected_traces.png
+order2_step/parameter_values.png
+order2_step/residual_heatmap.png
+order3_combo/observable_rss.png
+order3_combo/overlay_selected_traces.png
+order3_combo/parameter_values.png
+order3_combo/residual_heatmap.png
+order3_step/observable_rss.png
+order3_step/overlay_selected_traces.png
+order3_step/parameter_values.png
+order3_step/residual_heatmap.png
+top_models_bic_comparison.png

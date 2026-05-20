@@ -1,0 +1,12 @@
+FCS feature fit profile plots
+=============================
+
+Output dir: fcs_ode/fits_fcs_features_multi_numba
+Top models: order3_combo, order3_step, order2_step, linear_step, order2_homo, order2_combo, linear_homo, linear_combo
+Observed time column: time_min
+Signal columns: fcs_amplitude_proxy, fcs_auc_proxy, fcs_half_tau_proxy
+
+- fcs_amplitude_proxy_observed_vs_fitted_models.png
+- fcs_auc_proxy_observed_vs_fitted_models.png
+- fcs_half_tau_proxy_observed_vs_fitted_models.png
+- best_model_order3_combo_all_features_observed_vs_fitted.png
