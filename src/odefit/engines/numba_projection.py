@@ -154,6 +154,21 @@ class NumbaProjectionEngine:
             rss=rss,
         )
 
+    def project_single_species_batch(
+        self,
+        *,
+        observed_matrix: np.ndarray,
+        species_values: np.ndarray,
+        fit_scale: bool = True,
+        fit_offset: bool = True,
+    ):
+        return self._fallback.project_single_species_batch(
+            observed_matrix=observed_matrix,
+            species_values=species_values,
+            fit_scale=fit_scale,
+            fit_offset=fit_offset,
+        )
+
     def project_multispecies(
         self,
         *,

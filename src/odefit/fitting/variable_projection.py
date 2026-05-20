@@ -23,7 +23,13 @@ from odefit.performance.array_solve_ivp import (
     ArraySolveResult,
     solve_array_mass_action_model,
 )
-
+from odefit.fitting.engine_helpers import (
+    engine_least_squares,
+    engine_project_single_species,
+    engine_project_single_species_batch,
+    engine_solve_to_dataframe,
+    resolve_engine_bundle,
+)
 
 @dataclass
 class LinearObservableProjectionResult:
@@ -142,7 +148,6 @@ def solve_scale_offset(
 
     return 1.0, 0.0
 
-
 def project_observables_onto_species(
     timepoints: np.ndarray,
     simulated_species_values: np.ndarray,
@@ -154,36 +159,95 @@ def project_observables_onto_species(
     engine_bundle: BackendEngineBundle | None = None,
 ) -> LinearObservableProjectionResult:
     """
-    Project each observed signal column onto one simulated species curve.
+    Project many observable columns onto one simulated species trajectory.
 
-    This analytically solves the best scale/offset for every signal column.
+    If an engine bundle is provided and it supports batched projection, all
+    columns are projected in one batch. Otherwise, this falls back to the
+    original per-column loop.
     """
 
     x = np.asarray(simulated_species_values, dtype=float)
-    time_array = np.asarray(timepoints, dtype=float)
 
-    if x.shape != time_array.shape:
-        raise ValueError(
-            f"simulated_species_values must have shape {time_array.shape}, got {x.shape}"
-        )
+    observed_matrix = observed_dataframe[signal_columns].to_numpy(dtype=float)
 
-    signal_weights = {} if signal_weights is None else signal_weights
+    if engine_bundle is not None:
+        try:
+            batched_projection = engine_project_single_species_batch(
+                engine_bundle=engine_bundle,
+                observed_matrix=observed_matrix,
+                species_values=x,
+                fit_scale=fit_scale,
+                fit_offset=fit_offset,
+            )
 
-    predicted_data: dict[str, Any] = {
-        "time": time_array,
-    }
+            observable_rows = []
+            predicted_dataframe = pd.DataFrame({"time": timepoints})
+            residuals_dataframe = pd.DataFrame({"time": timepoints})
+            residual_parts = []
 
-    residual_data: dict[str, Any] = {
-        "time": time_array,
-    }
+            for column_index, signal_column in enumerate(signal_columns):
+                y = observed_matrix[:, column_index]
+                predicted = batched_projection.predicted[:, column_index]
 
-    observable_rows: list[dict[str, Any]] = []
-    residual_blocks: list[np.ndarray] = []
+                # Preserve historical residual convention used by fitting:
+                # predicted - observed.
+                residual = predicted - y
 
-    n_linear_parameters = 0
+                if signal_weights and signal_column in signal_weights:
+                    residual_for_vector = (
+                        residual * float(signal_weights[signal_column])
+                    )
+                else:
+                    residual_for_vector = residual
 
-    for column in signal_columns:
-        y = observed_dataframe[column].to_numpy(dtype=float)
+                valid = np.isfinite(residual_for_vector)
+                residual_parts.append(residual_for_vector[valid])
+
+                observable_rows.append(
+                    {
+                        "data_column": signal_column,
+                        "signal_column": signal_column,
+                        "scale": float(batched_projection.scales[column_index]),
+                        "offset": float(batched_projection.offsets[column_index]),
+                        "rss": float(
+                            np.nansum(
+                                residual[valid] ** 2,
+                            )
+                        ),
+                    }
+                )
+
+                predicted_dataframe[signal_column] = predicted
+                residuals_dataframe[signal_column] = residual
+
+            residual_vector = np.concatenate(residual_parts)
+
+            observable_table = pd.DataFrame(observable_rows)
+
+            return LinearObservableProjectionResult(
+                observable_table=observable_table,
+                predicted_dataframe=predicted_dataframe,
+                residuals_dataframe=residuals_dataframe,
+                residual_vector=residual_vector,
+                rss=float(np.sum(residual_vector**2)),
+                n_observations=int(len(residual_vector)),
+                n_linear_parameters=int(
+                    len(signal_columns) * int(fit_scale)
+                    + len(signal_columns) * int(fit_offset)
+                ),
+            )
+
+        except AttributeError:
+            # Engine does not implement batched projection.
+            pass
+
+    observable_rows = []
+    predicted_dataframe = pd.DataFrame({"time": timepoints})
+    residuals_dataframe = pd.DataFrame({"time": timepoints})
+    residual_parts = []
+
+    for signal_column in signal_columns:
+        y = observed_dataframe[signal_column].to_numpy(dtype=float)
 
         if engine_bundle is None:
             scale, offset = solve_scale_offset(
@@ -207,58 +271,50 @@ def project_observables_onto_species(
             offset = projection.offset
             predicted = projection.predicted
 
+        # Preserve historical residual convention used by fitting:
+        # predicted - observed.
         residual = predicted - y
 
-        weight = float(signal_weights.get(column, 1.0))
-        weighted_residual = residual * weight
+        if signal_weights and signal_column in signal_weights:
+            residual_for_vector = residual * float(signal_weights[signal_column])
+        else:
+            residual_for_vector = residual
 
-        predicted_data[column] = predicted
-        residual_data[column] = residual
-        residual_blocks.append(weighted_residual[np.isfinite(weighted_residual)])
+        valid = np.isfinite(residual_for_vector)
 
-        n_finite = int(np.isfinite(y).sum())
-        column_rss = float(
-            np.sum(weighted_residual[np.isfinite(weighted_residual)] ** 2)
-        )
+        residual_parts.append(residual_for_vector[valid])
 
-        if fit_scale:
-            n_linear_parameters += 1
-
-        if fit_offset:
-            n_linear_parameters += 1
+        rss = float(np.nansum(residual[valid] ** 2))
 
         observable_rows.append(
             {
-                "data_column": column,
-                "scale": scale,
-                "offset": offset,
-                "fit_scale": fit_scale,
-                "fit_offset": fit_offset,
-                "weight": weight,
-                "n_observations": n_finite,
-                "rss": column_rss,
-                "rmse": float(np.sqrt(column_rss / max(n_finite, 1))),
+                "data_column": signal_column,
+                "signal_column": signal_column,
+                "scale": float(scale),
+                "offset": float(offset),
+                "rss": rss,
             }
         )
 
-    residual_vector = np.concatenate(residual_blocks)
+        predicted_dataframe[signal_column] = predicted
+        residuals_dataframe[signal_column] = residual
 
-    rss = float(np.sum(residual_vector**2))
+    residual_vector = np.concatenate(residual_parts)
 
     observable_table = pd.DataFrame(observable_rows)
-    predicted_dataframe = pd.DataFrame(predicted_data)
-    residuals_dataframe = pd.DataFrame(residual_data)
 
     return LinearObservableProjectionResult(
         observable_table=observable_table,
         predicted_dataframe=predicted_dataframe,
         residuals_dataframe=residuals_dataframe,
         residual_vector=residual_vector,
-        rss=rss,
+        rss=float(np.sum(residual_vector**2)),
         n_observations=int(len(residual_vector)),
-        n_linear_parameters=n_linear_parameters,
+        n_linear_parameters=int(
+            len(signal_columns) * int(fit_scale)
+            + len(signal_columns) * int(fit_offset)
+        ),
     )
-
 
 def _build_initial_parameter_dict(
     parameter_specs: list[ParameterSpec],

@@ -58,6 +58,20 @@ def engine_project_single_species(
         fit_offset=fit_offset,
     )
 
+def engine_project_single_species_batch(
+    *,
+    engine_bundle: BackendEngineBundle,
+    observed_matrix,
+    species_values,
+    fit_scale: bool = True,
+    fit_offset: bool = True,
+):
+    return engine_bundle.projection.project_single_species_batch(
+        observed_matrix=np.asarray(observed_matrix, dtype=float),
+        species_values=np.asarray(species_values, dtype=float),
+        fit_scale=fit_scale,
+        fit_offset=fit_offset,
+    )
 
 def engine_project_multispecies(
     *,

@@ -30,3 +30,15 @@ from odefit.engines.jax_projection import (
     JaxProjectionEngine,
     is_jax_available,
 )
+from odefit.engines.base import (
+    BackendEngineBundle,
+    BatchedSingleSpeciesProjectionResult,
+    EngineCapabilities,
+    LeastSquaresEngine,
+    LeastSquaresEngineResult,
+    MultispeciesProjectionResult,
+    ProjectionEngine,
+    SingleSpeciesProjectionResult,
+    SolverEngine,
+    SolverEngineResult,
+)

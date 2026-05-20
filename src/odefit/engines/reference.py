@@ -6,6 +6,7 @@ import numpy as np
 from scipy.optimize import least_squares as scipy_least_squares
 
 from odefit.engines.base import (
+    BatchedSingleSpeciesProjectionResult,
     EngineCapabilities,
     LeastSquaresEngineResult,
     MultispeciesProjectionResult,
@@ -131,6 +132,107 @@ class ReferenceNumpyProjectionEngine:
             predicted=predicted,
             residuals=residuals,
             rss=rss,
+        )
+
+    def project_single_species_batch(
+        self,
+        *,
+        observed_matrix: np.ndarray,
+        species_values: np.ndarray,
+        fit_scale: bool = True,
+        fit_offset: bool = True,
+    ) -> BatchedSingleSpeciesProjectionResult:
+        y_matrix = np.asarray(observed_matrix, dtype=float)
+        x = np.asarray(species_values, dtype=float)
+
+        if y_matrix.ndim != 2:
+            raise ValueError("observed_matrix must be a 2D array.")
+
+        if y_matrix.shape[0] != x.shape[0]:
+            raise ValueError(
+                "observed_matrix row count must match species_values length."
+            )
+
+        n_observables = y_matrix.shape[1]
+
+        scales = np.empty(n_observables, dtype=float)
+        offsets = np.empty(n_observables, dtype=float)
+        predicted = np.empty_like(y_matrix, dtype=float)
+        residuals = np.empty_like(y_matrix, dtype=float)
+        rss_by_observable = np.empty(n_observables, dtype=float)
+
+        # Fast path: no missing values.
+        if np.isfinite(x).all() and np.isfinite(y_matrix).all():
+            n_timepoints = x.shape[0]
+
+            if fit_scale and fit_offset:
+                sx = float(np.sum(x))
+                sxx = float(np.sum(x * x))
+                sy = np.sum(y_matrix, axis=0)
+                sxy = x @ y_matrix
+
+                denominator = n_timepoints * sxx - sx * sx
+
+                if denominator == 0.0:
+                    raise ValueError("Cannot fit scale/offset: singular design.")
+
+                scales = (n_timepoints * sxy - sx * sy) / denominator
+                offsets = (sy - scales * sx) / n_timepoints
+
+            elif fit_scale and not fit_offset:
+                denominator = float(np.dot(x, x))
+
+                if denominator == 0.0:
+                    raise ValueError(
+                        "Cannot fit scale: species vector has zero norm."
+                    )
+
+                scales = (x @ y_matrix) / denominator
+                offsets = np.zeros(n_observables, dtype=float)
+
+            elif not fit_scale and fit_offset:
+                scales = np.ones(n_observables, dtype=float)
+                offsets = np.mean(y_matrix - x[:, None], axis=0)
+
+            else:
+                scales = np.ones(n_observables, dtype=float)
+                offsets = np.zeros(n_observables, dtype=float)
+
+            predicted = x[:, None] * scales[None, :] + offsets[None, :]
+            residuals = y_matrix - predicted
+            rss_by_observable = np.sum(residuals**2, axis=0)
+
+            return BatchedSingleSpeciesProjectionResult(
+                scales=np.asarray(scales, dtype=float),
+                offsets=np.asarray(offsets, dtype=float),
+                predicted=predicted,
+                residuals=residuals,
+                rss_by_observable=rss_by_observable,
+                rss=float(np.sum(rss_by_observable)),
+            )
+
+        # Robust missing-value fallback.
+        for column_index in range(n_observables):
+            result = self.project_single_species(
+                observed_values=y_matrix[:, column_index],
+                species_values=x,
+                fit_scale=fit_scale,
+                fit_offset=fit_offset,
+            )
+
+            scales[column_index] = result.scale
+            offsets[column_index] = result.offset
+            predicted[:, column_index] = result.predicted
+            residuals[:, column_index] = result.residuals
+            rss_by_observable[column_index] = result.rss
+
+        return BatchedSingleSpeciesProjectionResult(
+            scales=scales,
+            offsets=offsets,
+            predicted=predicted,
+            residuals=residuals,
+            rss_by_observable=rss_by_observable,
+            rss=float(np.sum(rss_by_observable)),
         )
 
     def project_multispecies(

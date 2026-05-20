@@ -46,6 +46,14 @@ class SingleSpeciesProjectionResult:
     residuals: np.ndarray
     rss: float
 
+@dataclass
+class BatchedSingleSpeciesProjectionResult:
+    scales: np.ndarray
+    offsets: np.ndarray
+    predicted: np.ndarray
+    residuals: np.ndarray
+    rss_by_observable: np.ndarray
+    rss: float
 
 @dataclass
 class MultispeciesProjectionResult:
@@ -103,7 +111,15 @@ class ProjectionEngine(Protocol):
         fit_offset: bool = True,
     ) -> SingleSpeciesProjectionResult:
         ...
-
+    def project_single_species_batch(
+        self,
+        *,
+        observed_matrix: np.ndarray,
+        species_values: np.ndarray,
+        fit_scale: bool = True,
+        fit_offset: bool = True,
+    ) -> BatchedSingleSpeciesProjectionResult:
+        ...
     def project_multispecies(
         self,
         *,
