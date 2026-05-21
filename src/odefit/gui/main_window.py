@@ -6,6 +6,8 @@ from PySide6.QtWidgets import (
 from .model_editor_panel import ModelEditorPanel
 from .parameter_table import ParameterTablePanel
 from .project_menu import setup_project_menu
+from .data_import_panel import DataImportPanel
+from .plot_panel import PlotPanel
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +39,15 @@ class MainWindow(QMainWindow):
         # 2. Fit Setup Tab (Parameters)
         self.fit_tab = ParameterTablePanel()
         self.tabs.addTab(self.fit_tab, "2. Fit Settings")
+
+        # 3. Experimental Data Import Tab
+        self.data_tab = DataImportPanel()
+        self.tabs.addTab(self.data_tab, "3. Experimental Data Import")
+
+        # 4. Plotting Experimental Data
+        self.plot_tab = PlotPanel()
+        self.tabs.addTab(self.plot_tab, "4. Experimental Data Plot")
+        self.data_tab.datasets_updated.connect(self.plot_tab.update_datasets)
 
         # Wire them together! When model is validated, update the parameter table
         self.model_tab.model_validated.connect(self.fit_tab.update_from_model)

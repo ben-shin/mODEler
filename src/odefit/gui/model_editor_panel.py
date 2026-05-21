@@ -55,7 +55,7 @@ class ModelEditorPanel(QWidget):
     def _on_validate_clicked(self):
         raw_text = self.reaction_editor.toPlainText()
         if not raw_text.strip():
-            self.ode_preview.setText("Please enter at least one reaction.")
+            self.ode_preview.setPlainText("Please enter at least one reaction.")
             return
 
         try:
@@ -68,10 +68,9 @@ class ModelEditorPanel(QWidget):
             preview_text += "Generated ODEs:\n" + "\n".join(ode_lines)
 
             self.ode_preview.setStyleSheet("font-family: monospace; color: black; background-color: #f5f5f5;")
-            self.ode_preview.setText(preview_text)
-
+            self.ode_preview.setPlainText(preview_text)
             self.model_validated.emit(model_spec)
 
         except Exception as e:
             self.ode_preview.setStyleSheet("font-family: monospace; color: red; background-color: #ffeeee;")
-            self.ode_preview.setText(f"Error:\n\n{str(e)}")
+            self.ode_preview.setPlainText(f"Error:\n\n{str(e)}")

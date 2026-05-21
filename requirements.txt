@@ -6,3 +6,4 @@ sympy
 PySide6
 numba
 pytest
+seaborn

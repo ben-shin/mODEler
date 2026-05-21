@@ -1,0 +1,148 @@
+from PySide6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QRadioButton, QButtonGroup
+)
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+
+# Import Ben's plotting function and settings!
+from odefit.plotting.timecourse_plots import plot_dataset_timecourse, plot_variable_comparison
+from odefit.plotting.plot_settings import PlotSettings
+
+
+class PlotPanel(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.main_layout = None
+        self.placeholder = None
+        self.current_canvas = None
+
+        self.datasets = {}
+        self.all_unique_variables = []
+
+        self._setup_ui()
+
+    def _setup_ui(self):
+        self.main_layout = QVBoxLayout(self)
+
+        # --- Top Section: Mode Selector ---
+        mode_layout = QHBoxLayout()
+        mode_layout.addWidget(QLabel("Plot Mode:"))
+
+        self.radio_dataset = QRadioButton("View by Dataset")
+        self.radio_variable = QRadioButton("Compare Variables")
+        self.radio_dataset.setChecked(True)
+
+        self.mode_group = QButtonGroup()
+        self.mode_group.addButton(self.radio_dataset)
+        self.mode_group.addButton(self.radio_variable)
+        self.mode_group.buttonClicked.connect(self._refresh_dropdown)
+
+        mode_layout.addWidget(self.radio_dataset)
+        mode_layout.addWidget(self.radio_variable)
+        mode_layout.addStretch()
+        self.main_layout.addLayout(mode_layout)
+
+        # --- Middle Section: Data Selector ---
+        selector_layout = QHBoxLayout()
+        self.lbl_selector = QLabel("Select Dataset:")
+        selector_layout.addWidget(self.lbl_selector)
+
+        self.combo_selection = QComboBox()
+        self.combo_selection.setEnabled(False)
+        self.combo_selection.currentTextChanged.connect(self._draw_selected_plot)
+        selector_layout.addWidget(self.combo_selection)
+
+        selector_layout.addStretch()
+        self.main_layout.addLayout(selector_layout)
+
+        # --- Bottom Section: Plot Area ---
+        self.placeholder = QLabel("Load experimental data to see plots...")
+        self.placeholder.setStyleSheet("color: gray; font-style: italic; font-size: 14px;")
+        self.main_layout.addWidget(self.placeholder)
+
+    def update_datasets(self, datasets_dict):
+        """Catches the updated workspace from the Data Panel."""
+        self.datasets = datasets_dict
+
+        # Gather every unique variable name across all datasets
+        variables = set()
+        for ds in self.datasets.values():
+            variables.update(ds.signal_columns)
+        self.all_unique_variables = sorted(list(variables))
+
+        self._refresh_dropdown()
+
+    def _refresh_dropdown(self):
+        """Updates the dropdown options based on the chosen Mode."""
+        self.combo_selection.blockSignals(True)
+        self.combo_selection.clear()
+
+        if not self.datasets:
+            self.combo_selection.setEnabled(False)
+            self._clear_plot()
+            self.combo_selection.blockSignals(False)
+            return
+
+        self.combo_selection.setEnabled(True)
+
+        if self.radio_dataset.isChecked():
+            self.lbl_selector.setText("Select Dataset:")
+            self.combo_selection.addItems(list(self.datasets.keys()))
+        else:
+            self.lbl_selector.setText("Select Variable to Compare:")
+            self.combo_selection.addItems(self.all_unique_variables)
+
+        self.combo_selection.blockSignals(False)
+        self._draw_selected_plot(self.combo_selection.currentText())
+
+    def _clear_plot(self):
+        if self.current_canvas:
+            self.main_layout.removeWidget(self.current_canvas)
+            self.current_canvas.deleteLater()
+            self.current_canvas = None
+
+        if not self.placeholder:
+            self.placeholder = QLabel("Load experimental data to see plots...")
+            self.placeholder.setStyleSheet("color: gray; font-style: italic; font-size: 14px;")
+            self.main_layout.addWidget(self.placeholder)
+
+    def _draw_selected_plot(self, selection):
+        """Draws the plot based on the current mode and selection."""
+        if not selection:
+            return
+
+        if self.radio_dataset.isChecked():
+            # MODE 1: Stacked Subplots for a single Dataset
+            dataset = self.datasets[selection]
+            settings = PlotSettings(
+                title=f"Dataset: {selection}",
+                x_label=dataset.time_column,
+                y_label="Concentration"
+            )
+            fig, _ = plot_dataset_timecourse(dataset=dataset, settings=settings)
+
+        else:
+            # MODE 2: Overlay a single Variable across all Datasets
+            # We pass the ENTIRE dictionary of datasets here!
+            settings = PlotSettings(
+                title=f"Comparing '{selection}' across Workspace",
+                x_label="Time",
+                y_label=selection
+            )
+            fig, _ = plot_variable_comparison(
+                datasets_dict=self.datasets,
+                variable=selection,
+                settings=settings
+            )
+
+        # Display the Figure in the UI
+        if self.placeholder:
+            self.placeholder.deleteLater()
+            self.placeholder = None
+
+        if self.current_canvas:
+            self.main_layout.removeWidget(self.current_canvas)
+            self.current_canvas.deleteLater()
+
+        self.current_canvas = FigureCanvas(fig)
+        self.main_layout.addWidget(self.current_canvas)
