@@ -74,3 +74,8 @@ class ModelEditorPanel(QWidget):
         except Exception as e:
             self.ode_preview.setStyleSheet("font-family: monospace; color: red; background-color: #ffeeee;")
             self.ode_preview.setPlainText(f"Error:\n\n{str(e)}")
+
+    def get_model_spec(self) -> ModelSpec:
+        """Passes the current ODE model to the Fit Engine."""
+        raw_text = self.reaction_editor.toPlainText()
+        return build_model_spec(raw_text)
