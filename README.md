@@ -39,7 +39,7 @@ conda activate modeler
 ## Running
 
 ```bash
-python -m odefit.app
+python main.py
 ```
 
 ## Development
