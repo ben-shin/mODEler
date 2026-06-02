@@ -22,7 +22,8 @@ class ModelEditorPanel(QWidget):
         header_label.setStyleSheet("font-weight: bold; font-size: 14px;")
 
         self.validate_btn = QPushButton("Validate & Generate ODEs")
-        self.validate_btn.clicked.connect(self._on_validate_clicked)
+        # --- FIXED: Now points to the public method ---
+        self.validate_btn.clicked.connect(self.validate_model)
 
         header_layout.addWidget(header_label)
         header_layout.addStretch()
@@ -52,7 +53,8 @@ class ModelEditorPanel(QWidget):
 
         layout.addWidget(splitter)
 
-    def _on_validate_clicked(self):
+    def validate_model(self):
+        """Validates the model text and triggers the generation of ODEs."""
         raw_text = self.reaction_editor.toPlainText()
         if not raw_text.strip():
             self.ode_preview.setPlainText("Please enter at least one reaction.")

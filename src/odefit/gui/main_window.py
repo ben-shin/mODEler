@@ -1,6 +1,7 @@
 import logging
 from PySide6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QTabWidget, QStatusBar
+    QMainWindow, QWidget, QVBoxLayout, QTabWidget, QStatusBar,
+    QFileDialog, QMessageBox
 )
 
 from .model_editor_panel import ModelEditorPanel
@@ -13,6 +14,10 @@ from .fit_panel import FitPanel
 from odefit.fitting.optimizer import fit_model
 from odefit.fitting.fit_settings import FitSettings
 import traceback
+
+import json
+from odefit.export.json_export import to_jsonable
+from odefit.export.bundle_export import export_fit_bundle
 
 logger = logging.getLogger(__name__)
 
@@ -72,10 +77,6 @@ class MainWindow(QMainWindow):
         self.setStatusBar(self.status_bar)
         self.status_bar.showMessage("Ready.")
 
-    def load_project(self, filepath: str):
-        self.current_project_file = filepath
-        self.status_bar.showMessage(f"Loaded project: {filepath}")
-
     def _execute_fit(self, dataset_name, method):
         self.fit_tab.clear_log()
         self.fit_tab.log_message("Initializing ODE engine...")
@@ -90,7 +91,7 @@ class MainWindow(QMainWindow):
             # 2. Build the Species Mapping (Map CSV columns to Model Species perfectly)
             species_mapping = {col: col for col in dataset.signal_columns if col in model_spec.species}
             if not species_mapping:
-                self.fit_tab.log_message("⚠️ WARNING: Could not automatically map Data Columns to Model Species.")
+                self.fit_tab.log_message("WARNING: Could not automatically map Data Columns to Model Species.")
 
             # 3. Build Ben's Settings object
             settings = FitSettings(
@@ -115,13 +116,117 @@ class MainWindow(QMainWindow):
 
             # 5. Output Results to the Console
             if result.success:
-                self.fit_tab.log_message("\n✅ FIT SUCCESSFUL!")
+                self.fit_tab.log_message("\n FIT SUCCESSFUL!")
             else:
-                self.fit_tab.log_message(f"\n❌ FIT FAILED: {result.message}")
+                self.fit_tab.log_message(f"\n FIT FAILED: {result.message}")
 
             self.fit_tab.log_message(f"\nFitted Parameters:\n{result.fitted_parameters}")
             self.fit_tab.log_message(f"\nStatistics:\n{result.statistics}")
 
         except Exception as e:
-            self.fit_tab.log_message(f"\n🔥 CRITICAL ERROR: {str(e)}")
+            self.fit_tab.log_message(f"\nCRITICAL ERROR: {str(e)}")
             self.fit_tab.log_message(traceback.format_exc())
+
+    def save_project(self):
+        """Saves the current UI state to a single JSON file."""
+        default_path = "/home/sebastianjoseph/Documents/mODEler/my_experiment.json"
+
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save mODEler Project",
+            default_path,
+            "JSON Files (*.json);;All Files (*)"
+        )
+
+        if file_path:
+            # Force the .json extension
+            if not file_path.endswith(".json"):
+                file_path += ".json"
+
+            print(f"\n--- SAVE DIAGNOSTIC START ---")
+            print(f"DEBUG 1: User selected path -> {file_path}")
+
+            try:
+                print("DEBUG 2: Gathering parameter specs...")
+                param_specs = self.parameter_tab.get_parameter_specs()
+                ic_specs = self.parameter_tab.get_initial_condition_specs()
+
+                print("DEBUG 3: Building project data dictionary...")
+                project_data = {
+                    "version": "0.1.0-alpha",
+                    "model_text": self.model_tab.reaction_editor.toPlainText(),
+                    "parameter_specs": to_jsonable(param_specs),
+                    "initial_condition_specs": to_jsonable(ic_specs),
+                    "data_files": list(self.data_tab.loaded_datasets.keys())
+                }
+
+                print("DEBUG 4: Attempting to write file to disk...")
+                with open(file_path, 'w') as f:
+                    json.dump(project_data, f, indent=4)
+
+                print("DEBUG 5: File successfully written!")
+                print("--- SAVE DIAGNOSTIC END ---\n")
+
+                self.current_project_file = file_path
+                self.status_bar.showMessage(f"Project saved to: {file_path}")
+
+            except Exception as e:
+                print(f"\nCRITICAL ERROR DURING SAVE: {str(e)}")
+                import traceback
+                traceback.print_exc()  # This prints the exact line number that crashed
+                QMessageBox.critical(self, "Save Error", f"Could not save file:\n{str(e)}")
+    def load_project(self):
+        """Loads a JSON project file back into the UI."""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, "Open mODEler Project", "", "JSON Files (*.json);;All Files (*)"
+        )
+
+        if file_path:
+            try:
+                with open(file_path, 'r') as f:
+                    project_data = json.load(f)
+
+                    # 1. Restore the model text
+                    if "model_text" in project_data:
+                        self.model_tab.reaction_editor.setPlainText(project_data["model_text"])
+                        # Trigger validation to build the generated ODEs automatically
+                        self.model_tab.validate_model()
+
+                    # 2. Restore the parameter bounds in the table
+                    if "parameter_specs" in project_data:
+                        self.parameter_tab.set_parameters_from_save(project_data["parameter_specs"])
+
+                self.current_project_file = file_path
+                self.status_bar.showMessage(f"Project loaded: {file_path}")
+            except Exception as e:
+                QMessageBox.critical(self, "Load Error", f"Could not load file:\n{str(e)}")
+
+    def export_fit_results(self, fit_result, dataset_name):
+        """Exports the massive results bundle to a chosen folder."""
+        if not fit_result or not fit_result.success:
+            QMessageBox.warning(self, "Export Failed", "No successful fit to export!")
+            return
+
+        # Ask the user to pick an empty folder
+        dir_path = QFileDialog.getExistingDirectory(self, "Select Export Directory")
+
+        if dir_path:
+            try:
+                self.fit_tab.log_message(f"Exporting massive bundle to {dir_path}...")
+
+                # Call your backend magic!
+                written_files = export_fit_bundle(
+                    fit_result=fit_result,
+                    model=self.model_tab.get_model_spec(),
+                    dataset=self.data_tab.loaded_datasets[dataset_name],
+                    output_dir=dir_path,
+                    parameter_specs=self.parameter_tab.get_parameter_specs(),
+                    initial_condition_specs=self.parameter_tab.get_initial_condition_specs(),
+                    species_mapping={},  # Pass your actual species mapping here!
+                    include_plots=True
+                )
+
+                self.fit_tab.log_message(f"Exported {len(written_files)} files successfully!")
+
+            except Exception as e:
+                self.fit_tab.log_message(f"Export Failed: {str(e)}")

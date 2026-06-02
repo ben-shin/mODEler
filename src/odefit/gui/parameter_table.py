@@ -77,3 +77,27 @@ class ParameterTablePanel(QWidget):
         # Since we haven't built an Initial Conditions UI table yet, we return an empty list.
         # Ben's engine will safely default the first species to 1.0 and the rest to 0.0!
         return []
+
+    def set_parameters_from_save(self, parameter_specs: list[dict]):
+        """Populates the UI table from a loaded JSON project file."""
+        # 1. Resize the table to fit the incoming saved data
+        self.table.setRowCount(len(parameter_specs))
+
+        # 2. Loop through the saved dictionaries and fill the rows
+        for row, param_data in enumerate(parameter_specs):
+            # Column 0: Name (Keep it read-only just like the auto-generator!)
+            name_item = QTableWidgetItem(str(param_data.get("name", f"Param_{row}")))
+            name_item.setFlags(name_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+            self.table.setItem(row, 0, name_item)
+
+            # Column 1: Initial Guess
+            guess = str(param_data.get("initial_guess", "1.0"))
+            self.table.setItem(row, 1, QTableWidgetItem(guess))
+
+            # Column 2: Lower Bound
+            lower = str(param_data.get("lower_bound", "1e-6"))
+            self.table.setItem(row, 2, QTableWidgetItem(lower))
+
+            # Column 3: Upper Bound
+            upper = str(param_data.get("upper_bound", "1e6"))
+            self.table.setItem(row, 3, QTableWidgetItem(upper))
