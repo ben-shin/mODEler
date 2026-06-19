@@ -22,8 +22,8 @@ class ParameterTablePanel(QWidget):
         label.setStyleSheet("font-weight: bold;")
         layout.addWidget(label)
 
-        self.table = QTableWidget(0, 4)
-        self.table.setHorizontalHeaderLabels(["Parameter", "Initial Guess", "Lower Bound", "Upper Bound"])
+        self.table = QTableWidget(0, 5)
+        self.table.setHorizontalHeaderLabels(["Parameter", "Initial Guess", "Lower Bound", "Upper Bound", "Fit?"])
 
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
@@ -39,12 +39,24 @@ class ParameterTablePanel(QWidget):
         self.table.setRowCount(len(parameters))
 
         for row, param_name in enumerate(parameters):
+            # Column 0: Name (Read-only)
             name_item = QTableWidgetItem(param_name)
             name_item.setFlags(name_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             self.table.setItem(row, 0, name_item)
+
+            # Columns 1-3: Guess, Lower, and Upper Bounds
             self.table.setItem(row, 1, QTableWidgetItem("1.0"))
             self.table.setItem(row, 2, QTableWidgetItem("1e-6"))
             self.table.setItem(row, 3, QTableWidgetItem("1e6"))
+
+            # Column 4: The "Fit?" Checkbox (Linter-safe!)
+            chk_item = QTableWidgetItem()
+            new_flags = (chk_item.flags() | Qt.ItemFlag.ItemIsUserCheckable) & ~Qt.ItemFlag.ItemIsEditable
+            chk_item.setFlags(new_flags)
+
+            # Default to checked (meaning 'fixed = False' in the backend)
+            chk_item.setCheckState(Qt.CheckState.Checked)
+            self.table.setItem(row, 4, chk_item)
 
     def get_parameter_specs(self) -> list[ParameterSpec]:
         """Passes the kinetic parameters from the UI table to the Fit Engine."""
@@ -55,19 +67,27 @@ class ParameterTablePanel(QWidget):
             guess_item = self.table.item(row, 1)
             lower_item = self.table.item(row, 2)
             upper_item = self.table.item(row, 3)
+            chk_item = self.table.item(row, 4)
 
             # 2. Extract the text safely (with fallback defaults just in case)
             param_name = name_item.text() if name_item is not None else f"Param_{row}"
             guess = float(guess_item.text()) if guess_item is not None else 1.0
             lower = float(lower_item.text()) if lower_item is not None else 1e-6
             upper = float(upper_item.text()) if upper_item is not None else 1e6
+            # Extract the checkbox state
+            is_fitted = chk_item.checkState() == Qt.CheckState.Checked if chk_item is not None else True
+
+            is_fixed = not is_fitted
 
             specs.append(
                 ParameterSpec(
                     name=param_name,
                     initial_guess=guess,
                     lower_bound=lower,
-                    upper_bound=upper
+                    upper_bound=upper,
+                    fixed= is_fixed,
+                    # If fixed, take initial guess as value
+                    fixed_value = guess if is_fixed else None
                 )
             )
         return specs
@@ -101,3 +121,17 @@ class ParameterTablePanel(QWidget):
             # Column 3: Upper Bound
             upper = str(param_data.get("upper_bound", "1e6"))
             self.table.setItem(row, 3, QTableWidgetItem(upper))
+
+            # Column 4: The Checkbox
+            is_fixed = param_data.get("fixed", False)
+
+            chk_item = QTableWidgetItem()
+
+            # Safely modify the default flags to keep the linter happy: Add Checkable, Remove Editable
+            new_flags = (chk_item.flags() | Qt.ItemFlag.ItemIsUserCheckable) & ~Qt.ItemFlag.ItemIsEditable
+            chk_item.setFlags(new_flags)
+
+            # --- FIXED: Use is_fixed to set the state ---
+            chk_item.setCheckState(Qt.CheckState.Unchecked if is_fixed else Qt.CheckState.Checked)
+
+            self.table.setItem(row, 4, chk_item)

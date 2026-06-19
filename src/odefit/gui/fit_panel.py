@@ -22,14 +22,44 @@ class FitPanel(QWidget):
         control_group = QGroupBox("1. Fit Settings")
         control_layout = QHBoxLayout()
 
-        control_layout.addWidget(QLabel("Target Dataset:"))
-        self.combo_dataset = QComboBox()
-        control_layout.addWidget(self.combo_dataset)
+        # control_layout.addWidget(QLabel("Target Dataset:"))
+        # self.combo_dataset = QComboBox()
+        # control_layout.addWidget(self.combo_dataset)
 
-        control_layout.addWidget(QLabel("Optimizer:"))
+        # 1. Create a mini layout just for this pair
+        dataset_row = QHBoxLayout()
+
+        # 2. Add your widgets to the mini layout
+        dataset_row.addWidget(QLabel("Target Dataset:"))
+        self.combo_dataset = QComboBox()
+        dataset_row.addWidget(self.combo_dataset)
+
+        # 3. Add a "stretch" at the end. This acts like an invisible spring
+        # that pushes the label and combobox tightly to the left!
+        dataset_row.addStretch()
+
+        # 4. Add the entire grouped row to your main control layout
+        control_layout.addLayout(dataset_row)
+
+        # 1. Create a mini layout just for the Optimizer row
+        optimizer_row = QHBoxLayout()
+
+        # 2. Add the label and the combobox
+        optimizer_row.addWidget(QLabel("Optimizer:"))
         self.combo_method = QComboBox()
         self.combo_method.addItems(["trf", "lm", "dogbox"])  # Scipy's standard least-squares methods
-        control_layout.addWidget(self.combo_method)
+        optimizer_row.addWidget(self.combo_method)
+
+        # 3. Add the invisible spring to push them tightly to the left
+        optimizer_row.addStretch()
+
+        # 4. Add the grouped row to your main control layout
+        control_layout.addLayout(optimizer_row)
+
+        # control_layout.addWidget(QLabel("Optimizer:"))
+        # self.combo_method = QComboBox()
+        # self.combo_method.addItems(["trf", "lm", "dogbox"])  # Scipy's standard least-squares methods
+        # control_layout.addWidget(self.combo_method)
 
         self.btn_run = QPushButton("RUN GLOBAL FIT")
         self.btn_run.setStyleSheet(
