@@ -7,7 +7,6 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Slot, Qt
 from odefit.model.model_spec import ModelSpec
 from odefit.fitting.parameter_spec import ParameterSpec
-from odefit.fitting.initial_condition_spec import InitialConditionSpec
 
 
 class ParameterTablePanel(QWidget):
@@ -29,7 +28,6 @@ class ParameterTablePanel(QWidget):
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         for i in range(1, 4):
             header.setSectionResizeMode(i, QHeaderView.ResizeMode.Stretch)
-
 
         layout.addWidget(self.table)
 
@@ -74,6 +72,7 @@ class ParameterTablePanel(QWidget):
             guess = float(guess_item.text()) if guess_item is not None else 1.0
             lower = float(lower_item.text()) if lower_item is not None else 1e-6
             upper = float(upper_item.text()) if upper_item is not None else 1e6
+
             # Extract the checkbox state
             is_fitted = chk_item.checkState() == Qt.CheckState.Checked if chk_item is not None else True
 
@@ -85,18 +84,12 @@ class ParameterTablePanel(QWidget):
                     initial_guess=guess,
                     lower_bound=lower,
                     upper_bound=upper,
-                    fixed= is_fixed,
+                    fixed=is_fixed,
                     # If fixed, take initial guess as value
-                    fixed_value = guess if is_fixed else None
+                    fixed_value=guess if is_fixed else None
                 )
             )
         return specs
-
-    def get_initial_condition_specs(self) -> list[InitialConditionSpec]:
-        """Passes the starting concentrations to the Fit Engine."""
-        # Since we haven't built an Initial Conditions UI table yet, we return an empty list.
-        # Ben's engine will safely default the first species to 1.0 and the rest to 0.0!
-        return []
 
     def set_parameters_from_save(self, parameter_specs: list[dict]):
         """Populates the UI table from a loaded JSON project file."""

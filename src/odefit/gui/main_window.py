@@ -69,9 +69,9 @@ class MainWindow(QMainWindow):
         # Tell the Main Window to listen to the "Run Fit" button!
         self.fit_tab.run_fit_requested.connect(self._execute_fit)
 
-        # Wire them together! When model is validated, update the parameter table
-        # (Fixed to point to self.parameter_tab!)
+        # Wire them together! When model is validated, update BOTH tables
         self.model_tab.model_validated.connect(self.parameter_tab.update_from_model)
+        self.model_tab.model_validated.connect(self.fit_tab.update_initial_conditions_from_model)
 
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
@@ -86,7 +86,8 @@ class MainWindow(QMainWindow):
             dataset = self.data_tab.loaded_datasets[dataset_name]
             model_spec = self.model_tab.get_model_spec()
             parameter_specs = self.parameter_tab.get_parameter_specs()
-            initial_condition_specs = self.parameter_tab.get_initial_condition_specs()
+            # ROUTED TO FIT_TAB
+            initial_condition_specs = self.fit_tab.get_initial_condition_specs()
 
             # 2. Build the Species Mapping (Map CSV columns to Model Species perfectly)
             species_mapping = {col: col for col in dataset.signal_columns if col in model_spec.species}
@@ -149,7 +150,8 @@ class MainWindow(QMainWindow):
             try:
                 print("DEBUG 2: Gathering parameter specs...")
                 param_specs = self.parameter_tab.get_parameter_specs()
-                ic_specs = self.parameter_tab.get_initial_condition_specs()
+                # ROUTED TO FIT_TAB
+                ic_specs = self.fit_tab.get_initial_condition_specs()
 
                 print("DEBUG 3: Building project data dictionary...")
                 project_data = {
@@ -175,6 +177,7 @@ class MainWindow(QMainWindow):
                 import traceback
                 traceback.print_exc()  # This prints the exact line number that crashed
                 QMessageBox.critical(self, "Save Error", f"Could not save file:\n{str(e)}")
+
     def load_project(self):
         """Loads a JSON project file back into the UI."""
         file_path, _ = QFileDialog.getOpenFileName(
@@ -196,6 +199,10 @@ class MainWindow(QMainWindow):
                     if "parameter_specs" in project_data:
                         self.parameter_tab.set_parameters_from_save(project_data["parameter_specs"])
 
+                    # 3. Restore the Initial Conditions table
+                    if "initial_condition_specs" in project_data:
+                        self.fit_tab.set_initial_conditions_from_save(project_data["initial_condition_specs"])
+
                 self.current_project_file = file_path
                 self.status_bar.showMessage(f"Project loaded: {file_path}")
             except Exception as e:
@@ -214,15 +221,22 @@ class MainWindow(QMainWindow):
             try:
                 self.fit_tab.log_message(f"Exporting massive bundle to {dir_path}...")
 
-                # Call your backend magic!
+                # 1. Grab the current dataset and model
+                dataset = self.data_tab.loaded_datasets[dataset_name]
+                model_spec = self.model_tab.get_model_spec()
+
+                # 2. Rebuild the species mapping dynamically
+                mapping = {col: col for col in dataset.signal_columns if col in model_spec.species}
+
+                # 3. Call your backend magic!
                 written_files = export_fit_bundle(
                     fit_result=fit_result,
-                    model=self.model_tab.get_model_spec(),
-                    dataset=self.data_tab.loaded_datasets[dataset_name],
+                    model=model_spec,
+                    dataset=dataset,
                     output_dir=dir_path,
                     parameter_specs=self.parameter_tab.get_parameter_specs(),
-                    initial_condition_specs=self.parameter_tab.get_initial_condition_specs(),
-                    species_mapping={},  # Pass your actual species mapping here!
+                    initial_condition_specs=self.fit_tab.get_initial_condition_specs(),
+                    species_mapping=mapping,  # <-- FIXED: Pass the dynamic mapping here!
                     include_plots=True
                 )
 
